@@ -1,0 +1,99 @@
+# Explicit project roots keep accidental Electron profiles and local artifacts
+# out of a newly initialized repository. Add new public roots deliberately.
+/*
+!/.gitignore
+!/README.md
+!/package.json
+!/package-lock.json
+!/electron.vite.config.ts
+!/review.vite.config.ts
+!/tsconfig.json
+!/assets/
+!/bridge/
+!/docs/
+!/electron/
+!/renderer/
+!/scripts/
+!/shared/
+!/plugins/
+
+# Dependencies, builds, test profiles, local rollback copies, and credentials.
+**/node_modules/
+**/out/
+**/release/
+**/dist/
+**/.cache/
+**/.qa*/
+**/*user-data*/
+**/.env
+**/.env.*
+!**/.env.example
+**/.npmrc
+**/bridge.json
+**/history.json
+**/activity.json
+**/preferences.json
+**/Cookies
+**/Login Data
+**/Local State
+**/*.log
+**/*.pem
+**/*.key
+**/*.blend1
+**/*.kra~
+**/.DS_Store
+
+# Historical live verification may contain session IDs, local locations, or
+# source-app metadata. The sanitized export is the reviewed upload boundary.
+assets/**/verification/
+assets/**/preview/*.json
+assets/characters/wakaba-mutsumi/v41-3d/preview/
+assets/**/ROLLBACK.txt
+assets/**/GENERATION_PROMPTS.json
+assets/**/metrics.md
+
+# Editable originals can carry packed absolute paths. Upload the reviewed portable
+# copies from the prepared public-source snapshot instead of these local originals.
+assets/**/source/*
+!assets/characters/wakaba-mutsumi/v42-motion/source/art/
+
+# Keep active, reviewed build/test tools; archived machine-specific helpers stay
+# available locally. New helpers need an explicit entry before publication.
+scripts/*
+!scripts/setup-codex.ps1
+!scripts/privacy-*.py
+!scripts/prepare-public-source.py
+!scripts/stage-v42-package.mjs
+!scripts/verify-v42-package.mjs
+!scripts/qa-v42-*
+!scripts/build-v42-*.py
+!scripts/assemble-v42-*.lua
+!scripts/export-v42-*.cjs
+!scripts/prepare-v42-*.py
+
+# Reviewed portable editable sources in this snapshot.
+!/PUBLIC_SOURCE_MANIFEST.json
+!/assets/characters/wakaba-mutsumi/v41-3d/source/
+!/assets/characters/wakaba-mutsumi/v42-motion/source/
+!/assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/
+!/assets/characters/wakaba-mutsumi/v41-3d/source/body-underarm.kra
+!/assets/characters/wakaba-mutsumi/v41-3d/source/face-underpaint.kra
+!/assets/characters/wakaba-mutsumi/v41-3d/source/flame.kra
+!/assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41.blend
+!/assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41_Motion.blend
+!/assets/characters/wakaba-mutsumi/v41-3d/source/question-eye.kra
+!/assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/drag-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/drag-entry-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/drag-release-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/Mutsumi_V42_CollarLift.blend
+!/assets/characters/wakaba-mutsumi/v42-motion/source/drag-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/drag-release-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/idle-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/Mutsumi_V42_Motion.blend
+!/assets/characters/wakaba-mutsumi/v42-motion/source/squeeze-eyes.kra
+!/assets/characters/wakaba-mutsumi/v42-motion/source/squeeze-eyes.ora
+!/assets/characters/wakaba-mutsumi/v42-motion/source/touch-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/water-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/water-entry-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/water-happy-30fps.aseprite
+!/assets/characters/wakaba-mutsumi/v42-motion/source/work-30fps.aseprite

@@ -1,0 +1,140 @@
+{
+  "passed": true,
+  "build": "packaged-asar",
+  "checks": [
+    {
+      "label": "startup during actual native task",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "same directory remains one project",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "different project enters full power",
+      "phase": "working",
+      "projects": 2,
+      "power": true,
+      "action": "power-work",
+      "ready": true
+    },
+    {
+      "label": "pause one project returns to normal work",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "another session completes while task remains",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "same chat directory change is counted",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "directory change restores distinct projects",
+      "phase": "working",
+      "projects": 2,
+      "power": true,
+      "action": "power-work",
+      "ready": true
+    },
+    {
+      "label": "full power exits to normal work",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "native unanswered question enters asking",
+      "phase": "asking",
+      "projects": 0,
+      "power": false,
+      "action": "ask",
+      "ready": true
+    },
+    {
+      "label": "native answer restores active work",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "native stop exits work",
+      "phase": "idle",
+      "projects": 0,
+      "power": false,
+      "action": "idle",
+      "ready": true
+    },
+    {
+      "label": "new native turn resumes work",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "observed terminal error exits work",
+      "phase": "idle",
+      "projects": 0,
+      "power": false,
+      "action": "idle",
+      "ready": true
+    },
+    {
+      "label": "work after error",
+      "phase": "working",
+      "projects": 1,
+      "power": false,
+      "action": "work",
+      "ready": true
+    },
+    {
+      "label": "natural native completion exits work",
+      "phase": "idle",
+      "projects": 0,
+      "power": false,
+      "action": "idle",
+      "ready": true
+    },
+    {
+      "label": "tray settings preserved",
+      "passed": true
+    },
+    {
+      "label": "idle cadence restores watering",
+      "phase": "idle",
+      "projects": 0,
+      "power": false,
+      "action": "water",
+      "ready": true
+    }
+  ],
+  "method": "Isolated JSONL fixtures through production native observer, main/preload and renderer",
+  "output": "Local fixture data excluded from public source export"
+}

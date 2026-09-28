@@ -1,0 +1,23 @@
+{
+  "name": "liquid-glass-pet",
+  "version": "0.1.0+codex.20260926161638",
+  "description": "Wakaba Mutsumi desktop notifications with native Codex questions.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Liquid Glass Pet",
+    "shortDescription": "Follow Codex activity and open native questions.",
+    "longDescription": "Remind about real native Codex questions and verified milestones. Answers stay in the official Codex panel.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Notify my desktop pet when this verified stage is complete.",
+      "Send a short notification to my desktop pet."
+    ]
+  }
+}

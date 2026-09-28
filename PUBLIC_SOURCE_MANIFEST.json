@@ -1,0 +1,852 @@
+{
+  "uploadBoundary": "This sanitized source snapshot; never the whole development workspace.",
+  "files": [
+    {
+      "file": ".gitignore",
+      "bytes": 3699,
+      "sha256": "f0110047b849d7253a48eac05447614ce2b2b04204531785cdb3f4c8cfd361aa"
+    },
+    {
+      "file": "README.md",
+      "bytes": 2993,
+      "sha256": "d3bac9da8004c669460d8a7edb4eddf66a8e9dcdff89592382e1ec9c38be330f"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/eye-question.png",
+      "bytes": 4402,
+      "sha256": "75e663ac573afbaab0c4d291e412f9f0cf7be4a54425efd3ea0eaa2c2ec53815"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-body.png",
+      "bytes": 22722,
+      "sha256": "b62db559413745d089c3727bf87b26004f309ed7883327af5d960af15f175ce3"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-eye_left.png",
+      "bytes": 2688,
+      "sha256": "fc127da344df5cfce10226ea42f1978f6abcd72cd12d724d3d2195f24def038a"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-eye_right.png",
+      "bytes": 2781,
+      "sha256": "b0e011dfcded3ade51de55620ecf53fcfd1fbdeb1e9157df5ddc9f2e4d579c2c"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-face.png",
+      "bytes": 17733,
+      "sha256": "46730f6e3e496bbbf429355b97b2adadf047ab2b0bdb7c32ca34c109620827c3"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-hair_back_left.png",
+      "bytes": 17465,
+      "sha256": "a4fb2d71adc5b694471cceb4b008f66178361283330f1ae1bda48bbd6f85d166"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-hair_back_right.png",
+      "bytes": 23857,
+      "sha256": "39a28e32948e231a3c7ca9a1236e7961c053ecb34930881e1b3af184a18e6579"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-hair_front.png",
+      "bytes": 77674,
+      "sha256": "7fb22478b9fcb02d03bd9386152e95b8fcc9bf776b4a55af13168d8dc3939c6b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-hand_left.png",
+      "bytes": 2034,
+      "sha256": "846e81f98f5a507b916d3b8c303ecae350d149315ea5ec38223b6d39f98e6174"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-hand_right.png",
+      "bytes": 2036,
+      "sha256": "2510c58783ea242cdfaa035dbfb938399be3bd88c672301cf29ff2a8fd43ac9b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-leg_left.png",
+      "bytes": 4126,
+      "sha256": "be32518c741f0affc7b6942286b27ba72a741ecf6874b987d85d24d05f0f95cf"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-leg_right.png",
+      "bytes": 4081,
+      "sha256": "cf43eeac79e6ece97235af4d6dcdd94f8152f782e09866a46e39125a8e06fae8"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-sleeve_left.png",
+      "bytes": 4488,
+      "sha256": "f2dc331a18be7fe7866ed685547ec2d5ecdea600aa428162dc9002739d19d549"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/front-sleeve_right.png",
+      "bytes": 4846,
+      "sha256": "0dc8d3172b6cbfbc9eac3c39d0e6ac070426338de59a9ddf5e148432f844c9fa"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/grand-idle.png",
+      "bytes": 126808,
+      "sha256": "469613a3a3bf37172060905fbc4fc68639f21462b7f97609069e0cc7dd28fa2a"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/happy-flower.png",
+      "bytes": 2935,
+      "sha256": "9975ed6822213ce29d0be597ddc6f9ba9f45fb343d2b61d4c2512d3fcf9f8d60"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/planter.png",
+      "bytes": 7015,
+      "sha256": "1b77da5cc5d269352e096a331fab06c05ba0bb31fdbe195a485b5613fb89e711"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/question-mark.png",
+      "bytes": 5316,
+      "sha256": "8cbf24446616a12126c49cc7b568de4cbb5c07b83b9097b888f9e3f14a6502f8"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/sleep-z.png",
+      "bytes": 1431,
+      "sha256": "861ceb631c1f61aec006c75bd1580241b66f73ece62ddabf1449d28f60e17fab"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/spin-grand-atlas.png",
+      "bytes": 9185955,
+      "sha256": "a708bea324732af6c7f0fa4ae2d374936c671c2c5221465f7762f0d09d9d53c0"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/spin-grand-rest-atlas.png",
+      "bytes": 2630636,
+      "sha256": "d6db45e319fc6d92a80def3731168f4c760f43cc97af309b03b15d7d4af5cefa"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/spin-q-atlas.png",
+      "bytes": 7510877,
+      "sha256": "4becd7814eca1d79503ffac25e6269863a2f847066cd98b6e2171ac6efab8fdd"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/watering-can.png",
+      "bytes": 4900,
+      "sha256": "ca71415fe95d3ead4fd3806c57cf934b88e66b7edaacf49e9c44f88ab7e4ec9f"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/back-hair-mask.png",
+      "bytes": 10009,
+      "sha256": "85784f92e8adc05e3a3a059a03e6066d961986b7a8584b4128dced5859a79c56"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/back-hair-paint.png",
+      "bytes": 168419,
+      "sha256": "37c9246bdf567e84f3306ed0b4d31c8389df16c2973d0be3210a9b9db3216863"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/body-underarm.png",
+      "bytes": 111064,
+      "sha256": "64fdc4ce06f1e5c4e3c8012a4e1f49491fc376ec05822c5661023ee0a8c38b20"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/face-underpaint.png",
+      "bytes": 17788,
+      "sha256": "4bfb2f66f0dc5bae78cd0ad7e79a099e5d9d8af9a51ec41e87dacc9b414ce2c7"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/flame-atlas.json",
+      "bytes": 10012,
+      "sha256": "014b7001968a077c0e60dc2e891cff642549b6a2b04dc779e90feeca340732ac"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/flame-atlas.png",
+      "bytes": 152249,
+      "sha256": "547178ebc1c5a3154e6134dbbec1391b375beb991b5e64a48508b51e5ce11099"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/flame.png",
+      "bytes": 8503,
+      "sha256": "df1a223b41c492c8361765c7573a6fe372bcbc5d17ed1a4a515305281d9795d9"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/hair-paint.png",
+      "bytes": 652135,
+      "sha256": "eddd471dbc6f19b4fd9e21d6132e4e7401019745f167b4f5a530a05d0c7e862b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/hair_all_visible.png",
+      "bytes": 21728,
+      "sha256": "9c38f78f62524a97ac1e4564da39fd7926a7104456b8f26b0b2b73879be0fc2c"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/mutsumi-v05.glb",
+      "bytes": 12383840,
+      "sha256": "231e1667469f9c7a43f5f43c11125ab23ed9f19fbc1adc06cedfb60edb7d6c57"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/question-eye.png",
+      "bytes": 6103,
+      "sha256": "1c5708cc11ae71acbbd951e104e6ee74c136bcb2ae15067114ec7b087b36857b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/side-hair-clean.png",
+      "bytes": 3254196,
+      "sha256": "111d3f986576524aa6305d39a4f222620e5abaa336871ef31c7576816d25574b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41.blend",
+      "bytes": 15804568,
+      "sha256": "1ebef00c2685ac9b5f38b51b5fbd8d5efbac1451d1da7e34dcbd58c70a309b08"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41_Motion.blend",
+      "bytes": 16426493,
+      "sha256": "86f01599fb0973626416322c3e51bf8ace8d998c9e69bbdb042164f404a13486"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/body-underarm.kra",
+      "bytes": 360178,
+      "sha256": "15b2a744f55be3cf6ad7c005cabe91e8b25c7668f2b9840f67874912dd09f1bf"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/face-underpaint.kra",
+      "bytes": 72605,
+      "sha256": "0848d9143aa30c7f2cf2ae0a1f5be737bd011677c5dfd89a2d3d1e70505110a6"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/flame.kra",
+      "bytes": 67071,
+      "sha256": "ec9a2afc09338315b6c24860193f264b4e4d9b92e51aabef8fa7d650bd21917d"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/question-eye.kra",
+      "bytes": 63530,
+      "sha256": "7442f48cc8fbe79d107b7f285be3b3da88b2e50b43eaf35389c2576c63962eff"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/Mutsumi_V42_Motion.blend",
+      "bytes": 16366942,
+      "sha256": "5739cdefa704cced38ebfa4df9b75cc228c2c7fe8e15b746306b80572715affc"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/art/normal-eye.png",
+      "bytes": 3594,
+      "sha256": "0eea69126e2a3fbcc6d81231d43f7abad6ddc268ad893b76cb2356ce14dc2d00"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/art/normal-eye.svg",
+      "bytes": 311,
+      "sha256": "a32421b698f97ba5dde9f26e72d2c77e3c2d2d7fea46471482e4c79fe59788b4"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-left.png",
+      "bytes": 3546,
+      "sha256": "571e635939d5b4177e32f455d0a2ac2b5124447e3d88d5d7c151bc6c0623224f"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-left.svg",
+      "bytes": 410,
+      "sha256": "1dea6447fa5d31ac49b60bffa7773317326bd579c822991e14c68bb58717c581"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-right.png",
+      "bytes": 3536,
+      "sha256": "225deb979f89b266e2cd2dc28ebd45b64ed17de7706594780ecdf65116608d33"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-right.svg",
+      "bytes": 411,
+      "sha256": "fcdecd9f846bddb4d63b9f483b6c14912f430dcedbae0605decd57f61bb1d480"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/Mutsumi_V42_CollarLift.blend",
+      "bytes": 16045656,
+      "sha256": "d145891fdcb3f262a85f2bfc0219b5fa939e0d8c51555790fefac50ffe17bf43"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/aseprite-verification.json",
+      "bytes": 337,
+      "sha256": "8e3961e0549da9dd4a6f5bd4b2e4cfe36511debdb0a9844af311d3b8514d4905"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/blender-verification.json",
+      "bytes": 526,
+      "sha256": "accdf132f90aa378eeac758cc376935979cb65dfb87bd350e46d27db49266fca"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/drag-30fps.aseprite",
+      "bytes": 16012291,
+      "sha256": "f58a875930b0f547f178f197b79c0e28f0840a5cbd83715838ba386481bab246"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/drag-entry-30fps.aseprite",
+      "bytes": 1440190,
+      "sha256": "e20cb02be0aec220230d33e19775d58d80fb6e4d581223b24d77cad5d2aa1402"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/drag-release-30fps.aseprite",
+      "bytes": 4461474,
+      "sha256": "7028cc34c359fa806629fcefab1e6600912e4d99a9bfdf98206f42b1bb2d099b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/motion-30fps.json",
+      "bytes": 500378,
+      "sha256": "328d33a8370264f372ff9ed7f5d027a7d9df869e717d285832a97a5f405296fb"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/drag.gif",
+      "bytes": 1126058,
+      "sha256": "9d127e7b18a4f3385fca994f9a4a0445e6201f229c167f73a83e90d383377e72"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/idle.png",
+      "bytes": 145713,
+      "sha256": "b14346ed3718f175a05867a280aefe71de6b551863057a6cc3b955611278570d"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/inertia-left.png",
+      "bytes": 135368,
+      "sha256": "65b237ccaf2bf53a9572bc8dbcac2762b42a06d0e460962b40aa40a23768bfe1"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/inertia-right.png",
+      "bytes": 134733,
+      "sha256": "c63398091f28f3d2e5d7ee8784311c6052d94cea892d5b1c48b2045be2a93600"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/relaxed.png",
+      "bytes": 134806,
+      "sha256": "5e30438058f8c554786435e842c4c2e359acf8350c6680cbcdbea7d960e1ae74"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/released.png",
+      "bytes": 145637,
+      "sha256": "2d6107a804f6378237286d3b598253bf7c475a9e49e9201e3b0d675cd7343680"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/struggle-1.png",
+      "bytes": 135555,
+      "sha256": "7d2026f5a3974384123fc46bfcbf0b170c30fe4695fabd831a17fc0bb024ce92"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/struggle-2.png",
+      "bytes": 135510,
+      "sha256": "48cbfbd9fc16c966519498326d521b2d83ff4c3845df80808fbe12a188eadb84"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/verification.json",
+      "bytes": 905,
+      "sha256": "7f83e398690cc5a5e2b3c9502b20508ceacbcb7bff490a5e7f22b3e5688e7499"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/drag-30fps.aseprite",
+      "bytes": 4967576,
+      "sha256": "953ac81e4ab325b1762a9a23d7991d0d5451bb235ab6dc24a130c68fada51282"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/drag-release-30fps.aseprite",
+      "bytes": 1393654,
+      "sha256": "7e462272d0137e7673afa80a24dd8e10b6b074ff3d18578cc5836906c4057481"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/idle-30fps.aseprite",
+      "bytes": 5037980,
+      "sha256": "11c34099f429a11226ce947e652fa6f75709232c53b94ec7ec16c5986efa49ad"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/squeeze-eyes.kra",
+      "bytes": 43641,
+      "sha256": "1aa1bcd8fd0755d41a5652c2412b430e38cf302c89f50d29383d2dbec46a95e0"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/squeeze-eyes.ora",
+      "bytes": 7887,
+      "sha256": "48a73711a116ce699019b6b4b107eefc68f5ffcf23634b721f40bb03856c15fd"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/touch-30fps.aseprite",
+      "bytes": 1342886,
+      "sha256": "95e18605ee5143fdbaa2a08d8c505ff9d126777d28955f06f3685bb2941bbd6c"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/water-30fps.aseprite",
+      "bytes": 4567832,
+      "sha256": "56e73aa4947aa095e8d72212a1fb800a3ce399478bd04c597752061c4fcdb92e"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/water-entry-30fps.aseprite",
+      "bytes": 2638473,
+      "sha256": "b4144fd6b504a36695b39c99a2996322057e5c542e128647937610cf539d59ae"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/water-happy-30fps.aseprite",
+      "bytes": 4073124,
+      "sha256": "8decd4f1941f23c5d7650b1a1fcf93323be595803e6f81253daf5efd30209941"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/work-30fps.aseprite",
+      "bytes": 6391882,
+      "sha256": "91c2ece37ad82d2116a46f1b6852493515a8cba3d59892568a9d4c28b7ce37da"
+    },
+    {
+      "file": "bridge/pet-mcp.mjs",
+      "bytes": 7518,
+      "sha256": "91577c5f045d3af7864baecff57108f8c626366fc0cde9d6e94154da137dd1b0"
+    },
+    {
+      "file": "docs/NANGONG_PIXEL_STYLE_ANALYSIS.md",
+      "bytes": 9659,
+      "sha256": "cdd039dbe4102e97df7d91cafd642c09338d3f24e413516b844b6cb88d125b2d"
+    },
+    {
+      "file": "docs/V37_ANIMATION_AUDIT_PLAN.md",
+      "bytes": 9570,
+      "sha256": "700aebf337d3d4b430c68579cc92639998109bd65bc6d5f67f5f986480a1749a"
+    },
+    {
+      "file": "docs/V37_ANIMATION_DELIVERY.md",
+      "bytes": 7106,
+      "sha256": "8b41a442f989dc24207f57f8f45841b1bb50664890b0abb67a7d262cd9b118a8"
+    },
+    {
+      "file": "docs/V37_DESKTOP_BUGFIX.md",
+      "bytes": 2378,
+      "sha256": "2494aeeeabbe94e60f9405d3fe3e168127f79645e31c9b8eb1f7a100441ffdc5"
+    },
+    {
+      "file": "docs/V38_ARTICULATION_DELIVERY.md",
+      "bytes": 7553,
+      "sha256": "3cb00e2a197514d989609ef4e371e1198689d7959f757221e27ed95ee818f270"
+    },
+    {
+      "file": "docs/V39_MOTION_DELIVERY.md",
+      "bytes": 6027,
+      "sha256": "63ee482db6d3f257d2d7649646f96fd714ae3275158895899c8c96ba3b63b4d5"
+    },
+    {
+      "file": "docs/V40_MOTION_DELIVERY.md",
+      "bytes": 8486,
+      "sha256": "8c5ae250e17c30a4fda197f4dfb65d9224983572d651ceca7b73b9408ab48dff"
+    },
+    {
+      "file": "docs/V41_3D_DELIVERY.md",
+      "bytes": 9003,
+      "sha256": "cbca58d7f541a3888c3c1bb58afc28ef02fded3da7de534518daa87c2b9b6f1a"
+    },
+    {
+      "file": "docs/V42_COLLAR_LIFT_PATCH.md",
+      "bytes": 2796,
+      "sha256": "f958bbf533115551154f9119e7b4fcd3619cadc29fe1f71ad6619b8e7099cd6c"
+    },
+    {
+      "file": "docs/V42_DRAG_ANGLE_PATCH.md",
+      "bytes": 831,
+      "sha256": "0ef71358abf47e9ad9be4ac15b1ed6f5f479bca75ee07217d38a0267b8bd7bcd"
+    },
+    {
+      "file": "docs/V42_GAZE_WORK_PATCH.md",
+      "bytes": 3004,
+      "sha256": "23a99b8a007e6eeb8e97d79db85b62e5d34898efea35a6fdf38a596aa2aa00de"
+    },
+    {
+      "file": "docs/V42_MEMORY_PREFLIGHT.md",
+      "bytes": 5169,
+      "sha256": "7200a944081e20731940ad0a6c7ee734d6b09b5edf903e22d6d8c5dab4d9eea9"
+    },
+    {
+      "file": "docs/V42_MOTION_DELIVERY.md",
+      "bytes": 7292,
+      "sha256": "b03fda789c346035b06580681eb0b630bd6227e97eaad54ed4fa5aea5916147a"
+    },
+    {
+      "file": "docs/V42_PRIVACY_PREFLIGHT.md",
+      "bytes": 6399,
+      "sha256": "20ae29bed4e23337c6a746c7ab91a1fdc1e74f544729dbe7aa1421f895bd35ba"
+    },
+    {
+      "file": "docs/V42_RELEASE_PREFLIGHT.md",
+      "bytes": 6458,
+      "sha256": "4ef0605bf483c9a8d56f1d10869d10599711062d5f525f37354e07f74fd7a2f3"
+    },
+    {
+      "file": "docs/V42_STATE_PREFLIGHT.md",
+      "bytes": 6588,
+      "sha256": "239673318d8813f1f3cbf89e48d50f278a182202f6beeaf54440549988828e85"
+    },
+    {
+      "file": "docs/V42_WORK_GLOW_FIX.md",
+      "bytes": 2930,
+      "sha256": "c1ed3afe475aebdbcfdb0c802ede603780f08306732ebf53fff581d5a6bc690c"
+    },
+    {
+      "file": "docs/verification/v42-native-lifecycle.json",
+      "bytes": 3166,
+      "sha256": "2c8ac171493988ac854a0c39aa49e82af8a3197c311363bbe97d32558c277938"
+    },
+    {
+      "file": "docs/verification/v42-working-eyes.json",
+      "bytes": 6657,
+      "sha256": "475ef15d08afc3efb378c3248ecad5ba9845bcf0ca722198e995f40edd1aedd1"
+    },
+    {
+      "file": "electron.vite.config.ts",
+      "bytes": 829,
+      "sha256": "50f4f2e671460dafcd8026938a7e213589506a5f97fde6433a4f3a2f834e7c66"
+    },
+    {
+      "file": "electron/codex-lifecycle.test.ts",
+      "bytes": 13695,
+      "sha256": "2829cbd5cf80b877a4e8604cc1f2f69392dc607178bd918f95d57daf510699f8"
+    },
+    {
+      "file": "electron/codex-lifecycle.ts",
+      "bytes": 13728,
+      "sha256": "7f3b14a0d2f5733787148d7a8f41e9bcdded7c8a6dda76daadc7afa9da2af997"
+    },
+    {
+      "file": "electron/codex-window.ts",
+      "bytes": 3439,
+      "sha256": "cc3d34a4978d7064d450ad0bc463cd1f03ddacb150a427b2f656aeac00938156"
+    },
+    {
+      "file": "electron/main.ts",
+      "bytes": 25716,
+      "sha256": "fa7173d41a9abc8b8933df4bc17a2057ec62c92dace92369859bddc8810ec3ef"
+    },
+    {
+      "file": "electron/preload.ts",
+      "bytes": 2279,
+      "sha256": "b0e0e46654e9dfde193b3416defe7a503d5637f774314ea38977e777cf221062"
+    },
+    {
+      "file": "package-lock.json",
+      "bytes": 217046,
+      "sha256": "188d7123b5330ef8fe8584933a3a44214cccdd2d4800c6d645a316f489b5c113"
+    },
+    {
+      "file": "package.json",
+      "bytes": 1164,
+      "sha256": "a2e5b944e9c2638330ccb6a85d7397f71a19bd77ff81f2fc92054becc99c9084"
+    },
+    {
+      "file": "plugins/liquid-glass-pet/.codex-plugin/plugin.json",
+      "bytes": 772,
+      "sha256": "e75d360f17eda8813f02fe30f6b3c1d4847bba4e682f9d1473599b1519d06e80"
+    },
+    {
+      "file": "plugins/liquid-glass-pet/hooks/hooks.json",
+      "bytes": 1569,
+      "sha256": "3013acb061f274d59defe8dfee249965c5ad7d1ffab99fa81d5d9ac851a1075d"
+    },
+    {
+      "file": "plugins/liquid-glass-pet/hooks/notify.mjs",
+      "bytes": 3382,
+      "sha256": "0ee07552f3b192ed29df07c1c51076430fd6142d8ab370dfd30d6e0bce503c73"
+    },
+    {
+      "file": "plugins/liquid-glass-pet/skills/pet-notify/SKILL.md",
+      "bytes": 856,
+      "sha256": "bc4a8617e64114eb388f4eea9e64edf10db6958036c228536dea3ec7800adcaf"
+    },
+    {
+      "file": "renderer/articulated-rig.ts",
+      "bytes": 18686,
+      "sha256": "cfe329a20e6fe1cd0a51c4a13744032889f9fcfe96bf36c56d9f088001974070"
+    },
+    {
+      "file": "renderer/assets/mutsumi-hires-prism.png",
+      "bytes": 1242242,
+      "sha256": "60e538b0737a8dfdd2bb9e06fcccaa67be8ee7cb982468d9f0f7abb1daeaef15"
+    },
+    {
+      "file": "renderer/assets/mutsumi-hires-soft.png",
+      "bytes": 1038206,
+      "sha256": "24496488117f8063221d5afd7123288a71d7a7db200d44f5b3b3276ebde89ea4"
+    },
+    {
+      "file": "renderer/assets/mutsumi-mini-glass-v5.png",
+      "bytes": 5338,
+      "sha256": "860e2d9ec3c74d1ae1b25c539ec75c6b00c3a013a656e5f6430cea49e6f06aec"
+    },
+    {
+      "file": "renderer/assets/mutsumi-mini-glass.png",
+      "bytes": 3598,
+      "sha256": "e76e10e584a4a9b201596315cc3e7bffe53a76dd3ebbf74203ded1385b8941cc"
+    },
+    {
+      "file": "renderer/character.svg",
+      "bytes": 11082,
+      "sha256": "e2a6ecbb055f7c273329e54970ea1ccbcaaa3baad354001be61ea1b3fd4addfa"
+    },
+    {
+      "file": "renderer/grand-transition.ts",
+      "bytes": 2100,
+      "sha256": "a3055faf720a32ee7f306bdfe729067486114fb637a6789cef3ea5474231937c"
+    },
+    {
+      "file": "renderer/index.html",
+      "bytes": 4404,
+      "sha256": "4836c08bc23baccd0b842b4fba6ed7f191cf8d9d2312359a09f1a53bc72eb616"
+    },
+    {
+      "file": "renderer/main.ts",
+      "bytes": 24999,
+      "sha256": "6a53cd57d36c88ca8a3c08a1ebb552f43f8d3688c1a1c719138e843c03cc0868"
+    },
+    {
+      "file": "renderer/mutsumi-rig.ts",
+      "bytes": 130,
+      "sha256": "fed985f1db3befef71000ae92f8497a55aa4b3b1f522efb623ec0ad493cb403c"
+    },
+    {
+      "file": "renderer/questions-view.ts",
+      "bytes": 3675,
+      "sha256": "e9c6a570d915ef586bb0fa5f1e3d3474fe432e2aaee3ea12ac70840f88c9bcec"
+    },
+    {
+      "file": "renderer/review-entry.ts",
+      "bytes": 86,
+      "sha256": "fa33b243d7dd0d5ec87e0ece757960e34cab0785cb8a9d890298a04057b74d6b"
+    },
+    {
+      "file": "renderer/review.html",
+      "bytes": 262,
+      "sha256": "a38de4be61489ce72d7b5b4009578e5eef41acee43f41be28dd85e9caf16a3f7"
+    },
+    {
+      "file": "renderer/style.css",
+      "bytes": 24592,
+      "sha256": "9e4e6d4a047549a00e148df376b0819ff6d1edcc4c0d0c3a5044a5361b3be8b5"
+    },
+    {
+      "file": "renderer/three-rig.ts",
+      "bytes": 27292,
+      "sha256": "1637588588b32af11f9af3b63e8a81d633fe94a937ec852548a990614faf03be"
+    },
+    {
+      "file": "renderer/v37-review.ts",
+      "bytes": 3868,
+      "sha256": "ae61be27ceb5af80c70490faee845e7d2a0d49601ff05065787b8eac1966527b"
+    },
+    {
+      "file": "renderer/v38-review.ts",
+      "bytes": 4462,
+      "sha256": "3e7ea0572d0b2a5aa1580de0aeb951f8e3a42ee9d589691ad9d1b7cd695c3c3f"
+    },
+    {
+      "file": "renderer/v39-review.ts",
+      "bytes": 4792,
+      "sha256": "7d2fb2ab702dcb32568917217fd29c4d233073c2275a6ff8fc83fe2dc9ee6e86"
+    },
+    {
+      "file": "renderer/v40-review.ts",
+      "bytes": 4804,
+      "sha256": "c6b7521f0e5612b7c776afa5b88b5f282075799dd89ff3c21461af3a853bbb38"
+    },
+    {
+      "file": "renderer/v41-review.ts",
+      "bytes": 2685,
+      "sha256": "87535095494f12577139048e92f66beaf213a25bd89440e1430391fa718d0da7"
+    },
+    {
+      "file": "renderer/vite-env.d.ts",
+      "bytes": 38,
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "file": "review.vite.config.ts",
+      "bytes": 291,
+      "sha256": "b12ecef85ce6e8c49d4afeaabe7d6d9f779fb1053afa33818bd3027cb6ea2a6f"
+    },
+    {
+      "file": "scripts/assemble-v42-collar-lift.lua",
+      "bytes": 886,
+      "sha256": "6b41d6693be5bbd483d8b7709dec405974b48151e9d2c0bf2b5b3c86b6e18def"
+    },
+    {
+      "file": "scripts/assemble-v42-review.lua",
+      "bytes": 1011,
+      "sha256": "4b5b94acec4528b05690708395789e391615221eef5c8269fcca2d1dd60a4a24"
+    },
+    {
+      "file": "scripts/build-v42-collar-lift.py",
+      "bytes": 3552,
+      "sha256": "d9098050ffecec2a02d052f4b4148f4e3cbdba56996e01d280f6852b8e64f314"
+    },
+    {
+      "file": "scripts/build-v42-motion-source.py",
+      "bytes": 4999,
+      "sha256": "04edc192aea08899b6b13f3e155b06ee841f6d11e0622554ec811f6b9436e58e"
+    },
+    {
+      "file": "scripts/export-v42-motion.cjs",
+      "bytes": 2461,
+      "sha256": "f5b89c8d759edd684e1c646545d62e4b0ab18f3c2cd15bdc91582a23912dfdce"
+    },
+    {
+      "file": "scripts/prepare-public-source.py",
+      "bytes": 7702,
+      "sha256": "2a71509e0a0fb4820ebecbf20a373e432aba2e0fabe5f7561bec8517ac9bf502"
+    },
+    {
+      "file": "scripts/prepare-v42-eye-art.py",
+      "bytes": 768,
+      "sha256": "253283a1643e9315761358fe31a0976878f86619de77b5d4366fecb5fec22c90"
+    },
+    {
+      "file": "scripts/privacy-blender.py",
+      "bytes": 4937,
+      "sha256": "1d89d112862f599c454f14c28f47ad36da4884635f25e7f119d471d09a18a5ad"
+    },
+    {
+      "file": "scripts/privacy-preflight.py",
+      "bytes": 10873,
+      "sha256": "f6972fab04f100dd19bf3bb2f23ee2240a2302edb27967edd7a323c3230143cf"
+    },
+    {
+      "file": "scripts/privacy-runtime-assets.py",
+      "bytes": 4835,
+      "sha256": "44c58d6c726a6bf500da8af3b9abd370bfdbd1924d835b884193f6a6f1a2a955"
+    },
+    {
+      "file": "scripts/qa-v42-desktop.cjs",
+      "bytes": 9431,
+      "sha256": "7f3e3c73c7d9f6ac1100f4f7d5b4f401a16b2c5103f044311718712be31f0c4c"
+    },
+    {
+      "file": "scripts/qa-v42-interruption.cjs",
+      "bytes": 3147,
+      "sha256": "bb7aead04eac97ba2d7b27b1d79361a591846da6d015c8bd740e54f4851e4dd1"
+    },
+    {
+      "file": "scripts/qa-v42-lifecycle-native.cjs",
+      "bytes": 7510,
+      "sha256": "afb3247359c63580615ffa21dfebaf0abfe91ace3d14ca0712ff36919c40c00c"
+    },
+    {
+      "file": "scripts/qa-v42-live-lifecycle.mjs",
+      "bytes": 1357,
+      "sha256": "0128fc9dc47efc3d38e58367faa32b8556ab25e1140bd4314263cc09100efb1f"
+    },
+    {
+      "file": "scripts/qa-v42-preflight-art.cjs",
+      "bytes": 2878,
+      "sha256": "38e6d7726deb7b7093767a8b41805fd400498d5ae593cf493b8f00eddfa26aca"
+    },
+    {
+      "file": "scripts/qa-v42-preflight-compare.mjs",
+      "bytes": 3340,
+      "sha256": "2decefe8ace31e66dde96e1fcd952c1f8179a54da4b1236beed3062f251cdc6b"
+    },
+    {
+      "file": "scripts/qa-v42-preflight-perf.cjs",
+      "bytes": 10273,
+      "sha256": "d7147debb657fc9049f812aea57c9c74aa62c553e334e38b09040d961e24ff85"
+    },
+    {
+      "file": "scripts/qa-v42-render.cjs",
+      "bytes": 5295,
+      "sha256": "dc205cb68612a163d7a111aa90190341fd88e1e48aa0d327abbc2d86435c63c8"
+    },
+    {
+      "file": "scripts/qa-v42-state.cjs",
+      "bytes": 4645,
+      "sha256": "d019ca0002de9287477b512f7c5819e75accf16bbdccfc9b2addc589474f1cbc"
+    },
+    {
+      "file": "scripts/qa-v42-working-eyes.cjs",
+      "bytes": 8654,
+      "sha256": "086d891d7841f3b0a0adf9bb241915ce6007b18b36e1addbac2f76ba0f6fd048"
+    },
+    {
+      "file": "scripts/setup-codex.ps1",
+      "bytes": 5224,
+      "sha256": "1bffdb7fd7dd5451e949956fd1e014cec865c17d31f72a8434257c82d3268f22"
+    },
+    {
+      "file": "scripts/stage-v42-package.mjs",
+      "bytes": 1289,
+      "sha256": "06ad647e0fe235f48ec01758bc6175d4608783bad490e3f9c37fa406625b76d7"
+    },
+    {
+      "file": "scripts/verify-v42-package.mjs",
+      "bytes": 3496,
+      "sha256": "95259a77f34a8245f4c80cc87308fbe9c93c370f3f2381ee925ddf052bd7a7a7"
+    },
+    {
+      "file": "shared/activity.test.ts",
+      "bytes": 11288,
+      "sha256": "816d46ac08c65d77d1e405bc683023074dbcae53ea68cc8c9be6add4847d274f"
+    },
+    {
+      "file": "shared/activity.ts",
+      "bytes": 7551,
+      "sha256": "dc799ca064415775cff57986c761d05335e2644acdf4b11c5c0b9171bcbfc2a8"
+    },
+    {
+      "file": "shared/drag-motion.ts",
+      "bytes": 547,
+      "sha256": "0eb019cf606d183a30dd7477f8f670042d0e4249cf71c66e2eda0e607d928675"
+    },
+    {
+      "file": "shared/gaze.test.ts",
+      "bytes": 848,
+      "sha256": "8904ce18e7aa7da1621d614f12578a29a10356ed8dadaadf5cd5689494ffdedc"
+    },
+    {
+      "file": "shared/gaze.ts",
+      "bytes": 1063,
+      "sha256": "11f7e950e38afb1d7127020f443d787e4caf9ca603619d2cf4d123b62a3d52cb"
+    },
+    {
+      "file": "shared/idle-cadence.test.ts",
+      "bytes": 1494,
+      "sha256": "b29669c103f3bc4a91d0ca0d7a8f66183032dfb76520af0fa2f38a0aee090d3c"
+    },
+    {
+      "file": "shared/idle-cadence.ts",
+      "bytes": 1242,
+      "sha256": "41be693c12284e339a42374a34199503f9df44a773aeb37463c9a78aa8d08547"
+    },
+    {
+      "file": "shared/questions.test.ts",
+      "bytes": 2076,
+      "sha256": "9911477ff8a5331c166d3b06ecc6eb9937985be104f9c6dd5564337d44aecec5"
+    },
+    {
+      "file": "shared/questions.ts",
+      "bytes": 3903,
+      "sha256": "e77ffbe60b562041347707e07da14e70f0fb13ffdb676de986553d992022dd26"
+    },
+    {
+      "file": "shared/reminders.test.ts",
+      "bytes": 997,
+      "sha256": "11cdec15ec5879c76e5b78da358700a8d731aaa2d71046e2e1b4bf0e39e544eb"
+    },
+    {
+      "file": "shared/reminders.ts",
+      "bytes": 524,
+      "sha256": "890cc16e1369073256e66c67784e08ecead015a75e3c483fb04d95644024ca66"
+    },
+    {
+      "file": "shared/runtime-policy.ts",
+      "bytes": 162,
+      "sha256": "3fcc1cda6be2236a262bc821ee52ad5fff158b0342496b02e9587a09e69b0a01"
+    },
+    {
+      "file": "shared/types.ts",
+      "bytes": 2626,
+      "sha256": "3674bc3562d760e8e53110297f6eb84314597314f28d573054839fa22cf07775"
+    },
+    {
+      "file": "tsconfig.json",
+      "bytes": 418,
+      "sha256": "cba41f3fed6083904716be8ae276a3887ed603e010d80afe14a7614b78894329"
+    }
+  ],
+  "fileCount": 167,
+  "bytes": 159636810,
+  "over100MiB": [],
+  "excluded": [
+    "local Electron profiles",
+    "Codex sessions",
+    "local bridge tokens",
+    "rollback snapshots",
+    "builds/installers",
+    "historical artwork/source archives"
+  ],
+  "nativeSourcePolicy": "Packed portable Blender copies and metadata-sanitized Krita copies; original source files remain in the local development workspace."
+}

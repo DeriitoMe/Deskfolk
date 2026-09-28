@@ -1,0 +1,35 @@
+const{app,BrowserWindow,Tray}=require('electron');const assert=require('node:assert/strict');
+const{join}=require('node:path');const{pathToFileURL}=require('node:url');const{readFileSync,mkdirSync,writeFileSync}=require('node:fs');
+const root=join(__dirname,'..'),out=join(root,'assets/characters/wakaba-mutsumi/v42-motion/verification');
+const data=join(root,'.cache/v42-state-'+Date.now());mkdirSync(data,{recursive:true});
+writeFileSync(join(data,'preferences.json'),JSON.stringify({model:'hires-soft',scale:1}));
+writeFileSync(join(data,'activity.json'),JSON.stringify({codex:{phase:'working',sessionId:'codex',updatedAt:new Date().toISOString()}}));
+process.env.PET_USER_DATA=data;process.env.PET_TEST_MODE='1';const sleep=ms=>new Promise(r=>setTimeout(r,ms));let tray,menu;
+const on=Tray.prototype.on;Tray.prototype.on=function(n,f){if(n==='right-click')tray=this;return on.call(this,n,f)};
+Tray.prototype.popUpContextMenu=function(m){menu=m;};
+(async()=>{
+ await import(pathToFileURL(process.env.QA_APP_MAIN||join(root,'out/main/index.js')).href);
+ let pet;for(let i=0;i<200;i++){pet=BrowserWindow.getAllWindows()[0];if(pet&&await pet.webContents.executeJavaScript('!!document.querySelector("canvas[data-ready=true]")').catch(()=>false))break;await sleep(100)}
+ const js=s=>pet.webContents.executeJavaScript(s),state=()=>js('window.petBridge.getBootstrap()'),action=()=>js('document.querySelector(".figure").dataset.action');
+ assert.equal((await state()).preferences.model,'flat-chibi');assert.equal((await state()).activity.phase,'idle');
+ await js('window.petBridge.savePreferences({model:"hires-soft"})');assert.equal((await state()).preferences.model,'flat-chibi');
+ pet.webContents.send('pet:transform');await sleep(250);assert.equal(await action(),'idle');
+ tray.emit('right-click',{},tray.getBounds());assert(menu);const transform=menu.items.find(x=>x.label.includes('旋转变身'));assert.equal(transform.enabled,false);
+ menu.items.find(x=>x.label==='设置').click();await sleep(600);const settings=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('settings=1'));assert(settings);
+ const choices=await settings.webContents.executeJavaScript('Array.from(document.querySelectorAll("[data-model-choice]")).map(e=>({model:e.dataset.modelChoice,disabled:e.disabled}))');
+ assert.deepEqual(choices,[{model:'flat-chibi',disabled:false},{model:'hires-soft',disabled:true}]);settings.destroy();
+ const bridge=JSON.parse(readFileSync(join(data,'bridge.json'),'utf8'));
+ const notify=async(type,extra={})=>{const res=await fetch(`http://127.0.0.1:${bridge.port}/notify`,{method:'POST',headers:{authorization:'Bearer '+bridge.token,'content-type':'application/json'},body:JSON.stringify({id:Math.random().toString(),source:'hook',type,sessionId:'test-A',turnId:'turn-A',projectPath:'D:/Project-A',...extra})});assert(res.ok);await sleep(180)};
+ await notify('work_started');assert.equal(await action(),'work');
+ await notify('work_progress',{sessionId:undefined,turnId:undefined});
+ await notify('interrupted');assert.equal(await action(),'idle');
+ await notify('work_progress');await notify('work_progress',{sessionId:undefined,turnId:undefined});assert.equal(await action(),'idle');
+ await notify('work_started',{turnId:'turn-B'});await notify('work_started',{sessionId:'test-B',turnId:'turn-C',projectPath:'E:/Project-B'});assert.equal(await action(),'power-work');
+ await notify('interrupted',{sessionId:'test-B',turnId:'turn-C'});assert.equal(await action(),'work');
+ await notify('turn_ended',{turnId:'turn-B'});assert.equal(await action(),'idle');
+ await js('document.querySelector("#dismiss-bubble").click()');await sleep(250);
+ const before=pet.getBounds();await js('window.qaNow=performance.now.bind(performance);window.qaOffset=0;Object.defineProperty(performance,"now",{value:()=>window.qaNow()+window.qaOffset});window.qaOffset=76000;true');await sleep(450);assert.equal(await action(),'water');
+ const during=pet.getBounds();assert.equal(during.width,before.width);assert.equal(during.height,before.height);
+ const report={passed:true,choices,transformationDisabled:true,checks:['stored HD preference resolves to Q','IPC cannot select HD','transform event ignored','tray transformation disabled','tray settings opens','anonymous progress cannot keep paused task working','late progress does not resurrect turn','multi-project pause returns to single work then idle','idle to water preserves native window size'],before,during};
+ writeFileSync(join(out,'state-and-policy.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));app.quit();
+})().catch(e=>{console.error(e);app.exit(1)});

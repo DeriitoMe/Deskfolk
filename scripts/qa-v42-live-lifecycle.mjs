@@ -1,0 +1,13 @@
+import{readFileSync,writeFileSync}from'node:fs';import{join}from'node:path';import assert from'node:assert/strict';
+import{CodexLifecycleObserver}from'../electron/codex-lifecycle.ts';
+import{updateSessionActivities,dominantActivity}from'../shared/activity.ts';
+const history=JSON.parse(readFileSync(join(process.env.APPDATA,'liquid-glass-pet/history.json'),'utf8'));
+const active=history.find(e=>e.type==='work_started'&&e.sessionId&&e.turnId);assert(active);
+let sessions={};const events=[];
+const observer=new CodexLifecycleObserver(join(process.env.CODEX_HOME,'sessions'),e=>{events.push(e);sessions=updateSessionActivities(sessions,e)});
+observer.track(active.sessionId);await observer.poll();observer.stop();
+assert(events.length>0,'real metadata and lifecycle records must be readable');
+assert.equal(sessions[active.sessionId]?.turnId,active.turnId,'restored latest actual turn');
+assert.equal(dominantActivity(sessions).phase,'working','current Codex task remains active');
+const report={passed:true,mode:'read-only actual session logs',observedRecords:events.length,observedNativeAborts:events.filter(e=>e.type==='interrupted').length,restoredCurrentTurn:true,phase:dominantActivity(sessions).phase};
+writeFileSync('assets/characters/wakaba-mutsumi/v42-motion/verification/actual-lifecycle.json',JSON.stringify(report,null,2));console.log(report);

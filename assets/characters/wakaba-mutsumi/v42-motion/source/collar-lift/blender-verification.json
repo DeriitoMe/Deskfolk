@@ -1,0 +1,22 @@
+{
+  "path": "assets\\characters\\wakaba-mutsumi\\v42-motion\\source\\collar-lift\\Mutsumi_V42_CollarLift.blend",
+  "fps": 30,
+  "frames": 186,
+  "controllers": [
+    "CTRL_Root",
+    "CTRL_Body",
+    "CTRL_Head",
+    "CTRL_Hair",
+    "CTRL_ArmR",
+    "CTRL_HandR",
+    "CTRL_FootR",
+    "CTRL_ArmL",
+    "CTRL_HandL",
+    "CTRL_FootL",
+    "CTRL_HairclipL",
+    "CTRL_EyeR",
+    "CTRL_EyeL"
+  ],
+  "rigid": true,
+  "originalSourcePreserved": "assets\\characters\\wakaba-mutsumi\\v42-motion\\source\\Mutsumi_V42_Motion.blend"
+}

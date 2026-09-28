@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 260" role="img" aria-label="浅灰绿色长发、金色半垂眼、海军蓝校服的玻璃块Q版若叶睦">
+  <defs>
+    <linearGradient id="hairGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--hair-light)" stop-opacity=".94"/>
+      <stop offset=".48" stop-color="var(--hair-mid)" stop-opacity=".82"/>
+      <stop offset="1" stop-color="var(--hair-deep)" stop-opacity=".88"/>
+    </linearGradient>
+    <linearGradient id="hairFacet" x1="0" y1="0" x2=".85" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".64"/>
+      <stop offset=".42" stop-color="var(--hair-light)" stop-opacity=".52"/>
+      <stop offset="1" stop-color="var(--hair-deep)" stop-opacity=".18"/>
+    </linearGradient>
+    <linearGradient id="clothGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--cloth-light)" stop-opacity=".92"/>
+      <stop offset=".52" stop-color="var(--cloth-mid)" stop-opacity=".9"/>
+      <stop offset="1" stop-color="var(--cloth-deep)" stop-opacity=".96"/>
+    </linearGradient>
+    <linearGradient id="clothFacet" x1="0" y1="0" x2=".8" y2="1">
+      <stop offset="0" stop-color="#f6ffff" stop-opacity=".42"/>
+      <stop offset=".4" stop-color="var(--cloth-light)" stop-opacity=".26"/>
+      <stop offset="1" stop-color="var(--cloth-deep)" stop-opacity=".08"/>
+    </linearGradient>
+    <linearGradient id="skinGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff6eb" stop-opacity=".97"/>
+      <stop offset=".55" stop-color="#f5e6d7" stop-opacity=".94"/>
+      <stop offset="1" stop-color="#dfc3b0" stop-opacity=".94"/>
+    </linearGradient>
+    <linearGradient id="collarGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#dceae6" stop-opacity=".78"/>
+    </linearGradient>
+    <linearGradient id="flowerGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff6a3" stop-opacity=".97"/>
+      <stop offset=".55" stop-color="#f6cf4e" stop-opacity=".93"/>
+      <stop offset="1" stop-color="#d99e2d" stop-opacity=".9"/>
+    </linearGradient>
+  </defs>
+
+  <g class="figure">
+    <g class="hair-back">
+      <path d="M73 35h65q21 0 28 19l8 33-4 64 12 37q4 12-6 17l-18-1-19-26H78l-20 27-17-2q-7-5-3-15l12-39-4-65 9-34q6-15 18-15Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M54 88h26l-4 61-16 40-17 11q-7-1-6-10l11-40-3-53q0-7 9-9Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M149 83h18q9 2 9 13l-3 58 12 37q2 8-6 12l-18-13-17-46Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M52 102h9l-3 45-11 32m110-73 10 2-1 42 11 34"
+        fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"/>
+      <path d="M65 144h10l-6 29-15 18 7-27Zm94 9h8l2 31-12-13-7-23Z"
+        fill="url(#hairFacet)" opacity=".68"/>
+    </g>
+
+    <g class="legs">
+      <path d="M83 211h18l-2 31-17 2-4-11Z" fill="url(#skinGlass)" stroke="var(--glass-edge)" stroke-width="1.6"/>
+      <path d="M119 211h18l5 24-5 10-17-3Z" fill="url(#skinGlass)" stroke="var(--glass-edge)" stroke-width="1.6"/>
+      <path d="M81 225h19l-2 16-17 1Z" fill="url(#collarGlass)" opacity=".9"/>
+      <path d="M121 225h18l3 17-19-1Z" fill="url(#collarGlass)" opacity=".9"/>
+      <path d="M79 239h22l5 9q1 6-5 7H71q-7-1-5-7l8-7Z" fill="url(#clothGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M120 240h21l11 7q4 6-3 8h-28q-5-1-6-7Z" fill="url(#clothGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M71 250h31m20 0h26" stroke="#f7ffff" stroke-opacity=".58" stroke-width="1.8" stroke-linecap="round"/>
+    </g>
+
+    <g class="body">
+      <path d="M70 157 52 162q-9 3-10 13l-2 18q0 8 8 12l14-1 19-29Z"
+        fill="url(#clothGlass)" stroke="var(--glass-edge)" stroke-width="2" stroke-linejoin="round"/>
+      <path d="m150 156 18 8q9 5 9 13l1 19q0 8-9 10l-15-3-13-32Z"
+        fill="url(#clothGlass)" stroke="var(--glass-edge)" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M48 171h13l-7 23-9-2m113-22 12 4 2 20-11-1"
+        fill="none" stroke="#faffff" stroke-opacity=".58" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="67" y="149" width="88" height="67" rx="18" fill="url(#clothGlass)" stroke="var(--glass-edge)" stroke-width="2.2"/>
+      <path d="M77 164h11l-8 36-9 4v-28q0-9 6-12Zm60-9 13 7v32l-8 9-6-27Z"
+        fill="url(#clothFacet)" opacity=".7"/>
+      <path d="M76 153 96 150l15 27-16 17-22-22Z" fill="url(#collarGlass)" stroke="var(--glass-edge)" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="m144 153-23-3-12 27 17 17 22-22Z" fill="url(#collarGlass)" stroke="var(--glass-edge)" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="m79 164 16 22 13-12m35-10-17 22-14-12" fill="none" stroke="#94aab1" stroke-opacity=".68" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="m103 178-18 1-4 13 20-5 8-8Zm12 0 18 1 4 13-20-5-8-8Z"
+        fill="var(--ribbon-glass)" stroke="#ebe2ef" stroke-opacity=".72" stroke-width="1.5" stroke-linejoin="round"/>
+      <rect x="104" y="176" width="12" height="11" rx="3.5" fill="#afa5bd" stroke="#f7eef6" stroke-opacity=".8" stroke-width="1.4"/>
+      <path d="m108 187 7 1 6 20-12-4Z" fill="#a8a0b9" opacity=".88"/>
+      <path d="M68 201h88l5 17q-2 8-11 8H72q-9 0-11-8Z"
+        fill="url(#clothGlass)" stroke="var(--glass-edge)" stroke-width="2" stroke-linejoin="round"/>
+      <path d="m80 207 1 13 19 3-2-16m14 1 1 15 20-2 2-14" fill="none" stroke="#a7c3c6" stroke-opacity=".48" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M72 205h77" stroke="#f6ffff" stroke-opacity=".62" stroke-width="2" stroke-linecap="round"/>
+      <path d="M46 193h14l-1 11-12 1Z" fill="url(#collarGlass)" opacity=".75"/>
+      <path d="M159 194h16l-1 11-13 2Z" fill="url(#collarGlass)" opacity=".75"/>
+      <path d="M47 204q6 5 12 0m104 1q6 5 11-1" fill="none" stroke="#ead3c4" stroke-width="5" stroke-linecap="round"/>
+    </g>
+
+    <g class="head">
+      <path d="M65 81q2-22 22-28h48q22 5 24 28l1 42q-1 25-23 34H91q-22-6-27-28Z"
+        fill="url(#skinGlass)" stroke="var(--glass-edge)" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M157 105q11-5 14 6-1 12-12 13Z" fill="url(#skinGlass)" stroke="var(--glass-edge)" stroke-width="1.5"/>
+      <path d="M68 87h9l-3 39 8 19q-14-8-16-27Z" fill="#fff" opacity=".26"/>
+      <path d="m147 92 9 8-1 30-9 15 3-29Z" fill="#cda78f" opacity=".18"/>
+      <path d="M76 110q9-9 20-3v11q-5 8-14 4-8-3-6-12Z" fill="#fffdf7" fill-opacity=".83"/>
+      <ellipse cx="85" cy="113" rx="6.7" ry="9.5" fill="#bbaf76"/>
+      <ellipse cx="85" cy="114" rx="2.8" ry="6.7" fill="#645c4b"/>
+      <rect x="82" y="108" width="3.4" height="3.4" rx="1.1" fill="#fff" opacity=".94"/>
+      <path d="M117 108q8-8 19-4v12q-4 8-12 7-8-2-7-15Z" fill="#fffdf7" fill-opacity=".82"/>
+      <ellipse cx="126" cy="111" rx="6" ry="9.2" fill="#b9ab70"/>
+      <ellipse cx="126" cy="112" rx="2.5" ry="6.5" fill="#61584a"/>
+      <rect x="123" y="107" width="3.2" height="3.2" rx="1" fill="#fff" opacity=".92"/>
+      <path d="M75 107q9-7 21-3v7q-10-4-20 3Zm41-3q10-7 21-3v7q-10-4-20 3Z" fill="#f3e8db" opacity=".94"/>
+      <path d="M75 111q9-7 21-3m20-2q10-6 21-2" fill="none" stroke="#53635e" stroke-width="3.3" stroke-linecap="round"/>
+      <path d="M78 122q8 5 17 0m23 1q8 4 16-2" fill="none" stroke="#b8a892" stroke-opacity=".58" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="m105 118-1 7 4 1" fill="none" stroke="#b99e88" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M103 140h7" fill="none" stroke="#806f69" stroke-width="1.8" stroke-linecap="round"/>
+      <ellipse cx="75" cy="130" rx="7" ry="3.2" fill="#dc9d9a" opacity=".18"/>
+      <ellipse cx="144" cy="129" rx="7" ry="3.2" fill="#dc9d9a" opacity=".18"/>
+    </g>
+
+    <g class="hair-front">
+      <path d="M51 85V65h6V48q0-15 17-19h23l7-6h32q19 0 25 13l8 13v28l-11 15-13-13-18 17-20-11-16 18-18-12-17 17-11-7Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M62 46q5-9 17-10h16l-7 23-17 15-14-3Z" fill="url(#hairFacet)" opacity=".68"/>
+      <path d="M98 29h34q13 0 20 10l7 17-22-11-17-10Z" fill="url(#hairFacet)" opacity=".5"/>
+      <path d="M61 59h29l-2 22-16 34-14-12-6-24Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M89 49h30l-8 27-10 31-17-16 4-24Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M119 43h25l6 23-15 31-21-14 4-20Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M145 54h18l6 23-10 31-17-20 2-18Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M65 61h10l-8 25-7 10m34-42h8l-8 28m31-31h9l-7 24m25-13h7l4 20"
+        fill="none" stroke="#fff" stroke-opacity=".68" stroke-width="2.7" stroke-linecap="round"/>
+      <path d="M49 99h18l-2 59-10 21-12 9 5-38-4-38Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M153 96h16l8 59-3 30-12-8-8-29Z"
+        fill="url(#hairGlass)" stroke="var(--glass-edge)" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M52 112h7l-2 41-7 18m109-62h6l5 43" fill="none" stroke="#fff" stroke-opacity=".54" stroke-width="2.6" stroke-linecap="round"/>
+      <rect x="151" y="59" width="7" height="20" rx="3" transform="rotate(22 154.5 69)" fill="#c1d4d4" stroke="#faffff" stroke-opacity=".9" stroke-width="1.2"/>
+      <rect x="152.5" y="62" width="2" height="13" rx="1" transform="rotate(22 153.5 68.5)" fill="#fff" opacity=".75"/>
+      <path d="m166 74 11-6 8 3-8 8Z" fill="#91b99b" stroke="#e5f2dc" stroke-opacity=".8" stroke-width="1.2"/>
+      <g transform="translate(168 87)">
+        <path d="M-4-5q-5-13 2-16 8-1 7 14Z" fill="url(#flowerGlass)" stroke="#fff5b1" stroke-width="1.2"/>
+        <path d="M5-7q12-8 17-2 2 8-14 11Z" fill="url(#flowerGlass)" stroke="#fff5b1" stroke-width="1.2"/>
+        <path d="M7 3q11 11 5 16-8 3-13-10Z" fill="url(#flowerGlass)" stroke="#fff5b1" stroke-width="1.2"/>
+        <path d="M-3 7q-13 11-17 4-1-8 13-11Z" fill="url(#flowerGlass)" stroke="#fff5b1" stroke-width="1.2"/>
+        <circle cx="0" cy="0" r="5.5" fill="#e4ae38" stroke="#fff6b8" stroke-width="1.5"/>
+        <circle cx="-1.5" cy="-1.5" r="1.5" fill="#fff6c9" opacity=".92"/>
+      </g>
+    </g>
+
+    <path class="pet-hit-area" data-drag-handle d="M75 20h65l25 16 17 43-3 79 11 33-13 31-17 7-5 29H63l-17-10-7-27-10-33 11-45-2-61 14-45Z" fill="transparent" pointer-events="all"/>
+  </g>
+</svg>

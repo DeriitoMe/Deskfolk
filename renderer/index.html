@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' blob: http://127.0.0.1:*" />
+    <title>Liquid Glass Pet</title>
+  </head>
+  <body>
+    <main id="pet-view" aria-label="若叶睦桌宠">
+      <div id="pet-root">
+        <section id="speech-bubble" class="speech-bubble" data-hitbox hidden aria-live="polite">
+          <button id="dismiss-bubble" class="bubble-close" data-hitbox aria-label="关闭通知">×</button>
+          <div class="bubble-kicker" id="bubble-kicker">睦</div>
+          <p id="bubble-message"></p>
+          <div class="bubble-meta" id="bubble-meta"></div>
+          <button id="answer-button" class="answer-button" data-hitbox hidden>打开 Codex</button>
+          <span class="thought-dots" aria-hidden="true"></span>
+        </section>
+        <div id="character-mount" class="character-mount"></div>
+      </div>
+    </main>
+
+    <main id="settings-view" hidden>
+      <header class="settings-header">
+        <div class="eyebrow">LIQUID GLASS COMPANION</div>
+        <h1>桌宠设置</h1>
+        <p>把通知和一点安静的陪伴，放在桌面角落。</p>
+      </header>
+      <section class="connection-card" aria-live="polite">
+        <div class="connection-title"><span class="connection-dot" id="bridge-dot"></span><strong>本地通知桥</strong><span id="bridge-status" class="connection-value">正在检查</span></div>
+        <div class="connection-row"><span>Codex MCP</span><span id="mcp-status">等待首次通知</span></div>
+        <div class="connection-row"><span>自动状态 Hook</span><span id="hook-status">等待首次事件</span></div>
+      </section>
+      <section class="settings-section">
+        <div class="section-heading"><div><h2>角色形态</h2><p>选择若叶睦的桌面造型。</p></div></div>
+        <div class="model-options" role="group" aria-label="选择角色形态">
+          <button class="model-option" data-model-choice="flat-chibi" aria-pressed="false">简约若叶睦<small>默认形态 · 表情与动作</small></button>
+          <button class="model-option" data-model-choice="hires-soft" aria-pressed="false" disabled>高清柔光<small>暂时停用 · 素材已保留</small></button>
+        </div>
+      </section>
+      <section class="settings-section">
+        <label class="range-label" for="scale-range"><span><strong>角色大小</strong><small id="scale-hint">默认约 220 像素高</small></span><output id="scale-value">100%</output></label>
+        <input id="scale-range" type="range" min="82" max="130" step="1" value="100" />
+      </section>
+      <section class="settings-section toggle-list">
+        <label class="toggle-row"><span><strong>旋转变身</strong><small>暂时停用，当前使用 Q 版形态</small></span><input type="checkbox" disabled aria-label="旋转变身已停用" /></label>
+        <label class="toggle-row" for="dance-toggle"><span><strong>待机时轻轻跳舞</strong><small>空闲三分钟后播放短舞蹈</small></span><input id="dance-toggle" type="checkbox" checked /></label>
+        <label class="toggle-row" for="motion-toggle"><span><strong>减少动态效果</strong><small>静态显示角色，保留通知动作</small></span><input id="motion-toggle" type="checkbox" /></label>
+      </section>
+      <section class="settings-section">
+        <div class="section-heading"><div><h2>试试看</h2><p>发送到本机桌宠，不会调用 Codex。</p></div></div>
+        <div class="test-actions"><button id="test-stage" class="primary-button">阶段完成气泡</button><button id="test-approval" class="secondary-button">需要确认</button></div>
+      </section>
+      <section class="settings-section history-section">
+        <div class="section-heading"><div><h2>最近通知</h2><p>只保留本机最近 20 条。</p></div><span id="history-count" class="history-count">0 / 20</span></div>
+        <ol id="history-list" class="history-list"></ol>
+      </section>
+      <footer>通知仅通过本机回环接口传递，桌宠退出后 Codex 仍可照常工作。</footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
+

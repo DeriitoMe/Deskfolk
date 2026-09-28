@@ -1,0 +1,28 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {join} from 'node:path';
+import assert from 'node:assert/strict';
+const root=fileURLToPath(new URL('../',import.meta.url)),cache=join(root,'.cache');
+const read=name=>JSON.parse(readFileSync(join(cache,name),'utf8'));
+const before=read('preflight-memory-before.json'),after=read('preflight-memory-after.json');
+const artBefore=read('preflight-art-before.json'),artAfter=read('preflight-art-after.json');
+assert(before.passed&&after.passed&&artBefore.passed&&artAfter.passed,'both benchmark/art runs passed');
+const median=values=>{const a=values.slice().sort((x,y)=>x-y);return a.length%2?a[Math.floor(a.length/2)]:(a[a.length/2-1]+a[a.length/2])/2;};
+const memory=(state,key,type)=>median(state.samples.map(row=>type?row.processes.filter(p=>p.type===type).reduce((sum,p)=>sum+(p.memory[key]||0),0):row.totals[key]))/1024;
+const states=before.states.map(b=>{
+ const a=after.states.find(s=>s.name===b.name);assert(a,'matching state '+b.name);
+ const row={name:b.name,beforeFps:b.view.drawStats.fps,afterFps:a.view.drawStats.fps,beforeP95Ms:b.view.drawStats.p95Ms,afterP95Ms:a.view.drawStats.p95Ms,beforeOver50ms:b.view.drawStats.over50ms,afterOver50ms:a.view.drawStats.over50ms};
+ for(const [label,key,type] of [['privateMiB','privateBytes'],['workingSetMiB','workingSetSize'],['rendererPrivateMiB','privateBytes','Tab']])row[label]={before:memory(b,key,type),after:memory(a,key,type),delta:memory(a,key,type)-memory(b,key,type)};
+ assert(a.view.drawStats.fps>=b.view.drawStats.fps*.98,'stable rendered FPS '+b.name);
+ assert.equal(a.view.action,b.view.action,'state action '+b.name);
+ return row;
+});
+const images=artBefore.entries.map(b=>{const a=artAfter.entries.find(e=>e.name===b.name);assert(a,'matching image '+b.name);return {name:b.name,identical:b.pngSha256===a.pngSha256,beforePath:b.path,afterPath:a.path};});
+assert.equal(artBefore.count,artAfter.count);assert(images.every(image=>image.identical),'all fixed-time PNG bytes identical');
+const b=before.review.initial,a=after.review.initial;
+assert.equal(a.frameLimit,b.frameLimit,'rig frame limit preserved');
+for(const name of ['geometries','textures'])assert.equal(a.rendererInfo.memory[name],b.rendererInfo.memory[name],'GPU resource count preserved '+name);
+assert.equal(a.rendererInfo.programCount,b.rendererInfo.programCount,'shader program count preserved');
+const report={passed:true,units:'MiB = Electron KiB / 1024; reported working sets sum per-process residency, including shared pages',states,pixels:{count:images.length,identical:images.filter(x=>x.identical).length,images},resources:{before:b.rendererInfo,after:a.rendererInfo,retainedTextureRgbaMiB:{before:b.retained.textureRgbaBytes/1048576,after:a.retained.textureRgbaBytes/1048576,delta:(a.retained.textureRgbaBytes-b.retained.textureRgbaBytes)/1048576},retainedAttributeBytes:{before:b.retained.attributeBytes,after:a.retained.attributeBytes,delta:a.retained.attributeBytes-b.retained.attributeBytes}}};
+const path=join(cache,'preflight-perf-comparison.json');writeFileSync(path,JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify({passed:true,path,pixels:report.pixels.identical,states:states.map(s=>({name:s.name,beforeFps:s.beforeFps,afterFps:s.afterFps,privateMiB:s.privateMiB}))},null,2));

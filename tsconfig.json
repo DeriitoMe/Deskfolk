@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true
+  },
+  "include": ["electron/**/*.ts", "renderer/**/*.ts", "shared/**/*.ts", "electron.vite.config.ts"],
+  "exclude": ["renderer/questions-view.ts"]
+}

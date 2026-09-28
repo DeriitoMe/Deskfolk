@@ -1,0 +1,68 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/notify.mjs\" work_started",
+            "async": true,
+            "timeout": 3,
+            "statusMessage": "Waking the desktop pet"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/notify.mjs\" work_progress",
+            "async": true,
+            "timeout": 3,
+            "statusMessage": "Updating the desktop pet"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/notify.mjs\" tool_finished",
+            "async": true,
+            "timeout": 3,
+            "statusMessage": "Updating the desktop pet"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/notify.mjs\" turn_ended",
+            "async": true,
+            "timeout": 3,
+            "statusMessage": "Updating the desktop pet"
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/notify.mjs\" interrupted",
+            "timeout": 2,
+            "statusMessage": "Pausing the desktop pet"
+          }
+        ]
+      }
+    ]
+  }
+}

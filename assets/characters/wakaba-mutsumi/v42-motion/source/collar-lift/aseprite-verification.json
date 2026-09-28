@@ -1,0 +1,23 @@
+[
+  {
+    "clip": "drag",
+    "frames": 138,
+    "width": 512,
+    "height": 512,
+    "durationMs": 4600
+  },
+  {
+    "clip": "drag-release",
+    "frames": 36,
+    "width": 512,
+    "height": 512,
+    "durationMs": 1200
+  },
+  {
+    "clip": "drag-entry",
+    "frames": 12,
+    "width": 512,
+    "height": 512,
+    "durationMs": 400
+  }
+]

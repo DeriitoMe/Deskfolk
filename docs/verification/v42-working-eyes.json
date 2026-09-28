@@ -1,0 +1,280 @@
+{
+  "passed": true,
+  "before": "archived V42 package before work-glow patch",
+  "after": "rebuilt V42 production output",
+  "method": {
+    "samplesPerMode": 9,
+    "sampleIntervalMs": 110,
+    "eyeTexturePixels": [
+      192,
+      256
+    ],
+    "desktopScaleProxyPixels": [
+      23,
+      26
+    ],
+    "desktopScaleProxy": "actual eye textures downsampled with high-quality Canvas smoothing; not a desktop framebuffer capture",
+    "brightPixelThreshold": {
+      "alphaAbove": 160,
+      "redAbove": 210,
+      "greenAbove": 160,
+      "blueBelow": 200
+    },
+    "osReduce": "CDP media emulation isolated to the QA renderer",
+    "bodyHash": "production model canvas pixels excluding eye region"
+  },
+  "cases": [
+    {
+      "mode": "default",
+      "before": {
+        "bodyUniqueHashes": 9,
+        "eyes": [
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              291,
+              394
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          },
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              289,
+              355
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "after": {
+        "bodyUniqueHashes": 9,
+        "eyes": [
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              862,
+              1631
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              1,
+              17
+            ]
+          },
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              880,
+              1636
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              3,
+              22
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "mode": "os-reduced",
+      "before": {
+        "bodyUniqueHashes": 1,
+        "eyes": [
+          {
+            "textureUniqueHashes": 1,
+            "desktopScaleProxyUniqueHashes": 1,
+            "brightTexturePixelRange": [
+              362,
+              362
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          },
+          {
+            "textureUniqueHashes": 1,
+            "desktopScaleProxyUniqueHashes": 1,
+            "brightTexturePixelRange": [
+              274,
+              274
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "after": {
+        "bodyUniqueHashes": 1,
+        "eyes": [
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              669,
+              1608
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              23
+            ]
+          },
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              719,
+              1679
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              2,
+              21
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "mode": "application-reduced",
+      "before": {
+        "bodyUniqueHashes": 1,
+        "eyes": [
+          {
+            "textureUniqueHashes": 1,
+            "desktopScaleProxyUniqueHashes": 1,
+            "brightTexturePixelRange": [
+              362,
+              362
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          },
+          {
+            "textureUniqueHashes": 1,
+            "desktopScaleProxyUniqueHashes": 1,
+            "brightTexturePixelRange": [
+              274,
+              274
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "after": {
+        "bodyUniqueHashes": 1,
+        "eyes": [
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              1162,
+              1768
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              2,
+              23
+            ]
+          },
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              1308,
+              1751
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              6,
+              22
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "mode": "recovered-default",
+      "before": {
+        "bodyUniqueHashes": 9,
+        "eyes": [
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              373,
+              422
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          },
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              321,
+              413
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "after": {
+        "bodyUniqueHashes": 9,
+        "eyes": [
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              1265,
+              1707
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              7,
+              18
+            ]
+          },
+          {
+            "textureUniqueHashes": 9,
+            "desktopScaleProxyUniqueHashes": 9,
+            "brightTexturePixelRange": [
+              1076,
+              1527
+            ],
+            "brightDesktopScaleProxyPixelRange": [
+              5,
+              17
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "idleRecovery": {
+    "action": "idle",
+    "brightTexturePixels": [
+      0,
+      0
+    ]
+  },
+  "visualReview": "Default and OS-reduced full-model PNGs and eye crops inspected; gold eye contour and model appearance intact."
+}
