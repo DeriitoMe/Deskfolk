@@ -1,0 +1,83 @@
+{
+  "master": "mutsumi-icon.aseprite",
+  "masterPixels": [
+    48,
+    48
+  ],
+  "scaling": "nearest-neighbor in Aseprite",
+  "trayLogicalPixels": [
+    16,
+    16
+  ],
+  "tray": [
+    {
+      "file": "tray.png",
+      "pixels": [
+        16,
+        16
+      ],
+      "scaleFactor": 1,
+      "sha256": "1f6334a96b397b45d02cf3ea420398de2ef1da5df06b4caad11f9a4ab37ff596"
+    },
+    {
+      "file": "tray@1.25x.png",
+      "pixels": [
+        20,
+        20
+      ],
+      "scaleFactor": 1.25,
+      "sha256": "5609c30d9213a4bd2d8b61ac978ee3f25aba88322a47b06b62c6fa48589b61ae"
+    },
+    {
+      "file": "tray@1.5x.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "scaleFactor": 1.5,
+      "sha256": "04756e3cf7326bbefcfdb1dc1ae5bd104f3de3fb1fbf57a14cc9d11783052c38"
+    },
+    {
+      "file": "tray@2x.png",
+      "pixels": [
+        32,
+        32
+      ],
+      "scaleFactor": 2,
+      "sha256": "91862bcb76d2f211010543bf94adbca7300fe0a6887ff2c2565d02de5aede468"
+    },
+    {
+      "file": "tray@2.5x.png",
+      "pixels": [
+        40,
+        40
+      ],
+      "scaleFactor": 2.5,
+      "sha256": "ef61e2000b187d91bb093eec9dce9fba0224c7b028654a273567ca825478d084"
+    },
+    {
+      "file": "tray@3x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "scaleFactor": 3,
+      "sha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
+    }
+  ],
+  "ico": {
+    "file": "deskfolk.ico",
+    "sizes": [
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64,
+      128,
+      256
+    ],
+    "sha256": "5d3166e8aef6d7845c41728c41bad7f3dd4e4229ce4eb687bc82dccb686051cb"
+  }
+}

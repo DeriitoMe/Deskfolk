@@ -6,6 +6,9 @@ if(JSON.stringify(models)!==JSON.stringify(['flat-chibi','hires-soft']))throw Er
 if(!/data-model-choice="hires-soft"[^>]*disabled/.test(html)||!html.includes('旋转变身已停用'))throw Error('Q-only controls missing');
 if(/玻璃材质|id="settings-button"|id="pet-status"/.test(html))throw Error('Retired settings or permanent UI found');
 if(!files.some(p=>/mutsumi-v05-.*\.glb$/.test(p)))throw Error('3D model absent');
+const iconFiles=['deskfolk.ico','tray.png','tray@1.25x.png','tray@1.5x.png','tray@2x.png','tray@2.5x.png','tray@3x.png'];
+for(const file of iconFiles){const local=join('assets','icons',file);if(hash(readFileSync(local))!==hash(extractFile(path,local)))throw Error('Icon resource mismatch '+file);}
+if(files.some(p=>/\.aseprite$/.test(p)))throw Error('Editable artwork must stay outside runtime package');
 if(files.some(p=>/spin-q|q-head|q-body|q-hair/.test(p)))throw Error('Retired Q sprite imported');
 const assets=files.filter(p=>/\.(png|webp|jpg)$/i.test(p));
 if(assets.some(p=>/mini-glass|hires-prism|mint-cat|micro-glass|v19-|v21-/.test(p)))throw Error('Retired model in package');

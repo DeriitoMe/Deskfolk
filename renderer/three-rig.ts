@@ -211,21 +211,22 @@ export class MutsumiRig {
    const rx=mix(35,61,ask),ry=mix(88,82,ask);c.beginPath();if(ask<.01)c.ellipse(0,0,rx,ry,0,0,TAU);else c.roundRect(-rx,-ry,rx*2,ry*2,[rx*.8,rx*.8,rx*.85,rx*.85]);
    const gold=c.createLinearGradient(0,-ry,0,ry);gold.addColorStop(0,ask>.1?'#c5a570':'#b87925');gold.addColorStop(1,ask>.1?'#efdbaa':'#ca8b30');c.fillStyle=gold;c.fill();
    if(ask>.001&&this.questionArt){c.save();c.globalAlpha=ask;c.drawImage(this.questionArt,-96,-128);c.restore();}
-   if(p.work>.001){c.save();c.clip();c.globalAlpha=p.work*(1-p.squeeze)*(1-p.happy);this.drawCodeFlow(c,i,t);c.restore();}
+   if(p.work>.001){c.save();c.clip();c.globalAlpha=p.work*(1-p.squeeze)*(1-p.happy);this.drawCodeFlow(c,t);c.restore();}
   }
   if(p.happy>.001){c.globalAlpha=p.happy*(1-p.squeeze);c.strokeStyle='#b98537';c.lineWidth=10;c.lineCap='round';c.beginPath();c.arc(0,5,28,Math.PI*1.13,Math.PI*1.87);c.stroke();}
   if(p.squeeze>.001){c.globalAlpha=p.squeeze;c.drawImage(this.squeezeArt[i],-96,-128);}
   c.restore();this.eyeTextures[i].needsUpdate=true;
  }
- private drawCodeFlow(c:CanvasRenderingContext2D,eye:number,t:number){
-  // Stable seeded glyphs, staggered columns, unequal travel periods. Gold shape
-  // remains the clipping boundary; a column takes 1.6–2.3 s to cross the eye.
-  const hash=(n:number)=>{const x=Math.sin(n*127.1+eye*311.7)*43758.5453;return x-Math.floor(x);};
+ private drawCodeFlow(c:CanvasRenderingContext2D,t:number){
+  // Shared seeds and time keep both eyes synchronized. The multiplier speeds
+  // up glyph columns and glow bands together while preserving the gold shape.
+  t*=1.5;
+  const hash=(n:number)=>{const x=Math.sin(n*127.1)*43758.5453;return x-Math.floor(x);};
   // The desktop eye is only about 8 pixels wide. Broader, fading code ribbons
   // keep the work indicator readable after downsampling without changing the
-  // gold silhouette or the existing column travel speeds.
+  // gold silhouette.
   for(let band=0;band<2;band++){
-   const travel=t*(98+band*25)+band*117+eye*39,pass=Math.floor(travel/228),y=-114+travel%228;
+   const travel=t*(98+band*25)+band*117,pass=Math.floor(travel/228),y=-114+travel%228;
    const center=(hash(pass*41+band*79+5003)-.5)*18,width=44+hash(pass*37+band*61+7021)*16;
    const glow=c.createLinearGradient(0,y-27,0,y+9);
    glow.addColorStop(0,'#fff8d400');glow.addColorStop(.55,'#fff8d438');
@@ -235,7 +236,7 @@ export class MutsumiRig {
   }
   c.font='bold 21px monospace';c.textAlign='center';c.textBaseline='middle';
   for(let col=0;col<3;col++){
-   const speed=82+col*17,travel=t*speed+col*73+eye*29,row=Math.floor(travel/27),offset=travel%27;
+   const speed=82+col*17,travel=t*speed+col*73,row=Math.floor(travel/27),offset=travel%27;
    for(let j=-1;j<9;j++){
     const seed=row-j+col*107+100003,r=hash(seed),y=-114+j*27+offset;
     if(r<.21)continue;

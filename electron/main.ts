@@ -29,6 +29,8 @@ import { CodexLifecycleObserver } from './codex-lifecycle';
 import { presentationPolicy } from '../shared/runtime-policy';
 
 const APP_DIR_NAME = "liquid-glass-pet";
+const ICON_DIRECTORY = join(__dirname, '../../assets/icons');
+const APPLICATION_ICON = join(ICON_DIRECTORY, 'deskfolk.ico');
 const ALLOWED_TYPES = new Set<PetEventType>([
   "work_started",
   "work_progress",
@@ -370,6 +372,7 @@ function openSettings(): void {
     minWidth: 400,
     minHeight: 620,
     title: "Liquid Glass Pet 设置",
+    icon: APPLICATION_ICON,
     backgroundColor: "#f3f7fa",
     autoHideMenuBar: true,
     webPreferences: {
@@ -389,10 +392,8 @@ function openSettings(): void {
 function openCodex(): void { void activateCodex(); }
 
 async function createTray(): Promise<void> {
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" rx="9" fill="#b9e8eb"/><path d="M9 14 12 8l5 4 5-4 2 7v6a6 6 0 0 1-12 0v-7Z" fill="#35565a"/><circle cx="15" cy="18" r="1" fill="#fff"/><circle cx="21" cy="18" r="1" fill="#fff"/></svg>';
-  let icon = nativeImage.createFromDataURL(
-    "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg),
-  );
+  // 16 DIP base image; nativeImage loads the accompanying DPI representations.
+  let icon = nativeImage.createFromPath(join(ICON_DIRECTORY, 'tray.png'));
   if (icon.isEmpty()) icon = await app.getFileIcon(process.execPath, { size: "small" });
   tray = new Tray(icon);
   tray.setToolTip("Liquid Glass Pet");
@@ -465,6 +466,7 @@ function createPetWindow(): void {
     focusable: false,
     alwaysOnTop: true,
     show: false,
+    icon: APPLICATION_ICON,
     backgroundColor: "#00000000",
     webPreferences: {
       preload: join(__dirname, "../preload/index.cjs"),

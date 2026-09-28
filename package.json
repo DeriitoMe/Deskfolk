@@ -27,9 +27,12 @@
     },
     "files": [
       "out/**/*",
+      "assets/icons/tray*.png",
+      "assets/icons/deskfolk.ico",
       "package.json"
     ],
     "win": {
+      "icon": "assets/icons/deskfolk.ico",
       "target": [
         {
           "target": "nsis",
@@ -40,6 +43,8 @@
       ]
     },
     "nsis": {
+      "installerIcon": "assets/icons/deskfolk.ico",
+      "uninstallerIcon": "assets/icons/deskfolk.ico",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,

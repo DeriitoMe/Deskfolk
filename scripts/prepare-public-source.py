@@ -79,6 +79,7 @@ def main():
     if target == root or root not in target.parents or target.parts[len(root.parts)] != '.cache':
         raise SystemExit('Export destination must be a separate directory inside project .cache.')
     selected = set(root / name for name in ROOT_FILES)
+    selected.update(path for path in (root / 'assets/icons').rglob('*') if path.is_file())
     for dirname in CODE_DIRS:
         selected.update(path for path in (root / dirname).rglob('*') if path.is_file())
     for pattern in SCRIPT_PATTERNS:

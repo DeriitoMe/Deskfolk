@@ -7,7 +7,7 @@
 - 透明桌面宠物、系统托盘设置、拖拽移动及位置记忆。
 - Blender 衍生的实时 3D Q 版模型，独立眼睛与四肢；待机、浇水、小憩、触碰和后衣领悬吊式挣扎动作。
 - 待机及单项目工作时的视线与身体跟随。
-- 工作中的代码式眼部流光；两个以上不同项目目录同时工作时进入全力工作状态。同目录多个聊天计为一个项目。
+- 工作中的代码式眼部流光双眼同步，速度为此前的 1.5 倍；至少两个不同项目目录同时工作时进入全力工作状态。同目录多个聊天计为一个项目。
 - 本机 Codex 结构化状态观察、工作结束与待询问气泡；询问按钮打开 Codex，问题在官方面板处理。
 - 当前仅启用 Q 版；既有华丽形态资源保留为存档。
 
@@ -51,6 +51,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-codex.ps
 
 - [发布前检查与回退记录](docs/V42_RELEASE_PREFLIGHT.md)
 - [工作流光修补](docs/V42_WORK_GLOW_FIX.md)
+- [像素图标与同步工作流光验证](docs/V42_ICON_AND_WORK_FLOW.md)
 - [状态接口与边界](docs/V42_STATE_PREFLIGHT.md)
 - [内存与画质测量](docs/V42_MEMORY_PREFLIGHT.md)
 - [上传前隐私检查](docs/V42_PRIVACY_PREFLIGHT.md)

@@ -8,8 +8,8 @@
     },
     {
       "file": "README.md",
-      "bytes": 2993,
-      "sha256": "d3bac9da8004c669460d8a7edb4eddf66a8e9dcdff89592382e1ec9c38be330f"
+      "bytes": 3110,
+      "sha256": "377f2995b1df0be8afe5da5107c172a0844aba3b3553e8a8cd705121b06729ab"
     },
     {
       "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/eye-question.png",
@@ -382,6 +382,61 @@
       "sha256": "91c2ece37ad82d2116a46f1b6852493515a8cba3d59892568a9d4c28b7ce37da"
     },
     {
+      "file": "assets/icons/README.md",
+      "bytes": 1104,
+      "sha256": "0b2b6598df3575943fa6f08d4b9d88f1aaafd67331ed744e2f98dfb59901205a"
+    },
+    {
+      "file": "assets/icons/deskfolk.ico",
+      "bytes": 7849,
+      "sha256": "5d3166e8aef6d7845c41728c41bad7f3dd4e4229ce4eb687bc82dccb686051cb"
+    },
+    {
+      "file": "assets/icons/icon-48.png",
+      "bytes": 872,
+      "sha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
+    },
+    {
+      "file": "assets/icons/manifest.json",
+      "bytes": 1629,
+      "sha256": "a73077b56aca27240433211c91c7dd569e7be5c2126af3aab561e0e136b6bf46"
+    },
+    {
+      "file": "assets/icons/mutsumi-icon.aseprite",
+      "bytes": 2288,
+      "sha256": "c4366716a52d00be5f011a7ef2eb96b1b973e28c109d51bcefcc5d630f0b5638"
+    },
+    {
+      "file": "assets/icons/tray.png",
+      "bytes": 356,
+      "sha256": "1f6334a96b397b45d02cf3ea420398de2ef1da5df06b4caad11f9a4ab37ff596"
+    },
+    {
+      "file": "assets/icons/tray@1.25x.png",
+      "bytes": 439,
+      "sha256": "5609c30d9213a4bd2d8b61ac978ee3f25aba88322a47b06b62c6fa48589b61ae"
+    },
+    {
+      "file": "assets/icons/tray@1.5x.png",
+      "bytes": 519,
+      "sha256": "04756e3cf7326bbefcfdb1dc1ae5bd104f3de3fb1fbf57a14cc9d11783052c38"
+    },
+    {
+      "file": "assets/icons/tray@2.5x.png",
+      "bytes": 718,
+      "sha256": "ef61e2000b187d91bb093eec9dce9fba0224c7b028654a273567ca825478d084"
+    },
+    {
+      "file": "assets/icons/tray@2x.png",
+      "bytes": 597,
+      "sha256": "91862bcb76d2f211010543bf94adbca7300fe0a6887ff2c2565d02de5aede468"
+    },
+    {
+      "file": "assets/icons/tray@3x.png",
+      "bytes": 872,
+      "sha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
+    },
+    {
       "file": "bridge/pet-mcp.mjs",
       "bytes": 7518,
       "sha256": "91577c5f045d3af7864baecff57108f8c626366fc0cde9d6e94154da137dd1b0"
@@ -442,6 +497,11 @@
       "sha256": "23a99b8a007e6eeb8e97d79db85b62e5d34898efea35a6fdf38a596aa2aa00de"
     },
     {
+      "file": "docs/V42_ICON_AND_WORK_FLOW.md",
+      "bytes": 4259,
+      "sha256": "705b77219e6cabafec19cc98e0bf93c1453e0cde450a1373521e3c6d1e5a8d2d"
+    },
+    {
       "file": "docs/V42_MEMORY_PREFLIGHT.md",
       "bytes": 5169,
       "sha256": "7200a944081e20731940ad0a6c7ee734d6b09b5edf903e22d6d8c5dab4d9eea9"
@@ -470,6 +530,16 @@
       "file": "docs/V42_WORK_GLOW_FIX.md",
       "bytes": 2930,
       "sha256": "c1ed3afe475aebdbcfdb0c802ede603780f08306732ebf53fff581d5a6bc690c"
+    },
+    {
+      "file": "docs/images/work-states.png",
+      "bytes": 348641,
+      "sha256": "08d8c43c49ed4dc12e6caec550bd052ee12513a99336246e11a504f7ac4dd633"
+    },
+    {
+      "file": "docs/verification/v42-icons-and-flow.json",
+      "bytes": 7681,
+      "sha256": "4317d44286c893623af2aef9be26a37fd5263f0a724d654c013c00c323d9ccf0"
     },
     {
       "file": "docs/verification/v42-native-lifecycle.json",
@@ -503,8 +573,8 @@
     },
     {
       "file": "electron/main.ts",
-      "bytes": 25716,
-      "sha256": "fa7173d41a9abc8b8933df4bc17a2057ec62c92dace92369859bddc8810ec3ef"
+      "bytes": 25609,
+      "sha256": "760c63d489cf4c31212385aedf9f5ddbacbe9ed8392d115ca9f9ab2507607c8d"
     },
     {
       "file": "electron/preload.ts",
@@ -518,8 +588,8 @@
     },
     {
       "file": "package.json",
-      "bytes": 1164,
-      "sha256": "a2e5b944e9c2638330ccb6a85d7397f71a19bd77ff81f2fc92054becc99c9084"
+      "bytes": 1380,
+      "sha256": "c2d3810fa0d133047702f87191a27abf77be3b56785452620eb19fa5e59e5013"
     },
     {
       "file": "plugins/liquid-glass-pet/.codex-plugin/plugin.json",
@@ -613,8 +683,8 @@
     },
     {
       "file": "renderer/three-rig.ts",
-      "bytes": 27292,
-      "sha256": "1637588588b32af11f9af3b63e8a81d633fe94a937ec852548a990614faf03be"
+      "bytes": 27223,
+      "sha256": "d133d7fc04d915bbcc209fbee6d96cb9c3e7d8c960d84e7825f6d80ac2844a27"
     },
     {
       "file": "renderer/v37-review.ts",
@@ -657,6 +727,11 @@
       "sha256": "6b41d6693be5bbd483d8b7709dec405974b48151e9d2c0bf2b5b3c86b6e18def"
     },
     {
+      "file": "scripts/assemble-v42-icons.lua",
+      "bytes": 583,
+      "sha256": "f2b499b61e6067116729f17b115366f5b8bd9f7595d9d2a1928e5dfd3ddb634f"
+    },
+    {
       "file": "scripts/assemble-v42-review.lua",
       "bytes": 1011,
       "sha256": "4b5b94acec4528b05690708395789e391615221eef5c8269fcca2d1dd60a4a24"
@@ -672,14 +747,19 @@
       "sha256": "04edc192aea08899b6b13f3e155b06ee841f6d11e0622554ec811f6b9436e58e"
     },
     {
+      "file": "scripts/export-v42-icons.cjs",
+      "bytes": 1998,
+      "sha256": "2b50a501d4270fc332b93f40cdd93ca38923efc951da0d0f532adfc507652947"
+    },
+    {
       "file": "scripts/export-v42-motion.cjs",
       "bytes": 2461,
       "sha256": "f5b89c8d759edd684e1c646545d62e4b0ab18f3c2cd15bdc91582a23912dfdce"
     },
     {
       "file": "scripts/prepare-public-source.py",
-      "bytes": 7702,
-      "sha256": "2a71509e0a0fb4820ebecbf20a373e432aba2e0fabe5f7561bec8517ac9bf502"
+      "bytes": 7793,
+      "sha256": "09f6b29676a62725d563a7b21b047db0b134f467bdfe6bea0c0c25252fd9052c"
     },
     {
       "file": "scripts/prepare-v42-eye-art.py",
@@ -758,13 +838,13 @@
     },
     {
       "file": "scripts/stage-v42-package.mjs",
-      "bytes": 1289,
-      "sha256": "06ad647e0fe235f48ec01758bc6175d4608783bad490e3f9c37fa406625b76d7"
+      "bytes": 1359,
+      "sha256": "c4c3f170d99e77b39b8242d9d079c56a6621b2548a3a30da887f28d699ca4715"
     },
     {
       "file": "scripts/verify-v42-package.mjs",
-      "bytes": 3496,
-      "sha256": "95259a77f34a8245f4c80cc87308fbe9c93c370f3f2381ee925ddf052bd7a7a7"
+      "bytes": 3864,
+      "sha256": "aaf89e7b6f201be7e99cafba5725048f587ff18b88e269a53556317489c7647e"
     },
     {
       "file": "shared/activity.test.ts",
@@ -837,8 +917,8 @@
       "sha256": "cba41f3fed6083904716be8ae276a3887ed603e010d80afe14a7614b78894329"
     }
   ],
-  "fileCount": 167,
-  "bytes": 159636810,
+  "fileCount": 183,
+  "bytes": 160017901,
   "over100MiB": [],
   "excluded": [
     "local Electron profiles",

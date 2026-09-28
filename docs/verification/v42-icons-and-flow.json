@@ -1,0 +1,293 @@
+{
+  "version": "0.1.0",
+  "internalVersion": "V42",
+  "verifiedAt": "2026-09-28T06:56:56.499Z",
+  "applicationIcon": [
+    {
+      "pixels": 16,
+      "embeddedInExecutable": true,
+      "pngSha256": "1f6334a96b397b45d02cf3ea420398de2ef1da5df06b4caad11f9a4ab37ff596"
+    },
+    {
+      "pixels": 20,
+      "embeddedInExecutable": true,
+      "pngSha256": "5609c30d9213a4bd2d8b61ac978ee3f25aba88322a47b06b62c6fa48589b61ae"
+    },
+    {
+      "pixels": 24,
+      "embeddedInExecutable": true,
+      "pngSha256": "04756e3cf7326bbefcfdb1dc1ae5bd104f3de3fb1fbf57a14cc9d11783052c38"
+    },
+    {
+      "pixels": 32,
+      "embeddedInExecutable": true,
+      "pngSha256": "91862bcb76d2f211010543bf94adbca7300fe0a6887ff2c2565d02de5aede468"
+    },
+    {
+      "pixels": 40,
+      "embeddedInExecutable": true,
+      "pngSha256": "ef61e2000b187d91bb093eec9dce9fba0224c7b028654a273567ca825478d084"
+    },
+    {
+      "pixels": 48,
+      "embeddedInExecutable": true,
+      "pngSha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
+    },
+    {
+      "pixels": 64,
+      "embeddedInExecutable": true,
+      "pngSha256": "21eb1a1ab847534894bc2b9a82728765cb379cf0995363f1a3ae433efdc93fd3"
+    },
+    {
+      "pixels": 128,
+      "embeddedInExecutable": true,
+      "pngSha256": "b4ab4e77407a03644182703ba7396a2916a17e541c52b59cbe9960bda548513e"
+    },
+    {
+      "pixels": 256,
+      "embeddedInExecutable": true,
+      "pngSha256": "6cd07425e6b25d53015009ba45fb3b7c6ce7f9d34efa8250c4a3165b3f7d4b20"
+    }
+  ],
+  "tray": {
+    "passed": true,
+    "logicalSize": {
+      "width": 16,
+      "height": 16
+    },
+    "representations": [
+      {
+        "scaleFactor": 1,
+        "pixels": 16,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        },
+        "transparentPixels": 116,
+        "opaquePixels": 140,
+        "pngSha256": "1f6334a96b397b45d02cf3ea420398de2ef1da5df06b4caad11f9a4ab37ff596"
+      },
+      {
+        "scaleFactor": 1.25,
+        "pixels": 20,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        },
+        "transparentPixels": 183,
+        "opaquePixels": 217,
+        "pngSha256": "5609c30d9213a4bd2d8b61ac978ee3f25aba88322a47b06b62c6fa48589b61ae"
+      },
+      {
+        "scaleFactor": 1.5,
+        "pixels": 24,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        },
+        "transparentPixels": 260,
+        "opaquePixels": 316,
+        "pngSha256": "04756e3cf7326bbefcfdb1dc1ae5bd104f3de3fb1fbf57a14cc9d11783052c38"
+      },
+      {
+        "scaleFactor": 2,
+        "pixels": 32,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        },
+        "transparentPixels": 466,
+        "opaquePixels": 558,
+        "pngSha256": "91862bcb76d2f211010543bf94adbca7300fe0a6887ff2c2565d02de5aede468"
+      },
+      {
+        "scaleFactor": 2.5,
+        "pixels": 40,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        },
+        "transparentPixels": 727,
+        "opaquePixels": 873,
+        "pngSha256": "ef61e2000b187d91bb093eec9dce9fba0224c7b028654a273567ca825478d084"
+      },
+      {
+        "scaleFactor": 3,
+        "pixels": 48,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        },
+        "transparentPixels": 1040,
+        "opaquePixels": 1264,
+        "pngSha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
+      }
+    ],
+    "rightClickPopupCount": 1,
+    "settings": {
+      "opened": true,
+      "modelChoices": 2
+    }
+  },
+  "renderer": {
+    "unchangedFromApprovedEyeSyncBuild": true,
+    "filesCompared": 15
+  },
+  "nativeLifecycle": {
+    "passed": true,
+    "method": "Isolated JSONL fixtures through production native observer, main/preload and renderer",
+    "checks": [
+      {
+        "label": "startup during actual native task",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "same directory remains one project",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "different project enters full power",
+        "phase": "working",
+        "projects": 2,
+        "power": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "pause one project returns to normal work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "another session completes while task remains",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "same chat directory change is counted",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "directory change restores distinct projects",
+        "phase": "working",
+        "projects": 2,
+        "power": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "full power exits to normal work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "native unanswered question enters asking",
+        "phase": "asking",
+        "projects": 0,
+        "power": false,
+        "action": "ask",
+        "ready": true
+      },
+      {
+        "label": "native answer restores active work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "native stop exits work",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "idle",
+        "ready": true
+      },
+      {
+        "label": "new native turn resumes work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "observed terminal error exits work",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "idle",
+        "ready": true
+      },
+      {
+        "label": "work after error",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "natural native completion exits work",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "idle",
+        "ready": true
+      },
+      {
+        "label": "tray settings preserved",
+        "passed": true
+      },
+      {
+        "label": "idle cadence restores watering",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "water",
+        "ready": true
+      }
+    ]
+  },
+  "runtimePrivacy": {
+    "inspectedFiles": 25,
+    "findings": 0
+  },
+  "asarSha256": "3c97a9fc38591f954c513317da39be32ba8f366cc67b31cd941bb672f3ccb433",
+  "executableSha256": "b8bae538f9f4cd49bdd07c4fca4f8600628069934beb72013195f5964c393485",
+  "installerPayload": {
+    "comparedFiles": 75,
+    "allFileBytesMatch": true,
+    "installerSha256": "b50c7a7e11e17eeef38336ad2dc503aeb5f9c4aa0eedd03d70b74de7c11336a2"
+  },
+  "sourcePrivacy": {
+    "inspectedFiles": 184,
+    "suspectedCredentials": 0,
+    "personalMetadata": 0,
+    "uninspectedNativeSources": 0,
+    "reviewedAssetFilenameFindings": 13,
+    "unchangedPreviouslyReviewedThirdPartyOrSyntaxFindings": 2
+  }
+}
