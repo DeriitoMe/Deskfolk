@@ -70,6 +70,10 @@ scripts/*
 !scripts/assemble-v42-*.lua
 !scripts/export-v42-*.cjs
 !scripts/prepare-v42-*.py
+!scripts/prepare-head-icon.lua
+!scripts/build-codex-launcher.cjs
+!scripts/CodexLauncher.cs
+!scripts/installer-startup.nsh
 
 # Reviewed portable editable sources in this snapshot.
 !/PUBLIC_SOURCE_MANIFEST.json

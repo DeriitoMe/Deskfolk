@@ -15,7 +15,7 @@ import zipfile
 
 ROOT_FILES = ['.gitignore', 'README.md', 'package.json', 'package-lock.json', 'electron.vite.config.ts', 'review.vite.config.ts', 'tsconfig.json']
 CODE_DIRS = ['bridge', 'electron', 'renderer', 'shared', 'plugins', 'docs']
-SCRIPT_PATTERNS = ['privacy-*.py', 'prepare-public-source.py', 'setup-codex.ps1', 'stage-v42-package.mjs', 'verify-v42-package.mjs', 'qa-v42-*', 'build-v42-*.py', 'assemble-v42-*.lua', 'export-v42-*.cjs', 'prepare-v42-*.py']
+SCRIPT_PATTERNS = ['privacy-*.py', 'prepare-public-source.py', 'setup-codex.ps1', 'stage-v42-package.mjs', 'verify-v42-package.mjs', 'qa-v42-*', 'build-v42-*.py', 'assemble-v42-*.lua', 'export-v42-*.cjs', 'prepare-v42-*.py', 'prepare-head-icon.lua', 'build-codex-launcher.cjs', 'CodexLauncher.cs', 'installer-startup.nsh']
 ART_DIRS = ['v41-3d/runtime', 'v40-motion/layers', 'v42-motion/source']
 TEXT_EXTENSIONS = {'.ts', '.js', '.mjs', '.cjs', '.py', '.lua', '.ps1', '.json', '.html', '.md', '.svg', '.css', '.txt'}
 LOCAL_ID_KEYS = {'sessionid', 'session_id', 'threadid', 'thread_id', 'turnid', 'turn_id', 'questionid', 'question_id', 'call_id'}

@@ -9,6 +9,9 @@ if(!files.some(p=>/mutsumi-v05-.*\.glb$/.test(p)))throw Error('3D model absent')
 const iconFiles=['deskfolk.ico','tray.png','tray@1.25x.png','tray@1.5x.png','tray@2x.png','tray@2.5x.png','tray@3x.png'];
 for(const file of iconFiles){const local=join('assets','icons',file);if(hash(readFileSync(local))!==hash(extractFile(path,local)))throw Error('Icon resource mismatch '+file);}
 if(files.some(p=>/\.aseprite$/.test(p)))throw Error('Editable artwork must stay outside runtime package');
+if(!html.includes('id="codex-start-toggle"'))throw Error('Codex startup setting missing');
+const launcher='release/v42/win-unpacked/resources/launcher/DeskfolkCodexLauncher.exe';
+if(!existsSync(launcher)||hash(readFileSync(launcher))!==hash(readFileSync('.cache/codex-launcher/DeskfolkCodexLauncher.exe')))throw Error('Native startup helper missing or outdated');
 if(files.some(p=>/spin-q|q-head|q-body|q-hair/.test(p)))throw Error('Retired Q sprite imported');
 const assets=files.filter(p=>/\.(png|webp|jpg)$/i.test(p));
 if(assets.some(p=>/mini-glass|hires-prism|mint-cat|micro-glass|v19-|v21-/.test(p)))throw Error('Retired model in package');

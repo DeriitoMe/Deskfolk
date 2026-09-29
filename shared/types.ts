@@ -61,6 +61,7 @@ export interface PetPreferences {
   idleDance: boolean;
   reducedMotion: boolean;
   bubbleSeconds: number;
+  startWithCodex: boolean;
 }
 
 export interface PetBootstrap {

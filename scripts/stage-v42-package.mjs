@@ -8,7 +8,8 @@ if(stagedOutput!==resolve(root,'.cache/v42-package/out'))throw Error('Unexpected
 rmSync(stagedOutput,{recursive:true,force:true});
 cpSync(resolve(root,'out'),dir+'/out',{recursive:true});
 cpSync(resolve(root,'assets/icons'),resolve(dir,'assets/icons'),{recursive:true});
+mkdirSync(resolve(dir,'scripts'),{recursive:true});cpSync(resolve(root,'scripts/installer-startup.nsh'),resolve(dir,'scripts/installer-startup.nsh'));
 const pkg=JSON.parse(readFileSync(resolve(root,'package.json'),'utf8'));
 const version=JSON.parse(readFileSync(resolve(root,'node_modules/electron/package.json'),'utf8')).version;
-writeFileSync(dir+'/package.json',JSON.stringify({name:pkg.name,version:pkg.version,private:true,type:'module',main:'out/main/index.js',description:pkg.description,author:'Local developer',build:{...pkg.build,electronVersion:version,npmRebuild:false,directories:{output:resolve(root,'release/v42')}}},null,2));
+writeFileSync(dir+'/package.json',JSON.stringify({name:pkg.name,version:pkg.version,private:true,type:'module',main:'out/main/index.js',description:pkg.description,author:'Local developer',build:{...pkg.build,extraResources:[{from:resolve(root,'.cache/codex-launcher/DeskfolkCodexLauncher.exe'),to:'launcher/DeskfolkCodexLauncher.exe'}],electronVersion:version,npmRebuild:false,directories:{output:resolve(root,'release/v42')}}},null,2));
 console.log('Staged V42 application using Electron '+version);

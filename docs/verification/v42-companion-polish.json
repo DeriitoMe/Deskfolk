@@ -1,0 +1,454 @@
+{
+  "checkedAt": "2026-09-29T05:54:08.413Z",
+  "version": "0.1.0",
+  "rollbackCommit": "3149e44e9f69935ca60f94c162fab13861951bbb",
+  "icons": {
+    "headOnly": true,
+    "editableMaster": "assets/icons/mutsumi-icon.aseprite",
+    "layers": 5,
+    "masterPixels": 48,
+    "icoPixels": [
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64,
+      128,
+      256
+    ],
+    "tray": [
+      {
+        "scaleFactor": 1,
+        "pixels": 16,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        }
+      },
+      {
+        "scaleFactor": 1.25,
+        "pixels": 20,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        }
+      },
+      {
+        "scaleFactor": 1.5,
+        "pixels": 24,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        }
+      },
+      {
+        "scaleFactor": 2,
+        "pixels": 32,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        }
+      },
+      {
+        "scaleFactor": 2.5,
+        "pixels": 40,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        }
+      },
+      {
+        "scaleFactor": 3,
+        "pixels": 48,
+        "logicalSize": {
+          "width": 16,
+          "height": 16
+        }
+      }
+    ],
+    "traySettingsPassed": true
+  },
+  "startup": {
+    "defaultEnabled": true,
+    "ui": {
+      "defaultEnabled": true,
+      "uiDisablePersists": true,
+      "uiReenablePersists": true,
+      "concurrentChangesPreserved": true,
+      "systemRegistrationIsolated": true
+    },
+    "launcher": {
+      "disabledWatcherStops": true,
+      "disabledDoesNotLaunch": true,
+      "workingSetBytes": 33894400,
+      "method": "Compiled native helper with private invisible desktop/probe fixtures; no real Codex process closed and no Run key modified",
+      "realDesktopDetected": true,
+      "passed": true,
+      "newDesktopTriggers": true,
+      "duplicateWatcherExits": true,
+      "existingDesktopDoesNotRespawn": true
+    },
+    "configCompatibility": {
+      "passed": true,
+      "windowsRenameFailuresHandled": 27,
+      "enabledConfigWritten": true,
+      "disabledConfigWritten": true,
+      "registrationRemovedWhenDisabled": true,
+      "temporaryConfigCleaned": true,
+      "method": "Production startup controller with isolated files, injected Windows rename failures, and simulated registry/process launch"
+    },
+    "officialDesktopProbe": {
+      "officialDesktopWindows": 1,
+      "detected": true
+    },
+    "pathChecks": {
+      "passed": true,
+      "packaged": true,
+      "portable": true,
+      "cliExcluded": true,
+      "otherExcluded": true
+    },
+    "pollMs": 750,
+    "realCodexRestartedForTest": false
+  },
+  "suspension": {
+    "passed": true,
+    "maximumDegrees": 70,
+    "damping": 16,
+    "spring": 40,
+    "speedFilterMs": 90,
+    "briefFlickPeakDegrees": 29.989919523018038,
+    "slow": {
+      "peakDegrees": 3.8198092017715686,
+      "restDegrees": -0.00010673846138402127
+    },
+    "fast": {
+      "peakDegrees": 64.29076438575001,
+      "restDegrees": -0.0014976449424948838
+    },
+    "short": {
+      "peakDegrees": 7.622924160087524,
+      "restDegrees": -0.0001848980877294947
+    },
+    "long": {
+      "peakDegrees": 34.34464392729416,
+      "restDegrees": -0.001022178036590297
+    },
+    "rates": [
+      {
+        "fps": 30,
+        "peakDegrees": 38.50475091378081,
+        "restDegrees": -0.001012830547898395
+      },
+      {
+        "fps": 60,
+        "peakDegrees": 38.19809201771569,
+        "restDegrees": -0.0010673846138402163
+      },
+      {
+        "fps": 120,
+        "peakDegrees": 38.04374231946387,
+        "restDegrees": -0.0010957346236083766
+      }
+    ],
+    "oppositeDirection": true,
+    "invalidInputIgnored": true,
+    "pivot": "Rest model crown in root-local coordinates",
+    "axis": "Screen-plane Z rotation",
+    "dragCanvasPixels": {
+      "width": 1024,
+      "height": 768
+    },
+    "restCanvasPixels": {
+      "width": 512,
+      "height": 512
+    },
+    "worldPixelDensityUnchanged": true,
+    "nativePointer": {
+      "drag": true,
+      "pivotStableOnExpansion": true,
+      "releaseRestoresIdle": true
+    },
+    "releaseRestoresCanvas": true,
+    "strugglePeaks": 2,
+    "edgeClippingAtBothLimits": [
+      {
+        "name": "drag-left-limit",
+        "edgeAlpha": 0
+      },
+      {
+        "name": "drag-right-limit",
+        "edgeAlpha": 0
+      }
+    ]
+  },
+  "hair": {
+    "control": "CTRL_Hair",
+    "onlySuperWork": true,
+    "maximumDegreesApprox": 1.8,
+    "periodSeconds": [
+      1.7,
+      2.6
+    ],
+    "rigidScalePreserved": true
+  },
+  "performance": {
+    "method": "Packaged ASAR, private profile, 60 FPS target, 132–133 rendered frame intervals per state; local GPU context",
+    "electron": "37.10.3",
+    "states": [
+      {
+        "action": "idle",
+        "frames": 133,
+        "averageFps": 59.99909775792846,
+        "maximumFrameMs": 17.40000000000009,
+        "over50ms": 0
+      },
+      {
+        "action": "work",
+        "frames": 132,
+        "averageFps": 59.99454595036815,
+        "maximumFrameMs": 17,
+        "over50ms": 0
+      },
+      {
+        "action": "power-work",
+        "frames": 132,
+        "averageFps": 60.00000000000002,
+        "maximumFrameMs": 16.80000000000109,
+        "over50ms": 0
+      },
+      {
+        "action": "drag",
+        "frames": 132,
+        "averageFps": 59.99727285123407,
+        "maximumFrameMs": 18,
+        "over50ms": 0
+      }
+    ],
+    "environment": {
+      "os": "Windows 11 Home",
+      "version": "10.0.26200",
+      "build": "26200",
+      "availablePhysicalAdapters": [
+        "AMD Radeon(TM) 780M",
+        "NVIDIA GeForce RTX 4060 Laptop GPU"
+      ],
+      "actualRendererAdapterRecorded": false
+    }
+  },
+  "lifecycle": {
+    "passed": true,
+    "build": "packaged-asar",
+    "checks": [
+      {
+        "label": "startup during actual native task",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "same directory remains one project",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "different project enters full power",
+        "phase": "working",
+        "projects": 2,
+        "power": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "pause one project returns to normal work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "another session completes while task remains",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "same chat directory change is counted",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "directory change restores distinct projects",
+        "phase": "working",
+        "projects": 2,
+        "power": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "full power exits to normal work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "native unanswered question enters asking",
+        "phase": "asking",
+        "projects": 0,
+        "power": false,
+        "action": "ask",
+        "ready": true
+      },
+      {
+        "label": "native answer restores active work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "native stop exits work",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "idle",
+        "ready": true
+      },
+      {
+        "label": "new native turn resumes work",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "observed terminal error exits work",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "idle",
+        "ready": true
+      },
+      {
+        "label": "work after error",
+        "phase": "working",
+        "projects": 1,
+        "power": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "natural native completion exits work",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "idle",
+        "ready": true
+      },
+      {
+        "label": "tray settings preserved",
+        "passed": true
+      },
+      {
+        "label": "idle cadence restores watering",
+        "phase": "idle",
+        "projects": 0,
+        "power": false,
+        "action": "water",
+        "ready": true
+      }
+    ]
+  },
+  "artifacts": {
+    "asarSha256": "3e7782bdcfa29958e5adf60f47ae4109de71db1abf9de836926c0cc61f8eec85",
+    "executableSha256": "c67b72fe9ddd73e36b6139e7055bcc6eb422eded687be9aface83339ab036285",
+    "installerSha256": "c02a173d25fc424b96cb1b0c7e653e89d957b834f9589a6d1e605f3f4687edf1",
+    "launcherSha256": "a99b013257c93caea5d569544cedfee11efcc9349436edef8b3d416ef0c9d668",
+    "icoSha256": "43325b3f2a08e7b8b034f8270b9f6ce7fa42c1c629a4af3c929805f667e8918e"
+  },
+  "sourceChanges": [
+    ".gitignore",
+    "README.md",
+    "assets/icons/README.md",
+    "assets/icons/archive/icon-0.1.0.png",
+    "assets/icons/archive/mutsumi-icon-0.1.0.aseprite",
+    "assets/icons/deskfolk.ico",
+    "assets/icons/icon-48.png",
+    "assets/icons/manifest.json",
+    "assets/icons/mutsumi-icon.aseprite",
+    "assets/icons/tray.png",
+    "assets/icons/tray@1.25x.png",
+    "assets/icons/tray@1.5x.png",
+    "assets/icons/tray@2.5x.png",
+    "assets/icons/tray@2x.png",
+    "assets/icons/tray@3x.png",
+    "docs/V42_COMPANION_POLISH.md",
+    "docs/images/companion-polish-preview.png",
+    "docs/images/head-icon.png",
+    "docs/verification/v42-companion-polish.json",
+    "electron/codex-startup.ts",
+    "electron/main.ts",
+    "package.json",
+    "renderer/index.html",
+    "renderer/main.ts",
+    "renderer/style.css",
+    "renderer/three-rig.ts",
+    "scripts/CodexLauncher.cs",
+    "scripts/build-codex-launcher.cjs",
+    "scripts/installer-startup.nsh",
+    "scripts/prepare-head-icon.lua",
+    "scripts/prepare-public-source.py",
+    "scripts/privacy-preflight.py",
+    "scripts/qa-v42-codex-startup-fixture.cs",
+    "scripts/qa-v42-codex-startup.ps1",
+    "scripts/qa-v42-companion-polish.cjs",
+    "scripts/qa-v42-drag-physics.mjs",
+    "scripts/qa-v42-render.cjs",
+    "scripts/qa-v42-startup-config.cjs",
+    "scripts/stage-v42-package.mjs",
+    "scripts/verify-v42-package.mjs",
+    "shared/drag-physics.ts",
+    "shared/types.ts"
+  ],
+  "sourcePrivacy": {
+    "inspectedFiles": 201,
+    "suspectedCredentials": 0,
+    "personalMetadata": 0,
+    "uninspectedNativeSources": 0,
+    "reviewedAssetFilenameFindings": 18,
+    "unchangedPreviouslyReviewedThirdPartyOrSyntaxFindings": 2,
+    "genericExamplePathFindings": 2,
+    "valuesOmitted": true
+  },
+  "localInstallation": {
+    "passed": true,
+    "checkedAt": "2026-09-29T05:59:34.4678463Z",
+    "liveStartupRegistration": true,
+    "liveHelperRunning": true,
+    "applicationResponding": true,
+    "artifactHashesMatch": {
+      "icon": true,
+      "exe": true,
+      "asar": true,
+      "helper": true
+    },
+    "desktopShortcutsVerified": 1
+  }
+}

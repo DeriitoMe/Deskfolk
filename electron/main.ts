@@ -27,6 +27,7 @@ import { activateCodex } from './codex-window';
 import { isQuestionReminder } from '../shared/reminders';
 import { CodexLifecycleObserver } from './codex-lifecycle';
 import { presentationPolicy } from '../shared/runtime-policy';
+import { syncCodexStartup } from './codex-startup';
 
 const APP_DIR_NAME = "liquid-glass-pet";
 const ICON_DIRECTORY = join(__dirname, '../../assets/icons');
@@ -49,6 +50,7 @@ const DEFAULT_PREFERENCES: PetPreferences = {
   idleDance: true,
   reducedMotion: false,
   bubbleSeconds: 8,
+  startWithCodex: true,
 };
 
 app.setName(APP_DIR_NAME);
@@ -68,6 +70,7 @@ let trayMenu: Menu | null = null;
 let bridgeServer: Server | null = null;
 let accessToken = "";
 let preferences = { ...DEFAULT_PREFERENCES };
+let preferenceSaveQueue: Promise<PetPreferences | void> = Promise.resolve();
 let history: PetEvent[] = [];
 let sessionActivities: SessionActivities = {};
 let lifecycle: CodexLifecycleObserver | undefined;
@@ -149,6 +152,7 @@ function normalizePreferences(input: Partial<PetPreferences>): PetPreferences {
       ? input.reducedMotion
       : preferences.reducedMotion,
     bubbleSeconds,
+    startWithCodex:typeof input.startWithCodex==='boolean'?input.startWithCodex:preferences.startWithCodex,
   };
 }
 
@@ -515,6 +519,7 @@ function registerIpc(): void {
     const b=mainWindow.getBounds(),old=petLayout;
     if(JSON.stringify(layout)===JSON.stringify(petLayout)&&Math.abs(b.width-Math.ceil(layout.width))<1&&Math.abs(b.height-Math.ceil(layout.height))<1)return;
     petLayout=layout;
+    if(old&&old.width===layout.width&&old.height===layout.height&&old.anchorX===layout.anchorX&&old.anchorY===layout.anchorY&&b.width===Math.ceil(layout.width)&&b.height===Math.ceil(layout.height))return;
     // Keep the world-space foot anchor across a round trip of canvas sizes.
     // Windows DPI rounding otherwise loses about one DIP at every resize.
     if(!layoutAnchorWorld && old) layoutAnchorWorld={x:b.x+old.anchorX,y:b.y+old.anchorY};
@@ -540,10 +545,16 @@ function registerIpc(): void {
 
   }));
   ipcMain.handle("pet:save-preferences", (_event, patch: Partial<PetPreferences>) => {
-    preferences = normalizePreferences(patch);
-    writeJsonAtomically(preferencesPath, preferences);
-    mainWindow?.webContents.send("pet:preferences", preferences);
-    return preferences;
+    const save=preferenceSaveQueue.catch(()=>{}).then(async()=>{
+      const next=normalizePreferences(patch);
+      if(next.startWithCodex!==preferences.startWithCodex)await syncCodexStartup(next.startWithCodex);
+      preferences = normalizePreferences(patch);
+      writeJsonAtomically(preferencesPath, preferences);
+      mainWindow?.webContents.send("pet:preferences", preferences);
+      return preferences;
+    });
+    preferenceSaveQueue=save;
+    return save;
   });
   ipcMain.handle("pet:mark-read", (_event, id: string) => {
     history = history.map((event) => event.id === id ? { ...event, read: true } : event);
@@ -608,6 +619,7 @@ if (!hasLock) {
   void app.whenReady().then(async () => {
     mkdirSync(userDataPath, { recursive: true });
     loadPreferences();
+    await syncCodexStartup(preferences.startWithCodex).catch((error:unknown)=>console.warn('Deskfolk could not register Codex startup. The setting can be retried.',(error as NodeJS.ErrnoException)?.code||'STARTUP_ERROR'));
     registerIpc();
     await startBridge();
     createPetWindow();

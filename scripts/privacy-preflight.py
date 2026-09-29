@@ -13,7 +13,7 @@ import re
 import struct
 import zipfile
 
-TEXT_EXT = {'.ts', '.js', '.mjs', '.cjs', '.py', '.ps1', '.lua', '.html', '.css', '.svg', '.md', '.txt', '.json', '.yml', '.yaml', '.toml', '.ini', '.xml', '.env', '.pem', '.key', '.pub', '.gitignore'}
+TEXT_EXT = {'.ts', '.js', '.mjs', '.cjs', '.py', '.ps1', '.lua', '.cs', '.nsh', '.html', '.css', '.svg', '.md', '.txt', '.json', '.yml', '.yaml', '.toml', '.ini', '.xml', '.env', '.pem', '.key', '.pub', '.gitignore'}
 IGNORE_ROOTS = {'.git', 'node_modules', 'out', 'release', 'dist', '.cache'}
 SOURCE_ROOTS = {'assets', 'bridge', 'docs', 'electron', 'renderer', 'scripts', 'shared', 'plugins'}
 PLACEHOLDER = re.compile(r'(?i)(example|placeholder|dummy|fake|test[-_ ]?(?:token|key|secret)|your[-_ ]?(?:token|key|secret)|changeme|replace|redacted|<[^>]+>|\$\{|process\.env|os\.environ|randombytes|randomuuid)')

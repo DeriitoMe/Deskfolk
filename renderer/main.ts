@@ -41,6 +41,7 @@ let dragDistance = 0;
 let cancelledPastime = false;
 let dragStartPointer = { x: 0, y: 0 };
 let lastPointer = { x: 0, y: 0 };
+let lastPointerTime=0;
 let dragStartClientPointer = { x: 0, y: 0 };
 let lastClientPointer = { x: 0, y: 0 };
 let artAlpha: Uint8ClampedArray | null = null;
@@ -57,22 +58,24 @@ function updateLayout(): void {
   const k=195/449*currentPreferences.scale/window.devicePixelRatio;
   const flat=currentPreferences.model==='flat-chibi';
   const tall=flat && rig?.canvas.height===1152;
-  const size=flat?(tall?768:512)*k:220*currentPreferences.scale/window.devicePixelRatio;
-  const artHeight=tall?1152*k:size;
+  const canvasWidth=rig?.canvas.width??512,canvasHeight=rig?.canvas.height??512;
+  const size=flat?canvasWidth*k:220*currentPreferences.scale/window.devicePixelRatio;
+  const artHeight=flat?canvasHeight*k:size;
   const overlay=!speechBubble.hidden;
   const wide=rig?.action==='water'||rig?.action==='power-work'||rig?.action==='drag';
   // Reserve the existing 512 px render surface once; action changes no longer
   // resize the native alpha window. Visible bounds still control edge dragging.
-  const width=Math.ceil(Math.max(flat?(tall?752:506)*k+12:size+12,overlay?370/window.devicePixelRatio:0));
+  const width=Math.ceil(Math.max(flat?(tall?752:canvasWidth-6)*k+12:size+12,overlay?370/window.devicePixelRatio:0));
   const top=overlay?167/window.devicePixelRatio:6;
-  const height=Math.ceil((flat?(tall?1146:506)*k:size)+top+6);
+  const height=Math.ceil((flat?(tall?1146:canvasHeight-6)*k:size)+top+6);
   const x=overlay?width-size-20/window.devicePixelRatio:(width-size)/2,y=top;
   petRoot.style.setProperty('--art-size',size+'px');
   petRoot.style.setProperty('--ui-scale',String(1/window.devicePixelRatio));
   petRoot.style.setProperty('--art-height',artHeight+'px');
   petRoot.style.setProperty('--art-x',x+'px');petRoot.style.setProperty('--art-y',y+'px');
-  window.petBridge.setLayout({width,height,anchorX:x+size/2,anchorY:y+(flat?(tall?1124:484)*k:size),
-    visible:{x:x+(flat?(tall?8:wide?4:78)*k:0),y:y+(flat?(tall?195:25)*k:0),width:flat?(tall?752:wide?504:362)*k:size,height:flat?(tall?929:459)*k:size},overlay});
+  const dragBounds=rig?.getVisibleBounds();
+  window.petBridge.setLayout({width,height,anchorX:x+size/2,anchorY:y+(flat?(tall?1124:484+canvasHeight-512)*k:size),
+    visible:dragBounds?{x:x+dragBounds.x*k,y:y+dragBounds.y*k,width:dragBounds.width*k,height:dragBounds.height*k}:{x:x+(flat?(tall?8:wide?4:78)*k:0),y:y+(flat?(tall?195:25)*k:0),width:flat?(tall?752:wide?504:362)*k:size,height:flat?(tall?929:459)*k:size},overlay});
 }
 const TITLES: Record<PetEventType, string> = {
   work_started: "开始处理",
@@ -342,7 +345,7 @@ function setupPetView(): void {
   window.petBridge.onViewport(v=>{petRoot.style.setProperty("--safe-left",v.left+"px");petRoot.style.setProperty("--safe-width",v.width+"px");});
   window.petBridge.onCursor(point=>{
     if(!rig)return;const b=rig.canvas.getBoundingClientRect();if(b.width<=0)return;
-    const ratio=b.width/rig.canvas.width,faceY=b.top+(rig.canvas.height===1152?840:261)*ratio;
+    const ratio=b.width/rig.canvas.width,faceY=b.top+(rig.canvas.height===1152?840:rig.canvas.height===768?517:261)*ratio;
     rig.setLookTarget(Math.tanh((point.x-(b.left+b.width/2))/(b.width*1.5)),Math.tanh((point.y-faceY)/(b.width*1.65)));
   });
   settingsView.hidden = true;
@@ -376,7 +379,8 @@ function setupPetView(): void {
     );
     if (rig && dragDistance > 4) {
       window.clearTimeout(flatIdleTimer); flatTouchUntil=0;
-      setAction('drag'); rig.setDragVelocity(event.screenX-lastPointer.x);
+      setAction('drag');
+      const now=performance.now();rig.setDragMotion(event.screenX-lastPointer.x,now-lastPointerTime,event.screenX-dragStartPointer.x);lastPointerTime=now;
     }
     window.petBridge.moveWindow(event.screenX - lastPointer.x, event.screenY - lastPointer.y);
     lastPointer = { x: event.screenX, y: event.screenY };
@@ -390,6 +394,7 @@ function setupPetView(): void {
     idleCadence.reset(performance.now());
     if(cancelledPastime){flatTouchUntil=0;window.clearTimeout(flatTouchTimer);rig?.cancelToIdle();setAction('idle');}
     dragPointer = event.pointerId;
+    rig?.beginDrag();lastPointerTime=performance.now();
     dragDistance = 0;
     dragStartPointer = { x: event.screenX, y: event.screenY };
     lastPointer = { x: event.screenX, y: event.screenY };
@@ -462,6 +467,7 @@ function syncSettingsControls(preferences: PetPreferences): void {
     Math.round(preferences.scale * 100) + "%";
   document.querySelector<HTMLInputElement>("#dance-toggle")!.checked = preferences.idleDance;
   document.querySelector<HTMLInputElement>("#motion-toggle")!.checked = preferences.reducedMotion;
+  document.querySelector<HTMLInputElement>('#codex-start-toggle')!.checked=preferences.startWithCodex;
 }
 
 function timeLabel(value: string | null): string {
@@ -536,6 +542,13 @@ function setupSettingsView(): void {
   });
   document.querySelector<HTMLInputElement>("#motion-toggle")!.addEventListener("change", (event) => {
     void savePreference({ reducedMotion: (event.currentTarget as HTMLInputElement).checked });
+  });
+  document.querySelector<HTMLInputElement>('#codex-start-toggle')!.addEventListener('change',async event=>{
+    const toggle=event.currentTarget as HTMLInputElement,error=document.querySelector<HTMLElement>('#startup-error')!;
+    toggle.disabled=true;error.hidden=true;
+    try{await savePreference({startWithCodex:toggle.checked});}
+    catch{toggle.checked=currentPreferences?.startWithCodex??true;error.textContent='启动设置未保存，请稍后重试。';error.hidden=false;}
+    finally{toggle.disabled=false;}
   });
   document.querySelector("#test-stage")!.addEventListener("click", () => {
     void window.petBridge.sendTest("stage_complete");

@@ -14,17 +14,17 @@ app.whenReady().then(async()=>{
  const capture=async(name,expression)=>{const url=await w.webContents.executeJavaScript(`(()=>{const r=window.v41Review.rig;r.setPaused(true);${expression};return r.canvas.toDataURL()})()`);writeFileSync(join(out,name+'.png'),Buffer.from(url.split(',')[1],'base64'));};
  for(const [name,a,t] of [['idle','idle',0],['touch','touch',.7],['drag-passive','drag',.8],['drag-effort-1','drag',1.65],['drag-effort-2','drag',2.33],['drag-relaxed','drag',3.5],['water','water',2],['work','work',1.5],['power-work','power-work',1.5],['nap','nap',1.2],['ask','ask',1.2]])await capture(name,`r.look.snap(0,0);r.renderAt('${a}',${t})`);
  for(const t of [0,.2,.45,.75,1.1,1.5,2])await capture('water-entry-'+t,`r.look.snap(0,0);r.renderTransitionAt('idle','water',${t})`);
- for(const dx of [-12,12])await capture('drag-inertia-'+dx,`r.velocity=${dx};r.renderAt('drag',.8);r.velocity=0`);
+ for(const dx of [-12,12])await capture('drag-inertia-'+dx,`r.suspension.angle=${-dx/24};r.renderAt('drag',.8);r.suspension.angle=0`);
  const result=await w.webContents.executeJavaScript(`(()=>{
  const r=window.v41Review.rig,frames=[];r.look.snap(0,0);
  for(let f=0;f<=138;f++){r.renderAt('drag',f/30);frames.push({time:f/30,...r.exportPose().pose});}
- const inertias=[];for(const dx of [-12,0,12]){r.velocity=dx;r.renderAt('drag',.8);const h=r.control('CTRL_Head'),b=r.control('CTRL_Body');const hp=h.getWorldPosition(h.position.clone()),bp=b.getWorldPosition(b.position.clone());inertias.push({dx,headRelativeX:hp.x-bp.x});}r.velocity=0;
+ const inertias=[];for(const dx of [-12,0,12]){r.suspension.angle=-dx/24;r.renderAt('drag',.8);const h=r.control('CTRL_Head'),b=r.control('CTRL_Body');const hp=h.getWorldPosition(h.position.clone()),bp=b.getWorldPosition(b.position.clone());inertias.push({dx,headRelativeX:hp.x-bp.x});}r.suspension.angle=0;
  const gaze={};for(const action of ['idle','work','power-work','water','nap','ask','drag']){r.look.snap(1,.6);r.renderAt(action,2);gaze[action]=r.exportPose();}r.look.snap(0,0);
  r.renderAt('idle',0);r.setAction('transform');const guardedAction=r.action;
  return {frames,inertias,gaze,guardedAction,eyeStrokeWidth:20,normalEyeWidth:70,eyeStrokeSpan:102,workScrollPixelsPerSecond:[82,99,116]};})()`);
  let peaks=0;for(let i=1;i<result.frames.length-1;i++)if(result.frames[i].kick>result.frames[i-1].kick&&result.frames[i].kick>=result.frames[i+1].kick)peaks++;
  assert.equal(peaks,2);assert.equal(result.guardedAction,'idle');
- assert(result.inertias[0].headRelativeX>result.inertias[1].headRelativeX);assert(result.inertias[2].headRelativeX<result.inertias[1].headRelativeX);
+ assert(result.inertias[0].headRelativeX<result.inertias[1].headRelativeX);assert(result.inertias[2].headRelativeX>result.inertias[1].headRelativeX);
  for(const action of ['idle','work'])assert.equal(result.gaze[action].pose.gaze,1);
  for(const action of ['power-work','water','nap','ask','drag'])assert.equal(result.gaze[action].pose.gaze,0);
  for(const sample of Object.values(result.gaze))for(const c of sample.controls)assert(c.scale.every(v=>Math.abs(v-1)<.00001),'rigid scale '+c.name);

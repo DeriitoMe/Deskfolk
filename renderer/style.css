@@ -516,6 +516,7 @@ body[data-view="pet"] #pet-root .answer-button {left:calc(var(--safe-left,0px) +
 /* V39 preserves physical scale when the taller transition temporarily expands upward. */
 body[data-view="pet"] #pet-root .character-mount,body[data-view="pet"] #pet-root .pet-art {height:var(--art-height,var(--art-size,220px));}
 .review-stage .mutsumi-canvas[data-tall="true"] {height:calc(var(--review-art-size,222px) * 2);}
+.review-stage .mutsumi-canvas[data-wide="true"] {width:calc(var(--review-art-size,222px) * 2);height:calc(var(--review-art-size,222px) * 1.5);}
 .review-card[data-action="transform"] {grid-column:span 2;grid-row:span 2;}
 .review-card[data-action="transform"] .review-stage {height:530px;}
 

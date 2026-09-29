@@ -2,12 +2,12 @@
   "name": "liquid-glass-pet",
   "version": "0.1.0",
   "private": true,
-  "description": "A local Windows desktop companion for Codex",
+  "description": "A tiny animated desktop companion with a real-time 3D character",
   "type": "module",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
-    "build": "electron-vite build",
+    "build": "node scripts/build-codex-launcher.cjs && electron-vite build",
     "preview": "electron-vite preview",
     "dist:win": "npm run build && electron-builder --win nsis"
   },
@@ -31,6 +31,7 @@
       "assets/icons/deskfolk.ico",
       "package.json"
     ],
+    "extraResources": [{"from":".cache/codex-launcher/DeskfolkCodexLauncher.exe","to":"launcher/DeskfolkCodexLauncher.exe"}],
     "win": {
       "icon": "assets/icons/deskfolk.ico",
       "target": [
@@ -43,6 +44,7 @@
       ]
     },
     "nsis": {
+      "include": "scripts/installer-startup.nsh",
       "installerIcon": "assets/icons/deskfolk.ico",
       "uninstallerIcon": "assets/icons/deskfolk.ico",
       "oneClick": false,

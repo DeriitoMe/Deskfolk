@@ -6,6 +6,7 @@ import {GazeSpring} from '../shared/gaze';
 import {GrandTransition} from './grand-transition';
 import {presentationPolicy} from '../shared/runtime-policy';
 import {dragCycle} from '../shared/drag-motion';
+import {DragPendulum} from '../shared/drag-physics';
 import squeezeLeft from '../assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-left.png?url';
 import squeezeRight from '../assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-right.png?url';
 export const TURN_SECONDS=10.2;
@@ -32,6 +33,8 @@ export class MutsumiRig {
  private squeezeArt:HTMLImageElement[]=[];
  private watering=new T.Group();private can=new T.Group();private flowers=new T.Group();
  private aura=new T.Group();private drops:T.Mesh[]=[];private projected=new T.Vector3();
+ private suspension=new DragPendulum();private suspensionPivot=new T.Vector3();
+ private modelBounds=new T.Box3();private viewportSignature='';
  action:RigAction='idle';reducedMotion=false;frameLimit:30|60=60;frames=0;frameIntervals:number[]=[];
  onTransientEnd?:()=>void;onViewportChange?:()=>void;
  constructor(){
@@ -47,6 +50,9 @@ export class MutsumiRig {
   const gltf=await new GLTFLoader().loadAsync(modelUrl);this.model=gltf.scene;this.scene.add(this.model);
   this.model.traverse(o=>{this.controls.set(o.name,o);this.rest.set(o,{position:o.position.clone(),quaternion:o.quaternion.clone(),scale:o.scale.clone()});
     if(o instanceof T.Mesh){o.frustumCulled=false;const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms)m.toneMapped=false;}});
+  this.model.updateMatrixWorld(true);
+  const restBounds=new T.Box3().setFromObject(this.model);
+  this.suspensionPivot.set(0,restBounds.max.y,0);
   const hair=[...this.controls.values()].find(o=>o.name.startsWith('HairUnified'))??[...this.controls.values()].find(o=>o.userData.runtime_part?.startsWith('Hair.Unified'));
   if(!(hair instanceof T.Mesh))throw Error('V05 hair mesh missing');
   const loader=new T.TextureLoader();const textures=await Promise.all(['hair-paint.png','hair_all_visible.png','back-hair-paint.png','back-hair-mask.png','side-hair-clean.png'].map(async n=>{
@@ -166,7 +172,7 @@ export class MutsumiRig {
   if(action==='drag'){const cycle=dragCycle(t),k=cycle.kick;
     // Lift from the upper back: the torso tips forward and the head nods over
     // the chest, while the face stays nearly frontal.
-    p.drag=1;p.rise=.17;p.pitch=.24+k*.055;p.yaw=-.10;p.lean=.035+this.velocity*.012;p.head=.10-k*.08;p.headYaw=.03;
+    p.drag=1;p.rise=.17;p.pitch=.24+k*.055;p.yaw=-.10;p.lean=.035;p.head=.10-k*.08;p.headYaw=.03;
     p.armL=.10+k*.46;p.armR=-.08-k*.40;p.reach=-.32+k*.62;
     p.footL=-.08-k*.27;p.footR=.08+k*.30;p.open=.85;p.squeeze=cycle.squeeze;p.kick=k;}
   return p;
@@ -182,6 +188,10 @@ export class MutsumiRig {
   body.position.add(collarPivot).sub(collarPivot.clone().applyQuaternion(body.quaternion));
   body.position.y+=p.rise;body.position.x+=bx*.045;
   head.rotation.set(p.head+by*.012,p.headYaw+bx*.055,-p.drag*.045);
+  // A small rigid sway uses the existing hair controller and keeps the clip
+  // attached. Its weight blends in and out with the full-power pose.
+  const hair=this.control('CTRL_Hair');
+  hair.rotation.z+=p.power*(Math.sin(t*TAU/1.7)*.023+Math.sin(t*TAU/2.6)*.008);
   this.control('CTRL_Arm.L').rotation.set(p.reach,0,p.armL);this.control('CTRL_Arm.R').rotation.set(p.reach,0,p.armR);
   for(const s of ['L','R']){const arm=this.control('CTRL_Arm.'+s);arm.position.z+=p.touch*.45;arm.position.y+=p.touch*.12;}
   for(const [s,sign,a] of [['R',-1,p.footR],['L',1,p.footL]] as const){const foot=this.control('CTRL_Foot.'+s);foot.position.x+=sign*p.spread;foot.position.y-=p.rise*(1-p.drag);foot.rotation.set(p.drag*(-.18+p.kick*(s==='R'?.7:.52)),0,a);if(s==='R')foot.position.y+=p.liftFoot;}
@@ -189,6 +199,10 @@ export class MutsumiRig {
    const joint=this.control('CTRL_Eye.'+(i?'L':'R'));joint.position.x+=gx*.105;joint.position.y-=gy*.065;
    joint.rotation.y=gx*.035;this.drawEye(i,p,eyeTime);
   }
+  const root=this.control('CTRL_Root');
+  const suspendedAngle=this.suspension.angle*p.drag;
+  root.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,0,1),suspendedAngle));
+  root.position.add(this.suspensionPivot).sub(this.suspensionPivot.clone().applyQuaternion(root.quaternion));
   this.model!.updateMatrixWorld(true);
   this.watering.visible=p.water>.005;this.watering.scale.setScalar(1);
   this.can.rotation.set(0,p.yaw,.35+Math.sin(t*2)*.035);
@@ -246,15 +260,25 @@ export class MutsumiRig {
    }
   }
  }
- private resize(tall:boolean){const h=tall?1152:512;if(this.canvas.height===h)return;this.canvas.width=tall?768:512;this.canvas.height=h;this.canvas.dataset.tall=String(tall);this.onViewportChange?.();}
+ private resize(tall:boolean){const wide=this.action==='drag'||this.releasing,w=tall?768:wide?1024:512,h=tall?1152:wide?768:512;if(this.canvas.height===h&&this.canvas.width===w)return;this.canvas.width=w;this.canvas.height=h;this.canvas.dataset.tall=String(tall);this.canvas.dataset.wide=String(wide);
+  const renderWidth=wide?1024:512,renderHeight=wide?768:512;this.renderer.setSize(renderWidth,renderHeight,false);this.camera.left=-renderWidth/200;this.camera.right=renderWidth/200;this.camera.top=wide?5.12:2.56;this.camera.updateProjectionMatrix();this.onViewportChange?.();}
+ getVisibleBounds(){
+  if(this.canvas.width!==1024||!this.model)return null;
+  this.modelBounds.setFromObject(this.model);
+  const left=this.projected.set(this.modelBounds.min.x,this.modelBounds.max.y,0).project(this.camera).clone();
+  const right=this.projected.set(this.modelBounds.max.x,this.modelBounds.min.y,0).project(this.camera);
+  const x=Math.max(0,Math.floor((left.x+1)*this.canvas.width/2)-4),y=Math.max(0,Math.floor((1-left.y)*this.canvas.height/2)-4);
+  return {x,y,width:Math.min(this.canvas.width-x,Math.ceil((right.x+1)*this.canvas.width/2)+4-x),height:Math.min(this.canvas.height-y,Math.ceil((1-right.y)*this.canvas.height/2)+4-y)};
+ }
  private draw(p:Pose,t:number,eyeTime=t){
   this.apply(p,t,eyeTime);this.renderer.render(this.scene,this.camera);const c=this.context;c.clearRect(0,0,this.canvas.width,this.canvas.height);
   const x=this.canvas.height===1152?128:0,y=this.canvas.height===1152?640:0;c.drawImage(this.renderer.domElement,x,y);
   if(p.happy>.001){c.save();c.globalCompositeOperation='source-atop';c.fillStyle=`rgba(255,204,113,${p.happy*.09})`;c.fillRect(0,0,this.canvas.width,this.canvas.height);c.restore();}
-  c.save();c.translate(x,y);
+  c.save();c.translate(x,y+(this.canvas.height===768?256:0));
   if(p.nap>.01){for(let i=0;i<3;i++){const u=(t/2.7+i/3)%1;c.save();c.globalAlpha=p.nap*Math.sin(Math.PI*u);c.fillStyle='#344b75';c.font=`600 ${13+u*18}px "YouYuan",sans-serif`;c.fillText(i?'z':'Z',337+u*53,190-u*147);c.restore();}}
   if(p.ask>.01){c.globalAlpha=p.ask;c.fillStyle='#40523e';c.font='bold 43px "YouYuan",sans-serif';c.fillText('?',360,92-Math.sin(Math.min(t,.6)/.6*Math.PI)*8);}
   c.restore();
+  if(this.canvas.width===1024){const signature=JSON.stringify(this.getVisibleBounds());if(signature!==this.viewportSignature){this.viewportSignature=signature;this.onViewportChange?.();}}
  }
  private drawTurn(t:number){
   this.resize(true);const c=this.context;
@@ -267,7 +291,8 @@ export class MutsumiRig {
  private tick=(now:number)=>{
   if(this.disposed)return;this.raf=requestAnimationFrame(this.tick);if(this.pausedAt)return;const dt=now-this.previous;if(dt<1000/this.frameLimit-2)return;
   if(this.previous&&dt<1000){this.frameIntervals.push(dt);if(this.frameIntervals.length>600)this.frameIntervals.shift();}
-  this.look.step(dt/1000);this.previous=now;this.frames++;const age=(now-this.start)/1000;
+  this.look.step(dt/1000);this.suspension.step(dt/1000,this.action==='drag');this.previous=now;this.frames++;const age=(now-this.start)/1000;
+  if(this.releasing&&age>=.65){this.releasing=false;this.resize(false);}
   if(this.action==='transform')this.drawTurn(age);else{
    const t=this.reducedMotion?.65:age,route=this.routed?.38:0;
    this.pose=age<route?blend(this.from,neutral(),smooth(age/route)):blend(this.routed?neutral():this.from,this.target(this.action,t),smooth((age-route)/(this.releasing?.65:this.action==='water'?1.4:this.action==='drag'?.23:.55)));
@@ -281,14 +306,16 @@ export class MutsumiRig {
  }
  setLookTarget(x:number,y:number){const follows=this.action==='idle'||this.action==='work';this.look.target(follows?x:0,follows?y:0);}
  setDragVelocity(dx:number){this.velocity=mix(this.velocity,clamp(dx,-12,12),.45);}
+ beginDrag(){this.suspension.begin();}
+ setDragMotion(dx:number,elapsedMs:number,displacementX:number){this.suspension.input(dx,elapsedMs,displacementX);}
  cancelToIdle(){this.setAction('idle');}
  setPaused(value:boolean){if(value&&!this.pausedAt)this.pausedAt=performance.now();else if(!value&&this.pausedAt){this.start+=performance.now()-this.pausedAt;this.pausedAt=0;}}
- renderAt(action:RigAction,t:number,_weight=1,_layer?:string){if(action==='transform'&&!presentationPolicy.transformation)action='idle';this.action=action;this.resize(action==='transform');this.canvas.dataset.action=action;if(action==='transform')this.drawTurn(t);else{this.pose=this.target(action,t);this.draw(this.pose,t);}}
- renderTransitionAt(from:RigAction,to:RigAction,t:number){this.action=to;this.resize(false);const route=from==='nap'&&['work','power-work','water'].includes(to)?.38:0;
+ renderAt(action:RigAction,t:number,_weight=1,_layer?:string){if(action==='transform'&&!presentationPolicy.transformation)action='idle';this.action=action;this.releasing=false;this.resize(action==='transform');this.canvas.dataset.action=action;if(action==='transform')this.drawTurn(t);else{this.pose=this.target(action,t);this.draw(this.pose,t);}}
+ renderTransitionAt(from:RigAction,to:RigAction,t:number){this.action=to;this.releasing=from==='drag'&&t<.65;this.resize(false);const route=from==='nap'&&['work','power-work','water'].includes(to)?.38:0;
   this.pose=t<route?blend(this.target(from,1),neutral(),smooth(t/route)):blend(route?neutral():this.target(from,1),this.target(to,t),smooth((t-route)/(from==='drag'?.65:to==='water'?1.4:to==='drag'?.23:.55)));
   if(from==='drag'&&t<.65)this.pose.rise-=Math.sin(t/.65*Math.PI)*.03;this.draw(this.pose,t);}
  renderGazeAt(x:number,y:number,t=0){this.look.snap(x,y);this.renderAt('idle',t);}
- exportPose(){return {pose:this.pose,controls:[...this.controls.values()].filter(o=>o.name.startsWith('CTRL')).map(o=>({name:o.name,position:o.position.toArray(),quaternion:o.quaternion.toArray(),scale:o.scale.toArray()})),can:{position:this.can.position.toArray(),quaternion:this.can.quaternion.toArray()},grand:this.action==='transform'&&this.canvas.height===1152};}
+ exportPose(){return {pose:this.pose,suspension:{angle:this.suspension.angle,angularVelocity:this.suspension.angularVelocity,pivot:this.suspensionPivot.toArray()},controls:[...this.controls.values()].filter(o=>o.name.startsWith('CTRL')).map(o=>({name:o.name,position:o.position.toArray(),quaternion:o.quaternion.toArray(),scale:o.scale.toArray()})),can:{position:this.can.position.toArray(),quaternion:this.can.quaternion.toArray()},grand:this.action==='transform'&&this.canvas.height===1152};}
  async exportProps(){this.renderAt('water',2);return await new GLTFExporter().parseAsync(this.watering,{binary:true,onlyVisible:false});}
  hit(cx:number,cy:number){const r=this.canvas.getBoundingClientRect(),x=Math.floor((cx-r.left)*this.canvas.width/r.width),y=Math.floor((cy-r.top)*this.canvas.height/r.height);return x>=0&&y>=0&&x<this.canvas.width&&y<this.canvas.height&&this.context.getImageData(x,y,1,1).data[3]>40;}
  dispose(){this.disposed=true;cancelAnimationFrame(this.raf);const textures=new Set<T.Texture>();this.scene.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material]){for(const v of Object.values(m))if(v instanceof T.Texture)textures.add(v);if(m instanceof T.ShaderMaterial)for(const u of Object.values(m.uniforms))if(u.value instanceof T.Texture)textures.add(u.value);m.dispose();}}});for(const tex of textures)tex.dispose();this.renderer.dispose();this.renderer.forceContextLoss();}

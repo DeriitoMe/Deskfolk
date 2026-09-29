@@ -3,13 +3,13 @@
   "files": [
     {
       "file": ".gitignore",
-      "bytes": 3699,
-      "sha256": "f0110047b849d7253a48eac05447614ce2b2b04204531785cdb3f4c8cfd361aa"
+      "bytes": 3821,
+      "sha256": "dae5206e8eba828ea51bb7a15de1f7a14ff144c7c6ce7e195f188544ffedb63e"
     },
     {
       "file": "README.md",
-      "bytes": 3110,
-      "sha256": "377f2995b1df0be8afe5da5107c172a0844aba3b3553e8a8cd705121b06729ab"
+      "bytes": 1723,
+      "sha256": "5aa57febf8840434ea3ce6c879abee6df494ad633f362a0b36ec54b036267431"
     },
     {
       "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/eye-question.png",
@@ -383,58 +383,68 @@
     },
     {
       "file": "assets/icons/README.md",
-      "bytes": 1104,
-      "sha256": "0b2b6598df3575943fa6f08d4b9d88f1aaafd67331ed744e2f98dfb59901205a"
+      "bytes": 1347,
+      "sha256": "31a9414e12ccca61f4ef090866cbc7119c23fdffefb5c8702c0af438686e2e39"
     },
     {
-      "file": "assets/icons/deskfolk.ico",
-      "bytes": 7849,
-      "sha256": "5d3166e8aef6d7845c41728c41bad7f3dd4e4229ce4eb687bc82dccb686051cb"
-    },
-    {
-      "file": "assets/icons/icon-48.png",
+      "file": "assets/icons/archive/icon-0.1.0.png",
       "bytes": 872,
       "sha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
     },
     {
-      "file": "assets/icons/manifest.json",
-      "bytes": 1629,
-      "sha256": "a73077b56aca27240433211c91c7dd569e7be5c2126af3aab561e0e136b6bf46"
-    },
-    {
-      "file": "assets/icons/mutsumi-icon.aseprite",
+      "file": "assets/icons/archive/mutsumi-icon-0.1.0.aseprite",
       "bytes": 2288,
       "sha256": "c4366716a52d00be5f011a7ef2eb96b1b973e28c109d51bcefcc5d630f0b5638"
     },
     {
+      "file": "assets/icons/deskfolk.ico",
+      "bytes": 6089,
+      "sha256": "43325b3f2a08e7b8b034f8270b9f6ce7fa42c1c629a4af3c929805f667e8918e"
+    },
+    {
+      "file": "assets/icons/icon-48.png",
+      "bytes": 660,
+      "sha256": "bd51f5f7f64c3cdab2ce3a2e400a2f007fa4eb9c0a10164bd65959401af8564d"
+    },
+    {
+      "file": "assets/icons/manifest.json",
+      "bytes": 1629,
+      "sha256": "79bc7ffc4ac505313f28ad1c8e0e36b9787328f890f97b45efc62db5987cd17a"
+    },
+    {
+      "file": "assets/icons/mutsumi-icon.aseprite",
+      "bytes": 1983,
+      "sha256": "7dc7586ac363760986401056d71a6c82a4ee63eb74f0c0eb268aa772fccf6a68"
+    },
+    {
       "file": "assets/icons/tray.png",
-      "bytes": 356,
-      "sha256": "1f6334a96b397b45d02cf3ea420398de2ef1da5df06b4caad11f9a4ab37ff596"
+      "bytes": 266,
+      "sha256": "0b31d9ca28b4d111dfd9a6ed5c122c176083c00320c244d6834dfe2317915d72"
     },
     {
       "file": "assets/icons/tray@1.25x.png",
-      "bytes": 439,
-      "sha256": "5609c30d9213a4bd2d8b61ac978ee3f25aba88322a47b06b62c6fa48589b61ae"
+      "bytes": 346,
+      "sha256": "53c713602f04ff23ff7cb999ce47ac6e96f6e98f390f6af5f9e8db85174b1643"
     },
     {
       "file": "assets/icons/tray@1.5x.png",
-      "bytes": 519,
-      "sha256": "04756e3cf7326bbefcfdb1dc1ae5bd104f3de3fb1fbf57a14cc9d11783052c38"
+      "bytes": 410,
+      "sha256": "0fad5cbaadf781e3f34cdeecbb8656e3714fc20f5588041b24c18df2f3639614"
     },
     {
       "file": "assets/icons/tray@2.5x.png",
-      "bytes": 718,
-      "sha256": "ef61e2000b187d91bb093eec9dce9fba0224c7b028654a273567ca825478d084"
+      "bytes": 583,
+      "sha256": "f6cdd61c2b56677a50275896ea52bd6189146c4749d1b44f2f81b427655eda5c"
     },
     {
       "file": "assets/icons/tray@2x.png",
-      "bytes": 597,
-      "sha256": "91862bcb76d2f211010543bf94adbca7300fe0a6887ff2c2565d02de5aede468"
+      "bytes": 471,
+      "sha256": "812bff2778d3ec7ee03a543788742893624ad2d3c7cb0ae51c68bbe6d9d653d2"
     },
     {
       "file": "assets/icons/tray@3x.png",
-      "bytes": 872,
-      "sha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
+      "bytes": 660,
+      "sha256": "bd51f5f7f64c3cdab2ce3a2e400a2f007fa4eb9c0a10164bd65959401af8564d"
     },
     {
       "file": "bridge/pet-mcp.mjs",
@@ -487,6 +497,11 @@
       "sha256": "f958bbf533115551154f9119e7b4fcd3619cadc29fe1f71ad6619b8e7099cd6c"
     },
     {
+      "file": "docs/V42_COMPANION_POLISH.md",
+      "bytes": 8289,
+      "sha256": "4516275dc82e6c8c3b2e3fc88da0527cc6729df90e45b560b111ee0de1285b98"
+    },
+    {
       "file": "docs/V42_DRAG_ANGLE_PATCH.md",
       "bytes": 831,
       "sha256": "0ef71358abf47e9ad9be4ac15b1ed6f5f479bca75ee07217d38a0267b8bd7bcd"
@@ -532,9 +547,24 @@
       "sha256": "c1ed3afe475aebdbcfdb0c802ede603780f08306732ebf53fff581d5a6bc690c"
     },
     {
+      "file": "docs/images/companion-polish-preview.png",
+      "bytes": 405404,
+      "sha256": "ab4def2b75a350b858e8861bc1e00132a15653c97acc48afbab65e413b28ebf7"
+    },
+    {
+      "file": "docs/images/head-icon.png",
+      "bytes": 3117,
+      "sha256": "58c7b40e136015bc36676aebc407de4eb2fa3280935b8569df05c9321ca05eb2"
+    },
+    {
       "file": "docs/images/work-states.png",
       "bytes": 348641,
       "sha256": "08d8c43c49ed4dc12e6caec550bd052ee12513a99336246e11a504f7ac4dd633"
+    },
+    {
+      "file": "docs/verification/v42-companion-polish.json",
+      "bytes": 11666,
+      "sha256": "9893efbe105e615e0c5cbac10a0cb32ed32e9e5461c23ad90fea17561acc1d57"
     },
     {
       "file": "docs/verification/v42-icons-and-flow.json",
@@ -567,14 +597,19 @@
       "sha256": "7f3b14a0d2f5733787148d7a8f41e9bcdded7c8a6dda76daadc7afa9da2af997"
     },
     {
+      "file": "electron/codex-startup.ts",
+      "bytes": 3326,
+      "sha256": "66be9aa39583487bf273d787b93fc4cd23d9bac5c5ec68d8e9f7b1c3889d26b6"
+    },
+    {
       "file": "electron/codex-window.ts",
       "bytes": 3439,
       "sha256": "cc3d34a4978d7064d450ad0bc463cd1f03ddacb150a427b2f656aeac00938156"
     },
     {
       "file": "electron/main.ts",
-      "bytes": 25609,
-      "sha256": "760c63d489cf4c31212385aedf9f5ddbacbe9ed8392d115ca9f9ab2507607c8d"
+      "bytes": 26575,
+      "sha256": "2409a0c3b28dab46af538a27db7bff3b68e7cb43e03432276b60dde7019a8dae"
     },
     {
       "file": "electron/preload.ts",
@@ -588,8 +623,8 @@
     },
     {
       "file": "package.json",
-      "bytes": 1380,
-      "sha256": "c2d3810fa0d133047702f87191a27abf77be3b56785452620eb19fa5e59e5013"
+      "bytes": 1617,
+      "sha256": "7566f479f20479de1be2066677ad92e9608de9b6c183cc59fd5092f7919664d0"
     },
     {
       "file": "plugins/liquid-glass-pet/.codex-plugin/plugin.json",
@@ -648,13 +683,13 @@
     },
     {
       "file": "renderer/index.html",
-      "bytes": 4404,
-      "sha256": "4836c08bc23baccd0b842b4fba6ed7f191cf8d9d2312359a09f1a53bc72eb616"
+      "bytes": 4683,
+      "sha256": "8d1388b8faa142c4624cf47ada276f86cbf8b17a7bd6ed976156c9da32571571"
     },
     {
       "file": "renderer/main.ts",
-      "bytes": 24999,
-      "sha256": "6a53cd57d36c88ca8a3c08a1ebb552f43f8d3688c1a1c719138e843c03cc0868"
+      "bytes": 26112,
+      "sha256": "a169ed30ad6d7671c7935b8498e29666e1a1a3265f4cc75160bf9206f538f7bc"
     },
     {
       "file": "renderer/mutsumi-rig.ts",
@@ -678,13 +713,13 @@
     },
     {
       "file": "renderer/style.css",
-      "bytes": 24592,
-      "sha256": "9e4e6d4a047549a00e148df376b0819ff6d1edcc4c0d0c3a5044a5361b3be8b5"
+      "bytes": 24736,
+      "sha256": "aa33efce3303c065f42c136dd43ceb0edaa657dbd502f82329e1623e9226f473"
     },
     {
       "file": "renderer/three-rig.ts",
-      "bytes": 27223,
-      "sha256": "d133d7fc04d915bbcc209fbee6d96cb9c3e7d8c960d84e7825f6d80ac2844a27"
+      "bytes": 29837,
+      "sha256": "e70df7d9a151451cf3cd4d0dfe9632d39f6e62e206e53effbbbe1b210f3a81c1"
     },
     {
       "file": "renderer/v37-review.ts",
@@ -722,6 +757,11 @@
       "sha256": "b12ecef85ce6e8c49d4afeaabe7d6d9f779fb1053afa33818bd3027cb6ea2a6f"
     },
     {
+      "file": "scripts/CodexLauncher.cs",
+      "bytes": 5323,
+      "sha256": "d28c67929315d3ad069105f884bcd9e00e18bf360e94c870369657c7269288e4"
+    },
+    {
       "file": "scripts/assemble-v42-collar-lift.lua",
       "bytes": 886,
       "sha256": "6b41d6693be5bbd483d8b7709dec405974b48151e9d2c0bf2b5b3c86b6e18def"
@@ -735,6 +775,11 @@
       "file": "scripts/assemble-v42-review.lua",
       "bytes": 1011,
       "sha256": "4b5b94acec4528b05690708395789e391615221eef5c8269fcca2d1dd60a4a24"
+    },
+    {
+      "file": "scripts/build-codex-launcher.cjs",
+      "bytes": 694,
+      "sha256": "c19cb3be55a55122b7411c12e07f61a191f8df7e3dff97bbc4aa0e06e48c792b"
     },
     {
       "file": "scripts/build-v42-collar-lift.py",
@@ -757,9 +802,19 @@
       "sha256": "f5b89c8d759edd684e1c646545d62e4b0ab18f3c2cd15bdc91582a23912dfdce"
     },
     {
+      "file": "scripts/installer-startup.nsh",
+      "bytes": 366,
+      "sha256": "9ff1fa55c8125df022027f91059050064b1b8b615406e2db21571bfb27cd612f"
+    },
+    {
+      "file": "scripts/prepare-head-icon.lua",
+      "bytes": 2831,
+      "sha256": "890de5b587395930a0ac5a05d267a1500ea4a9e2125661a83a050dd680f3bded"
+    },
+    {
       "file": "scripts/prepare-public-source.py",
-      "bytes": 7793,
-      "sha256": "09f6b29676a62725d563a7b21b047db0b134f467bdfe6bea0c0c25252fd9052c"
+      "bytes": 7891,
+      "sha256": "c341579fda36ed1f954dbfa7131c0222b509feba7de19e55c5ce3a014aa902f7"
     },
     {
       "file": "scripts/prepare-v42-eye-art.py",
@@ -773,8 +828,8 @@
     },
     {
       "file": "scripts/privacy-preflight.py",
-      "bytes": 10873,
-      "sha256": "f6972fab04f100dd19bf3bb2f23ee2240a2302edb27967edd7a323c3230143cf"
+      "bytes": 10888,
+      "sha256": "1088b0e6f1cec2a1d374a488cb69d819ce6158434c35ca11a3182f314c16f349"
     },
     {
       "file": "scripts/privacy-runtime-assets.py",
@@ -782,9 +837,29 @@
       "sha256": "44c58d6c726a6bf500da8af3b9abd370bfdbd1924d835b884193f6a6f1a2a955"
     },
     {
+      "file": "scripts/qa-v42-codex-startup-fixture.cs",
+      "bytes": 998,
+      "sha256": "11497866a4aa39e92b05ac6c574aae432f36d44c157a621275f159fd62e07c3c"
+    },
+    {
+      "file": "scripts/qa-v42-codex-startup.ps1",
+      "bytes": 3964,
+      "sha256": "ad499f93d32e0fb68c5918e50b86a83acd3924ed05afc661a6610b147a6c6ced"
+    },
+    {
+      "file": "scripts/qa-v42-companion-polish.cjs",
+      "bytes": 10919,
+      "sha256": "a75129b9878686d69f7c65c40333b7ad7573e36e2b33861fd400b633f8209405"
+    },
+    {
       "file": "scripts/qa-v42-desktop.cjs",
       "bytes": 9431,
       "sha256": "7f3e3c73c7d9f6ac1100f4f7d5b4f401a16b2c5103f044311718712be31f0c4c"
+    },
+    {
+      "file": "scripts/qa-v42-drag-physics.mjs",
+      "bytes": 2149,
+      "sha256": "e1cde1f75d2141405393c0f56af80a33ff0865947c7b81c6d30ab0f7badf222b"
     },
     {
       "file": "scripts/qa-v42-interruption.cjs",
@@ -818,8 +893,13 @@
     },
     {
       "file": "scripts/qa-v42-render.cjs",
-      "bytes": 5295,
-      "sha256": "dc205cb68612a163d7a111aa90190341fd88e1e48aa0d327abbc2d86435c63c8"
+      "bytes": 5335,
+      "sha256": "da845be8baced866dd9326204ae7f876dddc9876beb3e1eab1e81304e0bdde9f"
+    },
+    {
+      "file": "scripts/qa-v42-startup-config.cjs",
+      "bytes": 2873,
+      "sha256": "3cb80a90d76a535f5bb9b08157ef7c2ccfaa0b8529f0c7af94390e1da12c31d4"
     },
     {
       "file": "scripts/qa-v42-state.cjs",
@@ -838,13 +918,13 @@
     },
     {
       "file": "scripts/stage-v42-package.mjs",
-      "bytes": 1359,
-      "sha256": "c4c3f170d99e77b39b8242d9d079c56a6621b2548a3a30da887f28d699ca4715"
+      "bytes": 1638,
+      "sha256": "256d721bfb96e00cfc4d1114e78f05bb753ca952a419a562d4ee7cc1c7a2c7b9"
     },
     {
       "file": "scripts/verify-v42-package.mjs",
-      "bytes": 3864,
-      "sha256": "aaf89e7b6f201be7e99cafba5725048f587ff18b88e269a53556317489c7647e"
+      "bytes": 4228,
+      "sha256": "48438641fc97f11ffa1be18da945c080ea3114ab1513272526a3f7b63ea6486c"
     },
     {
       "file": "shared/activity.test.ts",
@@ -860,6 +940,11 @@
       "file": "shared/drag-motion.ts",
       "bytes": 547,
       "sha256": "0eb019cf606d183a30dd7477f8f670042d0e4249cf71c66e2eda0e607d928675"
+    },
+    {
+      "file": "shared/drag-physics.ts",
+      "bytes": 1721,
+      "sha256": "56f89888ca053cbf000a6b6cd544c329884b0d5a9918f27a62efc33fb4ce23f2"
     },
     {
       "file": "shared/gaze.test.ts",
@@ -908,8 +993,8 @@
     },
     {
       "file": "shared/types.ts",
-      "bytes": 2626,
-      "sha256": "3674bc3562d760e8e53110297f6eb84314597314f28d573054839fa22cf07775"
+      "bytes": 2653,
+      "sha256": "906a79c84e7425c012303a09b2dbe43f6bc688e3f3bf97a285ee8989333460a1"
     },
     {
       "file": "tsconfig.json",
@@ -917,8 +1002,8 @@
       "sha256": "cba41f3fed6083904716be8ae276a3887ed603e010d80afe14a7614b78894329"
     }
   ],
-  "fileCount": 183,
-  "bytes": 160017901,
+  "fileCount": 200,
+  "bytes": 160486813,
   "over100MiB": [],
   "excluded": [
     "local Electron profiles",
