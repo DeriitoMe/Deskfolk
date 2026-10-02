@@ -1,0 +1,11 @@
+{
+  "nativeTool":"Aseprite 1.3.16.1",
+  "fps":30,
+  "durationsMs":[33,33,34],
+  "savedAndReopened":true,
+  "clips":[
+    {"name":"touch","frames":48,"durationMs":1600,"width":512,"height":512,"layers":1,"tag":"touch_forehead_sweat_30fps"},
+    {"name":"celebrate-poppers","frames":75,"durationMs":2500,"width":512,"height":512,"layers":1,"tag":"A_dual_poppers_30fps"},
+    {"name":"celebrate-clap","frames":72,"durationMs":2400,"width":512,"height":512,"layers":1,"tag":"D_gentle_double_clap_30fps"}
+  ]
+}

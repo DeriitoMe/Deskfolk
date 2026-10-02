@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dominantActivity, shouldIgnoreHookQuestion, updateSessionActivities, type SessionActivities } from "./activity.ts";
+import { dominantActivity, isSuccessfulCompletion, shouldCelebrateCompletion, shouldDeliverPetEvent, shouldIgnoreHookQuestion, shouldPresentLifecycleEvent, successfulCompletionIdentity, updateSessionActivities, type SessionActivities } from "./activity.ts";
 import {projectIdentity} from './activity.ts';
 import type { PetEvent, PetEventType } from "./types";
 
@@ -184,4 +184,188 @@ test('native directory context preserves a pending approval until a tool proceed
  assert.equal(s['session-1'].projectPath,'e:/current');
  s=updateSessionActivities(s,event('work_progress'));
  assert.equal(dominantActivity(s).phase,'working');
+});
+
+test('confirmed completion is delivered while another project works or awaits input',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started','a','a'),projectPath:'D:/Project-A'});
+ sessions=updateSessionActivities(sessions,{...event('work_started','b','b'),projectPath:'E:/Project-B'});
+ const success={...event('turn_ended','a','a'),source:'codex-log' as const,outcome:'success' as const,replayed:false};
+ sessions=updateSessionActivities(sessions,success);
+ assert.equal(dominantActivity(sessions).phase,'working');
+ assert.equal(shouldDeliverPetEvent(success,dominantActivity(sessions)),true);
+ sessions=updateSessionActivities(sessions,event('needs_input','b','b'));
+ assert.equal(shouldDeliverPetEvent(success,dominantActivity(sessions)),true);
+ assert.equal(shouldDeliverPetEvent(event('turn_ended','a','a'),dominantActivity(sessions)),false);
+ assert.equal(dominantActivity(sessions).phase,'asking');
+});
+
+test('successful native completion survives hook Stop and an unchanged aggregate',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started','a','a'),source:'codex-log',projectPath:'D:/Project-A'});
+ sessions=updateSessionActivities(sessions,{...event('work_started','b','b'),source:'codex-log',projectPath:'D:/Project-A',createdAt:'2026-09-25T12:00:01.000Z'});
+ // Both chats work in one project, so ending a does not change the project count.
+ const before=dominantActivity(sessions);
+ sessions=updateSessionActivities(sessions,event('turn_ended','a','a'));
+ const success={...event('turn_ended','a','a'),source:'codex-log' as const,outcome:'success' as const,replayed:false};
+ sessions=updateSessionActivities(sessions,success);
+ const after=dominantActivity(sessions);
+ assert.deepEqual([after.phase,after.sessionId,after.workingProjectCount,after.fullPower],
+  [before.phase,before.sessionId,before.workingProjectCount,before.fullPower]);
+ assert.equal(shouldPresentLifecycleEvent(success,false,Date.parse(success.createdAt)+86_400_000),true);
+ assert.equal(shouldDeliverPetEvent(success,after),true);
+ assert.equal(shouldPresentLifecycleEvent({...success,replayed:true},true,Date.parse(success.createdAt)),false);
+});
+
+test('only verified whole-task success qualifies and completion identity spans native and MCP notices',()=>{
+ for(const type of ['stage_complete','turn_ended','interrupted','task_complete'] as const){
+  assert.equal(isSuccessfulCompletion(event(type)),false);
+ }
+ const native={...event('turn_ended'),source:'codex-log' as const,outcome:'success' as const,projectPath:'D:\\Project\\'};
+ assert.equal(isSuccessfulCompletion(native),true);
+ for(const outcome of ['interrupted','failed','quota_exhausted'] as const)assert.equal(isSuccessfulCompletion({...native,outcome}),false);
+ assert.equal(isSuccessfulCompletion({...native,replayed:true}),false);
+ assert.equal(isSuccessfulCompletion({...native,isSubagent:true}),false);
+ assert.equal(isSuccessfulCompletion({...native,type:'stage_complete'}),false);
+ const mcp={...native,type:'task_complete' as const,source:'mcp' as const,id:'another-event',projectPath:'d:/project'};
+ assert.equal(successfulCompletionIdentity(native),successfulCompletionIdentity(mcp));
+ assert.notEqual(successfulCompletionIdentity(native),successfulCompletionIdentity({...mcp,turnId:'next-turn'}));
+ assert.notEqual(successfulCompletionIdentity(native),successfulCompletionIdentity({...mcp,sessionId:'another-session'}));
+});
+
+test('a fresh native question call reaches the renderer while the session is already asking',()=>{
+ const question={...event('needs_input'),source:'codex-log' as const,nativeQuestion:true,nativeCallId:'new-call',replayed:false};
+ assert.equal(shouldPresentLifecycleEvent(question,false,Date.parse(question.createdAt)+86_400_000),true);
+ assert.equal(shouldPresentLifecycleEvent({...question,replayed:true},false,Date.parse(question.createdAt)),false);
+ assert.equal(shouldPresentLifecycleEvent({...question,nativeCallId:undefined},false,Date.parse(question.createdAt)),false);
+});
+
+test('clean completion of its own pending question turn preserves input and cannot celebrate',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started'),source:'codex-log'});
+ sessions=updateSessionActivities(sessions,{...event('needs_input'),source:'codex-log',nativeQuestion:true,nativeCallId:'pending-call'});
+ for(const type of ['turn_ended','task_complete'] as const){
+  const completion={...event(type),source:'codex-log' as const,outcome:'success' as const};
+  assert.equal(shouldCelebrateCompletion(sessions,completion),false);
+  sessions=updateSessionActivities(sessions,completion);
+  assert.equal(sessions['session-1'].phase,'asking');
+  assert.equal(sessions['session-1'].waitingFor,'input');
+  assert.equal(sessions['session-1'].terminal,true);
+ }
+ sessions=updateSessionActivities(sessions,{...event('interrupted'),source:'codex-log',outcome:'interrupted'});
+ assert.equal(sessions['session-1'].phase,'idle');assert.equal(sessions['session-1'].waitingFor,undefined);
+});
+
+test('pending input in another session or a newer turn cannot suppress genuine completion',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started','waiting-turn','waiting'),source:'codex-log'});
+ sessions=updateSessionActivities(sessions,{...event('needs_input','waiting-turn','waiting'),source:'codex-log',nativeQuestion:true});
+ const otherProject={...event('turn_ended','complete-turn','complete'),source:'codex-log' as const,outcome:'success' as const};
+ assert.equal(dominantActivity(sessions).phase,'asking');
+ assert.equal(shouldCelebrateCompletion(sessions,otherProject),true);
+ assert.equal(shouldCelebrateCompletion(sessions,{...otherProject,sessionId:'waiting',turnId:'older-turn'}),true);
+ sessions=updateSessionActivities(sessions,otherProject);
+ assert.equal(dominantActivity(sessions).phase,'asking');
+ assert.equal(sessions.waiting.waitingFor,'input');
+});
+
+test('failed task completion still clears its pending input',()=>{
+ for(const outcome of ['failed','quota_exhausted','interrupted'] as const){
+  let sessions=updateSessionActivities({},event('needs_input'));
+  const completion={...event('task_complete'),outcome};
+  assert.equal(shouldCelebrateCompletion(sessions,completion),false);
+  sessions=updateSessionActivities(sessions,completion);
+  assert.equal(sessions['session-1'].phase,'idle');assert.equal(sessions['session-1'].waitingFor,undefined);
+ }
+});
+
+test('different sidebar project IDs in one directory enter full power and stopping one restores normal work',()=>{
+ const start=(sessionId:string,projectId:string)=>({...event('work_started','turn-1',sessionId),
+  source:'codex-log' as const,projectPath:'D:/CodexProjects',projectId});
+ let sessions=updateSessionActivities({},start('a','project-a'));
+ sessions=updateSessionActivities(sessions,start('b','project-b'));
+ assert.equal(dominantActivity(sessions).workingProjectCount,2);
+ assert.equal(dominantActivity(sessions).fullPower,true);
+ sessions=updateSessionActivities(sessions,{...event('interrupted','turn-1','b'),source:'codex-log'});
+ assert.equal(dominantActivity(sessions).phase,'working');
+ assert.equal(dominantActivity(sessions).workingProjectCount,1);
+ assert.equal(dominantActivity(sessions).fullPower,false);
+});
+
+test('multiple chats with the same sidebar project ID count once even after a project rename or directory change',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started','turn-a','a'),source:'codex-log',
+  projectId:'stable-project',project:'Original name',projectPath:'D:/Original'});
+ sessions=updateSessionActivities(sessions,{...event('work_started','turn-b','b'),source:'codex-log',
+  projectId:'stable-project',project:'Renamed project',projectPath:'E:/Moved'});
+ assert.equal(dominantActivity(sessions).workingProjectCount,1);
+ assert.equal(dominantActivity(sessions).fullPower,false);
+ sessions=updateSessionActivities(sessions,{...event('work_started','turn-c','child'),source:'codex-log',
+  projectId:'other-project',projectPath:'F:/Child',isSubagent:true});
+ assert.equal(dominantActivity(sessions).workingProjectCount,1);
+});
+
+test('unassigned sessions retain directory fallback without confusing project IDs with directory identities',()=>{
+ const start=(sessionId:string,path?:string,projectId?:string)=>({...event('work_started','turn-1',sessionId),
+  source:'codex-log' as const,projectPath:path,projectId});
+ let sessions=updateSessionActivities({},start('a','D:/Shared'));
+ sessions=updateSessionActivities(sessions,start('b','d:\\shared\\'));
+ sessions=updateSessionActivities(sessions,start('unknown'));
+ assert.equal(dominantActivity(sessions).workingProjectCount,1);
+ sessions=updateSessionActivities(sessions,start('c','D:/Shared','d:/shared'));
+ assert.equal(dominantActivity(sessions).workingProjectCount,2);
+ assert.equal(dominantActivity(sessions).fullPower,true);
+});
+
+test('native sidebar assignment remains authoritative through delayed matching hooks and replayed starts',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started'),source:'codex-log',
+  projectId:'original',projectPath:'D:/Shared'});
+ sessions=updateSessionActivities(sessions,{...event('work_progress'),source:'codex-log',projectId:'current'});
+ sessions=updateSessionActivities(sessions,{...event('work_progress'),projectId:'late-hook'});
+ sessions=updateSessionActivities(sessions,{...event('work_started'),source:'codex-log',projectId:'original'});
+ assert.equal(sessions['session-1'].projectId,'current');
+ assert.equal(sessions['session-1'].nativeProjectIdConfirmed,true);
+ assert.equal(sessions['session-1'].phase,'working');
+});
+
+test('matching native context explicitly clears an assignment and omitted metadata preserves it',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started'),source:'codex-log',
+  projectId:'assigned',projectPath:'D:/Fallback'});
+ sessions=updateSessionActivities(sessions,{...event('work_progress'),source:'codex-log'});
+ assert.equal(sessions['session-1'].projectId,'assigned');
+ sessions=updateSessionActivities(sessions,{...event('work_progress'),source:'codex-log',projectId:undefined});
+ assert.equal(sessions['session-1'].projectId,undefined);
+ assert.equal(sessions['session-1'].nativeProjectIdConfirmed,true);
+ sessions=updateSessionActivities(sessions,{...event('work_progress'),projectId:'late-hook'});
+ sessions=updateSessionActivities(sessions,{...event('work_started'),source:'codex-log',projectId:'assigned'});
+ assert.equal(sessions['session-1'].projectId,undefined);
+ assert.equal(dominantActivity(sessions).workingProjectCount,1);
+});
+
+test('native context cannot change a different turn and old terminal metadata cannot change current project identity',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started','new'),source:'codex-log',projectId:'current'});
+ sessions=updateSessionActivities(sessions,{...event('work_progress','old'),source:'codex-log',projectId:'old'});
+ sessions=updateSessionActivities(sessions,{...event('turn_ended','old'),source:'codex-log',projectId:'old'});
+ assert.equal(sessions['session-1'].projectId,'current');
+ assert.equal(sessions['session-1'].turnId,'new');
+ assert.equal(sessions['session-1'].phase,'working');
+});
+
+test('native assignment reconciliation preserves pending questions and terminal activity',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started'),source:'codex-log',projectId:'first'});
+ sessions=updateSessionActivities(sessions,{...event('needs_input'),source:'codex-log'});
+ sessions=updateSessionActivities(sessions,{...event('work_progress'),source:'codex-log',projectId:'second'});
+ assert.equal(sessions['session-1'].phase,'asking');
+ assert.equal(sessions['session-1'].waitingFor,'input');
+ assert.equal(sessions['session-1'].projectId,'second');
+ sessions=updateSessionActivities(sessions,{...event('interrupted'),source:'codex-log'});
+ sessions=updateSessionActivities(sessions,{...event('work_progress'),source:'codex-log',projectId:undefined});
+ assert.equal(sessions['session-1'].phase,'idle');
+ assert.equal(sessions['session-1'].terminal,true);
+ assert.equal(sessions['session-1'].projectId,undefined);
+ assert.equal(dominantActivity(sessions).workingProjectCount,0);
+});
+
+test('a new native turn adopts its current assignment including an explicit removal',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started','old'),source:'codex-log',projectId:'old-project'});
+ sessions=updateSessionActivities(sessions,{...event('work_started','new'),source:'codex-log',projectId:'new-project'});
+ assert.equal(sessions['session-1'].projectId,'new-project');
+ sessions=updateSessionActivities(sessions,{...event('work_started','next'),source:'codex-log',projectId:undefined});
+ assert.equal(sessions['session-1'].projectId,undefined);
+ assert.equal(sessions['session-1'].nativeProjectIdConfirmed,true);
 });

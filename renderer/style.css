@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "ChillRoundF";
+  src: url("./fonts/ChillRoundF-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
   color: #24393c;
@@ -241,22 +249,6 @@ body[data-view="settings"] { overflow-y: auto; background: #f3f7fa; }
   overflow-wrap: anywhere;
 }
 .bubble-meta { margin-top: 6px; color: #728e8c; font-size: 10px; }
-.bubble-close {
-  position: absolute;
-  z-index: 2;
-  top: 8px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: 9px;
-  color: #69827f;
-  background: transparent;
-  font: inherit;
-  font-size: 19px;
-  cursor: pointer;
-}
-.bubble-close:hover { background: rgba(255,255,255,.55); }
 .bubble-in { animation: bubble-in .28s cubic-bezier(.2,.8,.2,1) both; }
 
 .pet-caption {
@@ -537,7 +529,6 @@ body[data-view="pet"] .speech-bubble::after {
 body[data-view="pet"] .bubble-kicker {font-size:10px;letter-spacing:0;margin:0 0 3px;color:#658368;}
 body[data-view="pet"] #bubble-message {font-size:12px;line-height:1.55;max-height:3.1em;}
 body[data-view="pet"] .bubble-meta {display:none;}
-body[data-view="pet"] .bubble-close {right:19px;top:17px;width:19px;height:19px;font-size:16px;color:#68866d;}
 body[data-view="pet"] #pet-root .answer-button {position:static;transform:none;margin:7px auto 0;padding:4px 13px;border:1px solid #90a889;border-radius:16px;background:#edf4e8;color:#33523c;font:inherit;font-size:11px;cursor:pointer;}
 body[data-view="pet"] #pet-root .answer-button:hover {background:#dcebd6;}
 
@@ -550,19 +541,34 @@ body[data-view="pet"] #pet-root .speech-bubble {
 }
 body[data-view="pet"] #bubble-message {font-size:calc(13px * var(--ui-scale,1));}
 body[data-view="pet"] .bubble-kicker {font-size:calc(10px * var(--ui-scale,1));margin-bottom:calc(3px * var(--ui-scale,1));}
-body[data-view="pet"] .bubble-close {right:calc(19px * var(--ui-scale,1));top:calc(17px * var(--ui-scale,1));width:calc(19px * var(--ui-scale,1));height:calc(19px * var(--ui-scale,1));font-size:calc(16px * var(--ui-scale,1));}
 body[data-view="pet"] #pet-root .answer-button {font-size:calc(12px * var(--ui-scale,1));padding:calc(4px * var(--ui-scale,1)) calc(13px * var(--ui-scale,1));margin-top:calc(7px * var(--ui-scale,1));}
 body[data-view="pet"] .speech-bubble::after {bottom:calc(-13px * var(--ui-scale,1));width:calc(9px * var(--ui-scale,1));height:calc(7px * var(--ui-scale,1));border-width:calc(2px * var(--ui-scale,1));}
 body[data-view="pet"] .thought-dots {bottom:calc(-24px * var(--ui-scale,1));transform:scale(var(--ui-scale,1));transform-origin:top left;}
 
-/* V41: a roomy thought bubble above and to the left of the head. */
+/* Compact thought bubble above and to the left of the head. */
 body[data-view="pet"] #pet-root .speech-bubble {
- width:min(calc(278px * var(--ui-scale,1)),calc(var(--safe-width,370px) - 16px * var(--ui-scale,1)));
- font-family:"YouYuan","幼圆","Yu Gothic UI","Microsoft YaHei UI",sans-serif;
- border-color:#52724c;background:#fffef7;
+ width:min(calc(250px * var(--ui-scale,1)),calc(var(--safe-width,370px) - 16px * var(--ui-scale,1)));
+ min-height:0;
+ font-family:"ChillRoundF","YouYuan","幼圆","Microsoft YaHei UI",sans-serif;
+ border-color:#52724c;background:#FFFFFF;
  box-shadow:0 calc(3px * var(--ui-scale,1)) calc(9px * var(--ui-scale,1)) #4a60311c;
- padding:calc(19px * var(--ui-scale,1)) calc(30px * var(--ui-scale,1));
+ padding:calc(14px * var(--ui-scale,1)) calc(24px * var(--ui-scale,1));
 }
-body[data-view="pet"] #bubble-message {font-size:calc(17px * var(--ui-scale,1));font-weight:600;line-height:1.45;max-height:4.35em;}
-body[data-view="pet"] .bubble-kicker {font-size:calc(12px * var(--ui-scale,1));}
-body[data-view="pet"] #pet-root .answer-button {font-size:calc(14px * var(--ui-scale,1));border-color:#bad1a4;background:#edf5e3;}
+body[data-view="pet"] #bubble-message {
+ font-size:calc(20.4px * var(--ui-scale,1));font-weight:400;line-height:1.4;
+ max-height:none;overflow:visible;white-space:pre-wrap;overflow-wrap:anywhere;
+ color:#2d4937;
+}
+body[data-view="pet"] .bubble-kicker {font-size:calc(12px * var(--ui-scale,1));font-weight:400;}
+body[data-view="pet"] .bubble-kicker:empty {display:none;}
+body[data-view="pet"] #pet-root .speech-bubble[data-kind="question"] {
+ width:min(calc(278px * var(--ui-scale,1)),calc(var(--safe-width,370px) - 16px * var(--ui-scale,1)));
+ padding:calc(17px * var(--ui-scale,1)) calc(24px * var(--ui-scale,1));
+ border-radius:calc(40px * var(--ui-scale,1));
+}
+body[data-view="pet"] #pet-root .answer-button {
+ font-size:calc(16px * var(--ui-scale,1));border-color:#bad1a4;background:#edf5e3;
+}
+body[data-view="pet"] .speech-bubble::after,
+body[data-view="pet"] .thought-dots,
+body[data-view="pet"] .thought-dots::after {background:#FFFFFF;border-color:#52724c;}

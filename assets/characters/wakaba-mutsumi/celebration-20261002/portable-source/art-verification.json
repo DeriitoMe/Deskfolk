@@ -1,0 +1,18 @@
+{
+  "runtimeGLBValid": true,
+  "rootTransformsIdentity": true,
+  "materialsUnlit": 6,
+  "nativeBlenderReopened": true,
+  "asepriteSavedAndReopened": true,
+  "effectLayerCount": 15,
+  "transparentPNGs": [
+    "sweat-large",
+    "sweat-small",
+    "gentle-star",
+    "confetti-strip"
+  ],
+  "kritaNativePaintLayers": 15,
+  "kritaNativeGroups": 4,
+  "kritaSavedAndReopened": true,
+  "kritaReopenedMaxChannelDifference": 2
+}

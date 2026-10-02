@@ -9,14 +9,20 @@ import {dragCycle} from '../shared/drag-motion';
 import {DragPendulum} from '../shared/drag-physics';
 import squeezeLeft from '../assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-left.png?url';
 import squeezeRight from '../assets/characters/wakaba-mutsumi/v42-motion/source/art/squeeze-right.png?url';
+import poppersUrl from '../assets/characters/wakaba-mutsumi/celebration-20261002/runtime/mini-confetti-poppers.glb?url';
+import sweatLargeUrl from '../assets/characters/wakaba-mutsumi/celebration-20261002/runtime/sweat-large.png?url';
+import sweatSmallUrl from '../assets/characters/wakaba-mutsumi/celebration-20261002/runtime/sweat-small.png?url';
+import starUrl from '../assets/characters/wakaba-mutsumi/celebration-20261002/runtime/gentle-star.png?url';
+import confettiUrl from '../assets/characters/wakaba-mutsumi/celebration-20261002/runtime/confetti-strip.png?url';
+import {CELEBRATION_SECONDS,TOUCH_SECONDS} from '../shared/companion-feedback';
 export const TURN_SECONDS=10.2;
-export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'drag'|'transform';
+export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap';
 const maps=import.meta.glob<string>('../assets/characters/wakaba-mutsumi/v41-3d/runtime/{hair-paint,hair_all_visible,back-hair-paint,back-hair-mask,side-hair-clean,question-eye,flame-atlas}.png',{eager:true,query:'?url',import:'default'});
 const urls=Object.fromEntries(Object.entries(maps).map(([p,u])=>[p.split('/').pop()!,u]));
 const clamp=T.MathUtils.clamp, mix=T.MathUtils.lerp,TAU=Math.PI*2;
 const smooth=(v:number)=>{v=clamp(v,0,1);return v*v*(3-2*v);};
-type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headYaw:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number};
-const neutral=():Pose=>({rise:0,lean:0,pitch:0,yaw:0,head:0,headYaw:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0});
+type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headYaw:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number};
+const neutral=():Pose=>({rise:0,lean:0,pitch:0,yaw:0,head:0,headYaw:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0});
 const blend=(a:Pose,b:Pose,u:number)=>Object.fromEntries(Object.keys(a).map(k=>[k,mix(a[k as keyof Pose],b[k as keyof Pose],u)])) as Pose;
 type Rest={position:T.Vector3;quaternion:T.Quaternion;scale:T.Vector3};
 
@@ -33,6 +39,7 @@ export class MutsumiRig {
  private squeezeArt:HTMLImageElement[]=[];
  private watering=new T.Group();private can=new T.Group();private flowers=new T.Group();
  private aura=new T.Group();private drops:T.Mesh[]=[];private projected=new T.Vector3();
+ private feedback=new T.Group();private poppers:T.Object3D[]=[];private paper:T.Mesh[]=[];private stars:T.Mesh[]=[];private sweat:T.Mesh[]=[];
  private suspension=new DragPendulum();private suspensionPivot=new T.Vector3();
  private modelBounds=new T.Box3();private viewportSignature='';
  action:RigAction='idle';reducedMotion=false;frameLimit:30|60=60;frames=0;frameIntervals:number[]=[];
@@ -80,11 +87,30 @@ export class MutsumiRig {
   this.questionArt=new Image();this.questionArt.src=urls['question-eye.png'];await this.questionArt.decode();
   this.squeezeArt=await Promise.all([squeezeLeft,squeezeRight].map(async src=>{const art=new Image();art.src=src;await art.decode();return art;}));
   this.auraTexture=await loader.loadAsync(urls['flame-atlas.png']);this.auraTexture.colorSpace=T.SRGBColorSpace;this.auraTexture.repeat.set(1/6,1/6);
-  this.buildEyes();this.buildProps();await this.grand?.ready;
+  this.buildEyes();this.buildProps();await this.buildFeedback(loader);await this.grand?.ready;
   // Upload every prop and compile its shader before the first visible action.
   this.apply(this.target('water',2),2);this.flowers.visible=this.aura.visible=true;
+  this.feedback.traverse(o=>{o.visible=true;});
   await this.renderer.compileAsync(this.scene,this.camera);this.renderer.render(this.scene,this.camera);
   this.apply(this.target('idle',0),0);
+ }
+ private async buildFeedback(loader:T.TextureLoader){
+  const [gltf,...textures]=await Promise.all([new GLTFLoader().loadAsync(poppersUrl),... [sweatLargeUrl,sweatSmallUrl,starUrl,confettiUrl].map(u=>loader.loadAsync(u))]);
+  this.feedback.name='CompanionFeedback';this.scene.add(this.feedback);
+  for(const name of ['MiniPopper_L','MiniPopper_R']){
+   const prop=gltf.scene.getObjectByName(name);if(!prop)throw Error('Celebration prop missing '+name);
+   prop.traverse(o=>{if(o instanceof T.Mesh){o.frustumCulled=false;for(const m of Array.isArray(o.material)?o.material:[o.material]){m.toneMapped=false;m.transparent=true;}}});
+   this.feedback.add(prop);this.poppers.push(prop);
+  }
+  const plane=(texture:T.Texture,w:number,h:number,color:string)=>{
+   texture.colorSpace=T.SRGBColorSpace;
+   const mesh=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:texture,color,transparent:true,depthWrite:false,toneMapped:false}));
+   mesh.frustumCulled=false;this.feedback.add(mesh);return mesh;
+  };
+  this.sweat.push(plane(textures[0],.18,.27,'#ffffff'),plane(textures[1],.12,.18,'#ffffff'));
+  for(let i=0;i<5;i++)this.stars.push(plane(textures[2],.16,.16,'#ffffff'));
+  const palette=['#b6dcb8','#f0c6cf','#efd89f','#bacde2'];
+  for(let i=0;i<32;i++)this.paper.push(plane(textures[3],.085,.13,palette[i%4]));
  }
  private control(name:string){return this.controls.get(name.replace(/\./g,''))??this.controls.get(name)??[...this.controls.values()].find(o=>o.name===name.replace(/\./g,'_'))!;}
  private basic(color:string|number,opacity=1){return new T.MeshBasicMaterial({color,transparent:opacity<1,opacity,depthWrite:opacity===1,toneMapped:false});}
@@ -168,7 +194,23 @@ export class MutsumiRig {
   if(action==='work'||action==='power-work'){p.work=1;p.gaze=action==='work'?1:0;p.followBody=action==='work'?1:0;p.spread=.045;p.armL=.12;p.armR=-.12;p.open=1;p.rise=wave*.005;}
   if(action==='power-work'){p.power=1;p.spread=.17;p.footL=-.2;p.footR=.2;p.rise=-.09+wave*.01;p.armL=.25;p.armR=-.25;p.reach=-.3;}
   if(action==='ask'){p.ask=1;p.headYaw=-.24;p.yaw=-.06;p.open=1;}
-  if(action==='touch'){p.touch=1;p.squeeze=1;p.armL=2.1;p.armR=-2.1;p.reach=.95;p.open=1;}
+  if(action==='touch'){
+   const lift=smooth(t/.24)*(1-smooth((t-1.24)/.36)),shake=Math.sin(clamp((t-.28)/.88,0,1)*TAU*2);
+   p.touch=lift;p.squeeze=lift;p.armL=lift*(1.5+shake*.19);p.armR=-lift*(1.5+shake*.19);
+   p.reach=lift*(.60+shake*.12);p.head=shake*.015*lift;p.lean=shake*.012*lift;p.open=1;
+  }
+  if(action==='celebrate-poppers'){
+   const lift=smooth(t/.38)*(1-smooth((t-1.93)/.57));
+   p.popper=lift;p.armL=1.98*lift;p.armR=-1.98*lift;p.reach=.95*lift;
+   p.happy=lift;p.rise+=Math.sin(t*TAU/1.25)*.018*lift;p.head=-.025*lift;
+  }
+  if(action==='celebrate-clap'){
+   const lift=smooth(t/.30)*(1-smooth((t-1.86)/.54));
+   const beat=(at:number)=>Math.max(0,1-Math.abs(t-at)/.16);
+   const contact=smooth(Math.max(beat(.66),beat(1.10)));
+   p.clap=lift;p.armL=(-.43-.32*contact)*lift;p.armR=-p.armL;p.reach=-1.22*lift;
+   p.happy=lift;p.rise+=Math.sin(t*TAU/1.5)*.012*lift;
+  }
   if(action==='drag'){const cycle=dragCycle(t),k=cycle.kick;
     // Lift from the upper back: the torso tips forward and the head nods over
     // the chest, while the face stays nearly frontal.
@@ -193,7 +235,6 @@ export class MutsumiRig {
   const hair=this.control('CTRL_Hair');
   hair.rotation.z+=p.power*(Math.sin(t*TAU/1.7)*.023+Math.sin(t*TAU/2.6)*.008);
   this.control('CTRL_Arm.L').rotation.set(p.reach,0,p.armL);this.control('CTRL_Arm.R').rotation.set(p.reach,0,p.armR);
-  for(const s of ['L','R']){const arm=this.control('CTRL_Arm.'+s);arm.position.z+=p.touch*.45;arm.position.y+=p.touch*.12;}
   for(const [s,sign,a] of [['R',-1,p.footR],['L',1,p.footL]] as const){const foot=this.control('CTRL_Foot.'+s);foot.position.x+=sign*p.spread;foot.position.y-=p.rise*(1-p.drag);foot.rotation.set(p.drag*(-.18+p.kick*(s==='R'?.7:.52)),0,a);if(s==='R')foot.position.y+=p.liftFoot;}
   for(let i=0;i<2;i++){
    const joint=this.control('CTRL_Eye.'+(i?'L':'R'));joint.position.x+=gx*.105;joint.position.y-=gy*.065;
@@ -211,10 +252,37 @@ export class MutsumiRig {
   this.can.updateMatrixWorld(true);const spout=this.can.localToWorld(new T.Vector3(-.42,.12,0));
   this.watering.traverse(o=>{if(o instanceof T.Mesh){const m=o.material as T.MeshBasicMaterial;m.transparent=true;m.opacity=(o.name.startsWith('WaterDrop_')?.8*p.flow:1)*p.water;}});
   for(let i=0;i<this.drops.length;i++){const q=(t*1.9+i/36)%1;this.drops[i].position.set(mix(spout.x,-1.52,q)+Math.sin(i*8)*.035,mix(spout.y,.45,q*q),mix(spout.z,.8,q)+Math.cos(i*5)*.028);this.drops[i].scale.set(1,1.8,1);}
-  this.flowers.visible=p.happy>.005;for(let i=0;i<5;i++){const f=this.flowers.children[i],a=t*1.1+i*TAU/5;f.position.set(Math.cos(a)*1.65,2.6+Math.sin(a)*.7,.6+Math.sin(a)*.3);f.rotation.z=t*1.8+i;f.scale.setScalar(p.happy);}
+  this.flowers.visible=p.happy>.005&&p.popper<.005&&p.clap<.005;for(let i=0;i<5;i++){const f=this.flowers.children[i],a=t*1.1+i*TAU/5;f.position.set(Math.cos(a)*1.65,2.6+Math.sin(a)*.7,.6+Math.sin(a)*.3);f.rotation.z=t*1.8+i;f.scale.setScalar(p.happy);}
   this.aura.visible=p.power>.005;for(let i=0;i<7;i++){const a=i*TAU/7;const f=this.aura.children[i] as T.Mesh;f.position.set(Math.cos(a)*1.65,.06,Math.sin(a)*1.1);f.rotation.y=0;f.scale.set(1.5,1.7+Math.sin(t*5+i)*.25+Math.abs(Math.cos(a))*.6,1);(f.material as T.MeshBasicMaterial).opacity=p.power*(.18+.04*Math.sin(t*4+i));}
   const frame=Math.floor(t*30)%36;this.auraTexture?.offset.set((frame%6)/6,(5-Math.floor(frame/6))/6);
+  this.applyFeedback(p,t);
   this.scene.updateMatrixWorld(true);
+ }
+ private applyFeedback(p:Pose,t:number){
+  const opacity=(object:T.Object3D,amount:number)=>{object.visible=amount>.005;object.traverse(o=>{if(o instanceof T.Mesh)for(const m of Array.isArray(o.material)?o.material:[o.material])m.opacity=amount;});};
+  for(let i=0;i<this.poppers.length;i++){
+   const prop=this.poppers[i];prop.position.copy(this.control('CTRL_Hand.'+(i?'R':'L')).getWorldPosition(new T.Vector3()));
+   prop.position.z=Math.max(1.15,prop.position.z+.07);prop.rotation.set(0,0,i?.40:-.40);opacity(prop,p.popper);prop.updateMatrixWorld(true);
+  }
+  for(let i=0;i<this.sweat.length;i++){
+   const drop=this.sweat[i],u=clamp((t-.26-i*.10)/1.12,0,1);
+   drop.position.set(i?-.91:.91,3.03-u*.27,1.6);drop.rotation.z=i?-.12:.12;
+   drop.scale.setScalar(.65+.35*smooth(u/.2));opacity(drop,p.touch*smooth(u/.13)*(1-smooth((u-.72)/.28)));
+  }
+  for(let i=0;i<this.paper.length;i++){
+   const mesh=this.paper[i],side=i%2,delay=.76+Math.floor(i/16)*.22,u=t-delay;
+   const seed=(i*.61803398875)%1,spread=(seed-.5)*1.6;
+   const aperture=this.poppers[side].localToWorld(new T.Vector3(0,.24,0));
+   mesh.position.copy(aperture);mesh.position.x+=spread*u;mesh.position.y+=(1.8+seed*.8)*u-1.2*u*u;
+   mesh.position.z+=.15+seed*.3;mesh.rotation.z=i+u*(i%2?3.2:-2.8);
+   opacity(mesh,u>0?p.popper*(1-smooth((u-.68)/.55)):0);
+  }
+  for(let i=0;i<this.stars.length;i++){
+   const star=this.stars[i],u=t-.62-i*.065,a=i*TAU/5;
+   star.position.set(Math.cos(a)*(1.10+Math.max(0,u)*.15),2.48+Math.sin(a)*.48+Math.max(0,u)*.25,1.55);
+   star.rotation.z=i*.6+u*.65;star.scale.setScalar(.55+.45*smooth(u/.15));
+   opacity(star,u>0?p.clap*smooth(u/.16)*(1-smooth((u-.72)/.65)):0);
+  }
  }
  private drawEye(i:number,p:Pose,t:number){
   const c=this.eyeCanvases[i].getContext('2d')!;c.clearRect(0,0,192,256);c.save();c.translate(96,128);
@@ -295,11 +363,11 @@ export class MutsumiRig {
   if(this.releasing&&age>=.65){this.releasing=false;this.resize(false);}
   if(this.action==='transform')this.drawTurn(age);else{
    const t=this.reducedMotion?.65:age,route=this.routed?.38:0;
-   this.pose=age<route?blend(this.from,neutral(),smooth(age/route)):blend(this.routed?neutral():this.from,this.target(this.action,t),smooth((age-route)/(this.releasing?.65:this.action==='water'?1.4:this.action==='drag'?.23:.55)));
+   this.pose=age<route?blend(this.from,neutral(),smooth(age/route)):blend(this.routed?neutral():this.from,this.target(this.action,t),smooth((age-route)/(this.releasing?.65:this.action==='water'?1.4:this.action==='drag'?.23:this.action==='touch'?.15:this.action.startsWith('celebrate-')?.22:.55)));
    if(this.releasing&&age<.65)this.pose.rise-=Math.sin(age/.65*Math.PI)*.03;this.draw(this.pose,t,age);
   }
   this.velocity*=Math.exp(-Math.min(dt,100)*.007);
-  if(!this.finished&&((this.action==='transform'&&age>=TURN_SECONDS)||(this.action==='touch'&&age>=1.15))){this.finished=true;this.onTransientEnd?.();}
+  if(!this.finished&&((this.action==='transform'&&age>=TURN_SECONDS)||(this.action==='touch'&&age>=TOUCH_SECONDS)||(this.action==='celebrate-poppers'&&age>=CELEBRATION_SECONDS.A)||(this.action==='celebrate-clap'&&age>=CELEBRATION_SECONDS.D))){this.finished=true;this.onTransientEnd?.();}
  };
  setAction(action:RigAction){if(action==='transform'&&!presentationPolicy.transformation)return;if(action===this.action)return;this.from={...this.pose};this.releasing=this.action==='drag';this.routed=this.action==='nap'&&['work','power-work','water'].includes(action);this.action=action;this.start=performance.now();this.finished=false;this.canvas.dataset.action=action;if(!['idle','work'].includes(action))this.look.target(0,0);this.resize(action==='transform');
   this.onViewportChange?.();

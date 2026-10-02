@@ -50,7 +50,7 @@ async function sendNotification(args) {
   try {
     bridge = JSON.parse(await readFile(BRIDGE_FILE, "utf8"));
   } catch {
-    throw new Error("找不到桌宠连接信息。请先启动 Liquid Glass Pet。");
+    throw new Error("找不到桌宠连接信息。请先启动 Deskfolk。");
   }
   if (
     !Number.isInteger(bridge.port) ||
@@ -59,7 +59,7 @@ async function sendNotification(args) {
     typeof bridge.token !== "string" ||
     !/^[a-f0-9]{64}$/i.test(bridge.token)
   ) {
-    throw new Error("桌宠连接信息无效。请重新启动 Liquid Glass Pet。");
+    throw new Error("桌宠连接信息无效。请重新启动 Deskfolk。");
   }
 
   let response;
@@ -85,7 +85,7 @@ async function sendNotification(args) {
       signal: AbortSignal.timeout(2500),
     });
   } catch {
-    throw new Error("无法连接桌宠。请确认 Liquid Glass Pet 正在运行。");
+    throw new Error("无法连接桌宠。请确认 Deskfolk 正在运行。");
   }
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
@@ -129,7 +129,7 @@ async function handle(message) {
       tools: [
         {
           name: "pet_notify",
-          description: "Show a short, factual notification in the user's local Liquid Glass Pet. Use after a verified stage/task milestone or when user input is needed. Does not approve Codex actions.",
+          description: "Show a short, factual notification in the user's local Deskfolk. Use after a verified stage/task milestone or when user input is needed. Does not approve Codex actions.",
           inputSchema: {
             type: "object",
             properties: {

@@ -15,8 +15,8 @@ import zipfile
 
 ROOT_FILES = ['.gitignore', 'README.md', 'package.json', 'package-lock.json', 'electron.vite.config.ts', 'review.vite.config.ts', 'tsconfig.json']
 CODE_DIRS = ['bridge', 'electron', 'renderer', 'shared', 'plugins', 'docs']
-SCRIPT_PATTERNS = ['privacy-*.py', 'prepare-public-source.py', 'setup-codex.ps1', 'stage-v42-package.mjs', 'verify-v42-package.mjs', 'qa-v42-*', 'build-v42-*.py', 'assemble-v42-*.lua', 'export-v42-*.cjs', 'prepare-v42-*.py', 'prepare-head-icon.lua', 'build-codex-launcher.cjs', 'CodexLauncher.cs', 'installer-startup.nsh']
-ART_DIRS = ['v41-3d/runtime', 'v40-motion/layers', 'v42-motion/source']
+SCRIPT_PATTERNS = ['privacy-*.py', 'prepare-public-source.py', 'setup-codex.ps1', 'stage-v42-package.mjs', 'verify-v42-package.mjs', 'qa-v42-*', 'build-v42-*.py', 'assemble-v42-*.lua', 'export-v42-*.cjs', 'prepare-v42-*.py', 'prepare-head-icon.lua', 'build-codex-launcher.cjs', 'CodexLauncher.cs', 'installer-startup.nsh', 'build-celebration-*', 'assemble-celebration-*', 'export-celebration-effects-krita.py', 'verify-celebration-art.py']
+ART_DIRS = ['v41-3d/runtime', 'v40-motion/layers', 'v42-motion/source', 'celebration-20261002/runtime', 'celebration-20261002/preview', 'celebration-20261002/portable-source']
 TEXT_EXTENSIONS = {'.ts', '.js', '.mjs', '.cjs', '.py', '.lua', '.ps1', '.json', '.html', '.md', '.svg', '.css', '.txt'}
 LOCAL_ID_KEYS = {'sessionid', 'session_id', 'threadid', 'thread_id', 'turnid', 'turn_id', 'questionid', 'question_id', 'call_id'}
 SECRET_KEYS = {'token', 'access_token', 'refresh_token', 'password', 'api_key', 'apikey', 'secret'}
@@ -86,7 +86,7 @@ def main():
         selected.update(path for path in (root / 'scripts').glob(pattern) if path.is_file())
     art = root / 'assets/characters/wakaba-mutsumi'
     for dirname in ART_DIRS:
-        selected.update(path for path in (art / dirname).rglob('*') if path.is_file() and path.suffix.lower() not in {'.blend', '.blend1'} and 'frames' not in path.parts)
+        selected.update(path for path in (art / dirname).rglob('*') if path.is_file() and path.suffix.lower() != '.blend1' and (path.suffix.lower() != '.blend' or 'portable-source' in path.parts) and 'frames' not in path.parts)
     # Existing read-only verification is copied with local IDs/paths omitted.
     selected.update(path for path in (art / 'v42-motion/verification').glob('*.json') if path.is_file())
     selected.update(path for path in (art / 'v41-3d/source').glob('*.kra') if path.is_file())

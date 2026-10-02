@@ -16,7 +16,7 @@ The current character is the chibi form. Additional appearance assets are retain
 
 ## Install
 
-Download the Windows x64 installer from [Releases](https://github.com/DeriitoMe/Deskfolk/releases). Exit a running copy before installing. The Windows application and shortcut are currently named **Liquid Glass Pet**.
+Download the Windows x64 installer from [Releases](https://github.com/DeriitoMe/Deskfolk/releases). Exit a running copy before installing. The Windows application and shortcut are named **Deskfolk**.
 
 Open settings by right-clicking the system tray icon. Choose **Exit** from that menu to close the pet.
 

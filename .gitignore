@@ -74,6 +74,10 @@ scripts/*
 !scripts/build-codex-launcher.cjs
 !scripts/CodexLauncher.cs
 !scripts/installer-startup.nsh
+!scripts/build-celebration-*
+!scripts/assemble-celebration-*
+!scripts/export-celebration-effects-krita.py
+!scripts/verify-celebration-art.py
 
 # Reviewed portable editable sources in this snapshot.
 !/PUBLIC_SOURCE_MANIFEST.json

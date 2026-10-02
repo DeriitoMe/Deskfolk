@@ -64,6 +64,7 @@ async function notify() {
         source: "hook",
         type: eventType,
         nativeQuestion: asksUser,
+        nativeCallId: (asksUser || answered) && typeof hookInput.tool_use_id === 'string' ? hookInput.tool_use_id : undefined,
         sessionId: session,
         turnId: turn,
         project,

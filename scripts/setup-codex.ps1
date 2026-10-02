@@ -112,15 +112,15 @@ if (-not $mcpAlreadyRegistered) {
     throw "Codex MCP registration failed. The local plugin files remain in place; inspect 'codex mcp list' before retrying."
   }
 } else {
-  Write-Host "The matching Liquid Glass Pet MCP server is already registered."
+  Write-Host "The matching Deskfolk MCP server is already registered."
 }
 
 & codex plugin add liquid-glass-pet --marketplace personal
 if ($LASTEXITCODE -ne 0) {
-  throw "Codex plugin installation failed. The personal catalog and MCP registration remain in place; restart Codex and install Liquid Glass Pet from the personal plugin source."
+  throw "Codex plugin installation failed. The personal catalog and MCP registration remain in place; restart Codex and install Deskfolk from the personal plugin source."
 }
 
 Write-Host ""
-Write-Host "Liquid Glass Pet is registered with Codex."
+Write-Host "Deskfolk is registered with Codex."
 Write-Host "Restart the Codex desktop app, then review and trust the plugin hooks before they run."
 Write-Host "The app must be running for desktop notifications to appear."

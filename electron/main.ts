@@ -21,14 +21,18 @@ import type {
   PetEventType,
   PetPreferences,
   PetModel,
+  CompletionOutcome,
 } from "../shared/types";
-import { dominantActivity, shouldIgnoreHookQuestion, updateSessionActivities, type SessionActivities } from "../shared/activity";
+import { dominantActivity, isSuccessfulCompletion, shouldCelebrateCompletion, shouldDeliverBufferedEvent, shouldDeliverPetEvent, shouldIgnoreHookQuestion, shouldPresentLifecycleEvent, successfulCompletionIdentity, updateSessionActivities, type SessionActivities } from "../shared/activity";
 import { activateCodex } from './codex-window';
 import { isQuestionReminder } from '../shared/reminders';
 import { CodexLifecycleObserver } from './codex-lifecycle';
 import { presentationPolicy } from '../shared/runtime-policy';
 import { syncCodexStartup } from './codex-startup';
+import { RendererEventQueue } from './renderer-events';
 
+const APP_NAME = "Deskfolk";
+// Keep the existing data directory and bridge identifier during the branding update.
 const APP_DIR_NAME = "liquid-glass-pet";
 const ICON_DIRECTORY = join(__dirname, '../../assets/icons');
 const APPLICATION_ICON = join(ICON_DIRECTORY, 'deskfolk.ico');
@@ -53,7 +57,7 @@ const DEFAULT_PREFERENCES: PetPreferences = {
   startWithCodex: true,
 };
 
-app.setName(APP_DIR_NAME);
+app.setName(APP_NAME);
 app.setPath("userData", process.env.PET_USER_DATA || join(app.getPath("appData"), APP_DIR_NAME));
 
 const userDataPath = app.getPath("userData");
@@ -64,6 +68,7 @@ const activityPath = join(userDataPath, "activity.json");
 
 let mainWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
+const rendererEvents=new RendererEventQueue(event=>mainWindow?.webContents.send('pet:event',event));
 function currentActivity() { return dominantActivity(sessionActivities); }
 let tray: Tray | null = null;
 let trayMenu: Menu | null = null;
@@ -73,6 +78,7 @@ let preferences = { ...DEFAULT_PREFERENCES };
 let preferenceSaveQueue: Promise<PetPreferences | void> = Promise.resolve();
 let history: PetEvent[] = [];
 let sessionActivities: SessionActivities = {};
+const successfulCompletions=new Set<string>();
 let lifecycle: CodexLifecycleObserver | undefined;
 const knownSessions=new Set<string>();
 let isQuitting = false;
@@ -120,7 +126,7 @@ function writeJsonAtomically(filePath: string, value: unknown): void {
     try {
       unlinkSync(temporaryPath);
     } catch (cleanupError) {
-      console.warn("Liquid Glass Pet could not remove a temporary JSON file:", cleanupError);
+      console.warn("Deskfolk could not remove a temporary JSON file:", cleanupError);
     }
   }
 }
@@ -165,6 +171,16 @@ function safeCompare(left: string, right: string): boolean {
 function makeEvent(input: Record<string, unknown>, source: EventSource): PetEvent | null {
   const type = input.type;
   if (typeof type !== "string" || !ALLOWED_TYPES.has(type as PetEventType)) return null;
+  const outcomes:CompletionOutcome[]=['success','interrupted','failed','quota_exhausted'];
+  const error=input.error as {codex_error_info?:unknown}|undefined;
+  const outcome:CompletionOutcome|undefined=error?(error.codex_error_info==='usage_limit_exceeded'?'quota_exhausted':'failed'):
+    outcomes.includes(input.outcome as CompletionOutcome)?input.outcome as CompletionOutcome:
+    type==='interrupted'?'interrupted':type==='task_complete'&&(source==='mcp'||source==='demo')?'success':undefined;
+  // Existing installed hooks already embed tool_use_id in their event ID.
+  // Read it before trimming the ID, so their native reconciliation shares the
+  // same reminder deadline without requiring a plugin reinstall.
+  const legacyCallId=source==='hook'&&['needs_input','input_resolved'].includes(type)&&
+    typeof input.id==='string'&&input.id.startsWith('hook:'+type+':')?input.id.split(':').at(-1):undefined;
   return {
     id: sanitizeText(input.id, 120) ?? randomUUID(),
     source,
@@ -179,19 +195,30 @@ function makeEvent(input: Record<string, unknown>, source: EventSource): PetEven
     turnId: sanitizeText(input.turnId, 120),
     questionId: sanitizeText(input.questionId, 120),
     nativeQuestion: input.nativeQuestion === true,
+    nativeCallId: sanitizeText(input.nativeCallId??legacyCallId, 120),
+    outcome,
+    replayed: input.replayed === true,
     createdAt: new Date().toISOString(),
     read: false,
   };
 }
 
 function eventSignature(event: PetEvent): string {
-  return [event.type, event.sessionId, event.turnId, event.questionId, event.project ?? "", event.stage ?? "", event.message ?? ""].join("|");
+  return [event.type, event.sessionId, event.turnId, event.questionId, event.nativeCallId, event.outcome, event.project ?? "", event.stage ?? "", event.message ?? ""].join("|");
 }
 
 function acceptEvent(event: PetEvent): void {
   lifecycle?.track(event.sessionId);
   if (['needs_input','approval_needed'].includes(event.type) && !isQuestionReminder(event)) return;
   if(shouldIgnoreHookQuestion(sessionActivities,event))return;
+  const session=event.sessionId?sessionActivities[event.sessionId]:undefined;
+  if(isSuccessfulCompletion(event)&&session&&(!event.turnId||event.turnId===session.turnId)){
+    // A verified MCP milestone may omit turn_id; attach the known native turn
+    // so its eventual clean completion cannot trigger a second celebration.
+    event={...event,turnId:event.turnId??session.turnId,
+      projectPath:session.nativeProjectPath??event.projectPath??session.projectPath,
+      isSubagent:session.isSubagent??event.isSubagent};
+  }
   const now = Date.now();
   if (event.source === "hook" && event.type !== "work_progress" &&
       history.some((item) => item.id === event.id)) return;
@@ -201,16 +228,21 @@ function acceptEvent(event: PetEvent): void {
   lastDedupAt = now;
   if (event.source === "hook") lastHookEventAt = event.createdAt;
   if (event.source === "mcp") lastMcpEventAt = event.createdAt;
+  const success=shouldCelebrateCompletion(sessionActivities,event);
+  const ownPendingCompletion=isSuccessfulCompletion(event)&&!success;
   const before=currentActivity();
   if (!event.questionId) sessionActivities = updateSessionActivities(sessionActivities, event, now);
   const fingerprint=(a:PetActivity)=>JSON.stringify([a.phase,a.sessionId,a.workingProjectCount,a.fullPower]);
   const stateChanged=fingerprint(before)!==fingerprint(currentActivity());
+  const completionKey=success?successfulCompletionIdentity(event):undefined;
+  const duplicateCompletion=!!completionKey&&successfulCompletions.has(completionKey);
   // Log reconciliation does not replay historical messages or duplicate hooks.
-  if(event.source==='codex-log' && (!stateChanged || now-Date.parse(event.createdAt)>10000)) {
+  if(ownPendingCompletion||!shouldPresentLifecycleEvent(event,stateChanged,now)||duplicateCompletion) {
     writeJsonAtomically(activityPath,sessionActivities);
     if(stateChanged)mainWindow?.webContents.send('pet:activity',currentActivity());
     return;
   }
+  if(completionKey)successfulCompletions.add(completionKey);
   writeJsonAtomically(activityPath, sessionActivities);
   if (event.type !== "work_progress") {
     history = [event, ...history.filter((item) => item.id !== event.id)].slice(0, 20);
@@ -219,9 +251,10 @@ function acceptEvent(event: PetEvent): void {
   if (mainWindow && !mainWindow.isDestroyed()) {
     // Send aggregate state first: one session ending must not hide another's question.
     mainWindow.webContents.send("pet:activity", currentActivity());
-    if (event.type !== "work_progress" &&
-        !(event.type === 'turn_ended' && currentActivity().phase !== 'idle')) mainWindow.webContents.send("pet:event", event);
+    if (shouldDeliverPetEvent(event,currentActivity())) rendererEvents.deliver(event);
     mainWindow.showInactive();
+  } else if(shouldDeliverPetEvent(event,currentActivity())) {
+    rendererEvents.deliver(event);
   }
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     if (event.type !== "work_progress") settingsWindow.webContents.send("pet:event", event);
@@ -312,6 +345,7 @@ async function startBridge(): Promise<void> {
 function loadPreferences(): void {
   preferences = normalizePreferences(readJson<Partial<PetPreferences>>(preferencesPath, {}));
   history = readJson<PetEvent[]>(historyPath, []).slice(0, 20);
+  for(const event of history)if(isSuccessfulCompletion(event))successfulCompletions.add(successfulCompletionIdentity(event));
   sessionActivities = updateSessionActivities(readJson<SessionActivities>(activityPath, {}), {
     id: "startup-prune", source: "demo", type: "info", createdAt: new Date().toISOString(), read: true,
   });
@@ -375,7 +409,7 @@ function openSettings(): void {
     height: 720,
     minWidth: 400,
     minHeight: 620,
-    title: "Liquid Glass Pet 设置",
+    title: `${APP_NAME} 设置`,
     icon: APPLICATION_ICON,
     backgroundColor: "#f3f7fa",
     autoHideMenuBar: true,
@@ -400,7 +434,7 @@ async function createTray(): Promise<void> {
   let icon = nativeImage.createFromPath(join(ICON_DIRECTORY, 'tray.png'));
   if (icon.isEmpty()) icon = await app.getFileIcon(process.execPath, { size: "small" });
   tray = new Tray(icon);
-  tray.setToolTip("Liquid Glass Pet");
+  tray.setToolTip(APP_NAME);
   tray.on("click", () => {
     if (!mainWindow) return;
     if (mainWindow.isVisible()) mainWindow.hide();
@@ -482,6 +516,7 @@ function createPetWindow(): void {
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   mainWindow.setAlwaysOnTop(true, "floating");
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  mainWindow.webContents.on('did-start-loading',()=>rendererEvents.reset());
   void mainWindow.loadURL(rendererUrl());
   mainWindow.once("ready-to-show", showPet);
   mainWindow.on("move", () => {
@@ -511,6 +546,10 @@ function startCursorTracking(): void {
 }
 
 function registerIpc(): void {
+  ipcMain.handle('pet:renderer-ready',event=>{
+    if(!mainWindow||mainWindow.isDestroyed()||event.sender!==mainWindow.webContents)return {ok:false,delivered:0};
+    return {ok:true,delivered:rendererEvents.makeReady(event=>shouldDeliverBufferedEvent(sessionActivities,event))};
+  });
   ipcMain.on('pet:layout',(event,layout:PetLayout)=>{
     if(!mainWindow||mainWindow.isDestroyed()||event.sender!==mainWindow.webContents)return;
     if(!layout||!layout.visible)return;
@@ -633,7 +672,7 @@ if (!hasLock) {
     await createTray();
     app.on("activate", showPet);
   }).catch((error: unknown) => {
-    console.error("Liquid Glass Pet failed to start:", error);
+    console.error("Deskfolk failed to start:", error);
     app.quit();
   });
   app.on("before-quit", () => {

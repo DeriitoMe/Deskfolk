@@ -12,6 +12,7 @@ export type PetEventType =
 
 export type EventSource = "hook" | "mcp" | "demo" | "codex-log";
 export type PetModel = "flat-chibi" | "hires-soft";
+export type CompletionOutcome = "success" | "interrupted" | "failed" | "quota_exhausted";
 
 export type ActivityPhase = "idle" | "working" | "asking";
 export interface PetActivity {
@@ -28,6 +29,8 @@ export interface PetEvent {
   type: PetEventType;
   project?: string;
   projectPath?: string;
+  /** Stable Codex sidebar project ID; display names and paths are not IDs. */
+  projectId?: string;
   isSubagent?: boolean;
   task?: string;
   stage?: string;
@@ -38,6 +41,11 @@ export interface PetEvent {
   turnId?: string;
   questionId?: string;
   nativeQuestion?: boolean;
+  nativeCallId?: string;
+  /** A clean native completion or an explicitly verified task milestone. */
+  outcome?: CompletionOutcome;
+  /** Initial log catch-up; never replay a historical celebration. */
+  replayed?: boolean;
 }
 
 export interface PetQuestion {
@@ -80,6 +88,8 @@ export interface PetBridge {
   setLayout(layout:PetLayout):void;
   onViewport(callback:(viewport:{left:number;width:number})=>void):()=>void;
   getBootstrap(): Promise<PetBootstrap>;
+  /** Install onEvent first, then flush events accepted during document startup. */
+  rendererReady(): Promise<{ok:boolean;delivered:number}>;
   savePreferences(patch: Partial<PetPreferences>): Promise<PetPreferences>;
   markRead(id: string): Promise<void>;
   sendTest(type: PetEventType): Promise<void>;

@@ -1,5 +1,5 @@
 {
-  "name": "liquid-glass-pet",
+  "name": "deskfolk",
   "version": "0.1.0",
   "private": true,
   "description": "A tiny animated desktop companion with a real-time 3D character",
@@ -21,7 +21,7 @@
   },
   "build": {
     "appId": "local.liquidglass.pet",
-    "productName": "Liquid Glass Pet",
+    "productName": "Deskfolk",
     "directories": {
       "output": "release"
     },

@@ -6,6 +6,7 @@ const bridge: PetBridge = {
   setLayout: layout=>ipcRenderer.send('pet:layout',layout),
   onViewport: callback=>{const listener=(_event:Electron.IpcRendererEvent,v:{left:number;width:number})=>callback(v);ipcRenderer.on('pet:viewport',listener);return ()=>ipcRenderer.removeListener('pet:viewport',listener);},
   getBootstrap: () => ipcRenderer.invoke("pet:get-bootstrap") as Promise<PetBootstrap>,
+  rendererReady: () => ipcRenderer.invoke('pet:renderer-ready'),
   savePreferences: (patch) =>
     ipcRenderer.invoke("pet:save-preferences", patch) as Promise<PetPreferences>,
   markRead: (id) => ipcRenderer.invoke("pet:mark-read", id),

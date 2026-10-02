@@ -1,15 +1,220 @@
 {
-  "uploadBoundary": "This sanitized source snapshot; never the whole development workspace.",
+  "uploadBoundary": "Reviewed version-controlled source files; local profiles and rollback copies stay outside the repository.",
   "files": [
     {
       "file": ".gitignore",
-      "bytes": 3821,
-      "sha256": "dae5206e8eba828ea51bb7a15de1f7a14ff144c7c6ce7e195f188544ffedb63e"
+      "bytes": 3962,
+      "sha256": "f80f3b0f9709219a937d612cb333561ccdddf3a510772696ebc3a19a74c43638"
     },
     {
-      "file": "README.md",
-      "bytes": 1723,
-      "sha256": "5aa57febf8840434ea3ce6c879abee6df494ad633f362a0b36ec54b036267431"
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/animation-timelines-verification.json",
+      "bytes": 506,
+      "sha256": "9ebbddc0e6228f4e4d8007a5dcaaac2d3aa1ed4f7524b0a819d86775899b0904"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/art-verification.json",
+      "bytes": 420,
+      "sha256": "72ca0bd32c660b91ff466ca43c2f7970a0ae4ea8207bd510a33510af0c4f17bf"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/aseprite-effects-verification.json",
+      "bytes": 765,
+      "sha256": "05c0e5878eef1d97caac817a059f1585d50a422bd1e1639f35863c55df05fbf5"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/blender-props-verification.json",
+      "bytes": 578,
+      "sha256": "9c65e70ccdb94416b264a4c21be4adb5012fc0401502800f4c35f7c4b1bdfd7b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/celebrate-clap-30fps.aseprite",
+      "bytes": 8416425,
+      "sha256": "5fb2fdc0b3b79968c7ed53d64d9b577496eaa03911dfa350ce89dde50b3181a0"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/celebrate-poppers-30fps.aseprite",
+      "bytes": 9001695,
+      "sha256": "967ab56c20be98d26588f522b5923ecb10663e3e6f60b324cfe41744d2394d91"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/celebration-effects.kra",
+      "bytes": 186304,
+      "sha256": "58a70e0fc042dd0be34a596bdff5c72ed201c059d6eab90e815a186920f02670"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/celebration-effects.ora",
+      "bytes": 32938,
+      "sha256": "08461aae1b468bd137e6a1f54925b1cc3e65bb0cafd701914f20ea0798e19fea"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/confetti-strip.aseprite",
+      "bytes": 1984,
+      "sha256": "90ce218c0198a4ac65486c5e58ff2a8266c279b83a2b02261f3a66d2491b3e83"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/gentle-star.aseprite",
+      "bytes": 3049,
+      "sha256": "1979103e846447a2a7c3899b6346d2c703915ee26aa11ba2cf3cf5ee947a7e47"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/confetti-strip-1.png",
+      "bytes": 530,
+      "sha256": "d3dba02a099d77a0a4cc6b719d875c436cea5cea4aea6f61a95055bef5d4276f"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/confetti-strip-2.png",
+      "bytes": 360,
+      "sha256": "51613928edbd2d1d1db3edf7c556b268c44043c093559930a7a2912c4da38ab6"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/confetti-strip-3.png",
+      "bytes": 312,
+      "sha256": "ac0bb96a44e0537ec814ec755bd68b51f6476c3b647531bebde7191f08e5d2c9"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/gentle-star-1.png",
+      "bytes": 932,
+      "sha256": "ea7f6f9be366f8dd8954f85c69e2cb4d0a9898b4c0579188660dacea82c3bb34"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/gentle-star-2.png",
+      "bytes": 854,
+      "sha256": "335809789bcb1ca91ddb165f98b081168bcdf80a841fa50e5ab0595657e2d180"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/gentle-star-3.png",
+      "bytes": 470,
+      "sha256": "bfc39a838b3d98d26552cea8a6af0e5ddc06027da7cc4227fb00b3c52f05c863"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/gentle-star-4.png",
+      "bytes": 332,
+      "sha256": "7cfeaee85914a6c729eb53ce019a79c8add76f33f3cb8d7f481b95d123b1e4bf"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-large-1.png",
+      "bytes": 1683,
+      "sha256": "b360d290b842862594310c18f3f5aeaf9252a6ba298aa430a018ab6ca09c70d4"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-large-2.png",
+      "bytes": 1616,
+      "sha256": "66284e2b89fe154e462adb2b959acc10e552c11ab811606328542409b219367c"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-large-3.png",
+      "bytes": 689,
+      "sha256": "c0460cf45ee7d3c797705abb993b692224673e85d86678aae96cb33408d137c0"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-large-4.png",
+      "bytes": 603,
+      "sha256": "f9b365127c390f269a85c5b2c51c45c7e034f54dfc5964a98fb163ccbb39d78f"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-small-1.png",
+      "bytes": 1239,
+      "sha256": "0eaa1eff3d32193cd81f6da52765cec47b7242bafd0a38c80aca66db78885f5b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-small-2.png",
+      "bytes": 1163,
+      "sha256": "95547899da7558000f2a1f550451fbd0135923882d69a3037db3548b84f96bf0"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-small-3.png",
+      "bytes": 524,
+      "sha256": "ed5dffd01320ef61d3729e145bb783738c1fb347a9f956712be9ee7b27bce3be"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/layers/sweat-small-4.png",
+      "bytes": 448,
+      "sha256": "65368fb677948c15645107b8414da084688ec054f878237608cda5b6b6ba81d0"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/mini-confetti-poppers.blend",
+      "bytes": 928793,
+      "sha256": "e4bd39f164efd4c9ca1067a745b11ccfba4bd4568a7a4ed8073ac6db4949a3b9"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/README.md",
+      "bytes": 1220,
+      "sha256": "90840ef5cc05871aefdf559e202801e07a55294538511fead1f74f16fc3b5166"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/sweat-large.aseprite",
+      "bytes": 4770,
+      "sha256": "bbce0a35a347ee660a3d93fdd86c3c3005823fcf3b6c76454611bc20d61a4564"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/sweat-small.aseprite",
+      "bytes": 3779,
+      "sha256": "b442c76f8f0280eed5f62d63f41d56292ac250003003b2c4dcac1343380938ba"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/portable-source/touch-30fps.aseprite",
+      "bytes": 6003053,
+      "sha256": "177583846acc29afaf651ed4885d42cbf8ba16e0c966bcefe72eb81949249284"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/preview/celebrate-clap.gif",
+      "bytes": 1776730,
+      "sha256": "85388f5dcc5584f51e49fe4b897fdbae8b02ffd1ed1f82d8844ccaa4496e6043"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/preview/celebrate-poppers.gif",
+      "bytes": 1938973,
+      "sha256": "8bf9d1737aa452349ff5e3602165230d0f76fea47ee41ffc014ee2b57df81d67"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/preview/effects-krita-reopened.png",
+      "bytes": 11051,
+      "sha256": "71fe696f025b5765ef0c418a1cc940ba696656dd4f21968f6c7af16ecd8ed178"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/preview/effects-sheet.png",
+      "bytes": 7913,
+      "sha256": "f2f652ffb998fca2cd9349f740c8aedb8db191576167d0fb4edf4d0214546f88"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/preview/mini-poppers.png",
+      "bytes": 149089,
+      "sha256": "01bc0da60f8da54384946ffe956d10798c7049776cba43cd8dc5563f606f599b"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/preview/touch.gif",
+      "bytes": 1337241,
+      "sha256": "a68ee83c0acab33e4341ae16ea7a738a491c31a9f56d33a6ab72bfa95bea0722"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/README.md",
+      "bytes": 2471,
+      "sha256": "704794b3d3516f645bf086a7eedd95bc49ff57110d277389173f414beb1774c6"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/runtime/confetti-strip.png",
+      "bytes": 805,
+      "sha256": "de5669570130ba2e3d759ab6a25a25cdd0db04c3c39a3fe9b8f26c9e7c3444bb"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/runtime/gentle-star.png",
+      "bytes": 1663,
+      "sha256": "728e0aba4bbcc623952a6001cd9384da52e2d2de78121b98d909501a1e684309"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/runtime/mini-confetti-poppers.glb",
+      "bytes": 158996,
+      "sha256": "c4be2503cc0659d57b5c433e10113778e813e6ddc6e59ee6415aa47133f23833"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/runtime/sweat-large.png",
+      "bytes": 3216,
+      "sha256": "213b8a5f59684512c89c481b733f6de9bdc64d3ce732e2807e1779d205b4803f"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/celebration-20261002/runtime/sweat-small.png",
+      "bytes": 2403,
+      "sha256": "e623b70bf95ef4d746a4b4f1358ab83b0d5ae69b40dc389142bedff6b19f15b9"
     },
     {
       "file": "assets/characters/wakaba-mutsumi/v40-motion/layers/eye-question.png",
@@ -162,14 +367,14 @@
       "sha256": "df1a223b41c492c8361765c7573a6fe372bcbc5d17ed1a4a515305281d9795d9"
     },
     {
-      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/hair-paint.png",
-      "bytes": 652135,
-      "sha256": "eddd471dbc6f19b4fd9e21d6132e4e7401019745f167b4f5a530a05d0c7e862b"
-    },
-    {
       "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/hair_all_visible.png",
       "bytes": 21728,
       "sha256": "9c38f78f62524a97ac1e4564da39fd7926a7104456b8f26b0b2b73879be0fc2c"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/hair-paint.png",
+      "bytes": 652135,
+      "sha256": "eddd471dbc6f19b4fd9e21d6132e4e7401019745f167b4f5a530a05d0c7e862b"
     },
     {
       "file": "assets/characters/wakaba-mutsumi/v41-3d/runtime/mutsumi-v05.glb",
@@ -187,16 +392,6 @@
       "sha256": "111d3f986576524aa6305d39a4f222620e5abaa336871ef31c7576816d25574b"
     },
     {
-      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41.blend",
-      "bytes": 15804568,
-      "sha256": "1ebef00c2685ac9b5f38b51b5fbd8d5efbac1451d1da7e34dcbd58c70a309b08"
-    },
-    {
-      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41_Motion.blend",
-      "bytes": 16426493,
-      "sha256": "86f01599fb0973626416322c3e51bf8ace8d998c9e69bbdb042164f404a13486"
-    },
-    {
       "file": "assets/characters/wakaba-mutsumi/v41-3d/source/body-underarm.kra",
       "bytes": 360178,
       "sha256": "15b2a744f55be3cf6ad7c005cabe91e8b25c7668f2b9840f67874912dd09f1bf"
@@ -212,14 +407,19 @@
       "sha256": "ec9a2afc09338315b6c24860193f264b4e4d9b92e51aabef8fa7d650bd21917d"
     },
     {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41_Motion.blend",
+      "bytes": 16426493,
+      "sha256": "86f01599fb0973626416322c3e51bf8ace8d998c9e69bbdb042164f404a13486"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v41-3d/source/Mutsumi_V41.blend",
+      "bytes": 15804568,
+      "sha256": "1ebef00c2685ac9b5f38b51b5fbd8d5efbac1451d1da7e34dcbd58c70a309b08"
+    },
+    {
       "file": "assets/characters/wakaba-mutsumi/v41-3d/source/question-eye.kra",
       "bytes": 63530,
       "sha256": "7442f48cc8fbe79d107b7f285be3b3da88b2e50b43eaf35389c2576c63962eff"
-    },
-    {
-      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/Mutsumi_V42_Motion.blend",
-      "bytes": 16366942,
-      "sha256": "5739cdefa704cced38ebfa4df9b75cc228c2c7fe8e15b746306b80572715affc"
     },
     {
       "file": "assets/characters/wakaba-mutsumi/v42-motion/source/art/normal-eye.png",
@@ -252,11 +452,6 @@
       "sha256": "fcdecd9f846bddb4d63b9f483b6c14912f430dcedbae0605decd57f61bb1d480"
     },
     {
-      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/Mutsumi_V42_CollarLift.blend",
-      "bytes": 16045656,
-      "sha256": "d145891fdcb3f262a85f2bfc0219b5fa939e0d8c51555790fefac50ffe17bf43"
-    },
-    {
       "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/aseprite-verification.json",
       "bytes": 337,
       "sha256": "8e3961e0549da9dd4a6f5bd4b2e4cfe36511debdb0a9844af311d3b8514d4905"
@@ -285,6 +480,11 @@
       "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/motion-30fps.json",
       "bytes": 500378,
       "sha256": "328d33a8370264f372ff9ed7f5d027a7d9df869e717d285832a97a5f405296fb"
+    },
+    {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/Mutsumi_V42_CollarLift.blend",
+      "bytes": 16045656,
+      "sha256": "d145891fdcb3f262a85f2bfc0219b5fa939e0d8c51555790fefac50ffe17bf43"
     },
     {
       "file": "assets/characters/wakaba-mutsumi/v42-motion/source/collar-lift/preview/drag.gif",
@@ -347,6 +547,11 @@
       "sha256": "11c34099f429a11226ce947e652fa6f75709232c53b94ec7ec16c5986efa49ad"
     },
     {
+      "file": "assets/characters/wakaba-mutsumi/v42-motion/source/Mutsumi_V42_Motion.blend",
+      "bytes": 16366942,
+      "sha256": "5739cdefa704cced38ebfa4df9b75cc228c2c7fe8e15b746306b80572715affc"
+    },
+    {
       "file": "assets/characters/wakaba-mutsumi/v42-motion/source/squeeze-eyes.kra",
       "bytes": 43641,
       "sha256": "1aa1bcd8fd0755d41a5652c2412b430e38cf302c89f50d29383d2dbec46a95e0"
@@ -382,11 +587,6 @@
       "sha256": "91c2ece37ad82d2116a46f1b6852493515a8cba3d59892568a9d4c28b7ce37da"
     },
     {
-      "file": "assets/icons/README.md",
-      "bytes": 1347,
-      "sha256": "31a9414e12ccca61f4ef090866cbc7119c23fdffefb5c8702c0af438686e2e39"
-    },
-    {
       "file": "assets/icons/archive/icon-0.1.0.png",
       "bytes": 872,
       "sha256": "60fd22b4705f6cb9df875043c11c3c6c50468b1cb68df4047937e92f3ffcfff0"
@@ -415,6 +615,11 @@
       "file": "assets/icons/mutsumi-icon.aseprite",
       "bytes": 1983,
       "sha256": "7dc7586ac363760986401056d71a6c82a4ee63eb74f0c0eb268aa772fccf6a68"
+    },
+    {
+      "file": "assets/icons/README.md",
+      "bytes": 1347,
+      "sha256": "31a9414e12ccca61f4ef090866cbc7119c23fdffefb5c8702c0af438686e2e39"
     },
     {
       "file": "assets/icons/tray.png",
@@ -448,13 +653,53 @@
     },
     {
       "file": "bridge/pet-mcp.mjs",
-      "bytes": 7518,
-      "sha256": "91577c5f045d3af7864baecff57108f8c626366fc0cde9d6e94154da137dd1b0"
+      "bytes": 7486,
+      "sha256": "16435024c45c77858fb0d00530914824539293e4a3124a0e00ee708bc795e531"
+    },
+    {
+      "file": "docs/companion-feedback-20261002-verification.json",
+      "bytes": 4231,
+      "sha256": "7d6ef98c217779300e4f10d068bfb8a49c7ccb0ea23f59a174648acea5818c61"
+    },
+    {
+      "file": "docs/companion-feedback-20261002.md",
+      "bytes": 6939,
+      "sha256": "47d1e20199bb7b0cb2ff9c4b3f6af217f4a9408bfae839642a2515e62af18ede"
+    },
+    {
+      "file": "docs/images/companion-polish-preview.png",
+      "bytes": 405404,
+      "sha256": "ab4def2b75a350b858e8861bc1e00132a15653c97acc48afbab65e413b28ebf7"
+    },
+    {
+      "file": "docs/images/head-icon.png",
+      "bytes": 3117,
+      "sha256": "58c7b40e136015bc36676aebc407de4eb2fa3280935b8569df05c9321ca05eb2"
+    },
+    {
+      "file": "docs/images/super-work-projects-20261002.png",
+      "bytes": 37069,
+      "sha256": "fd3d51aa0c4c5bcc08ceb3266af257731e07c664085bdf0ad5a8915f256247da"
+    },
+    {
+      "file": "docs/images/work-states.png",
+      "bytes": 348641,
+      "sha256": "08d8c43c49ed4dc12e6caec550bd052ee12513a99336246e11a504f7ac4dd633"
     },
     {
       "file": "docs/NANGONG_PIXEL_STYLE_ANALYSIS.md",
       "bytes": 9659,
       "sha256": "cdd039dbe4102e97df7d91cafd642c09338d3f24e413516b844b6cb88d125b2d"
+    },
+    {
+      "file": "docs/super-work-monitor-20261002-verification.json",
+      "bytes": 3777,
+      "sha256": "2a158dea39aa49832b5418dd2bdc2c5834820cafe93127fdbf33729b2d547d49"
+    },
+    {
+      "file": "docs/super-work-monitor-20261002.md",
+      "bytes": 3787,
+      "sha256": "3d838b7c909d2189cc6adf6059bc0b78025b45d9a1e94c98ee889892dcb41d9c"
     },
     {
       "file": "docs/V37_ANIMATION_AUDIT_PLAN.md",
@@ -547,21 +792,6 @@
       "sha256": "c1ed3afe475aebdbcfdb0c802ede603780f08306732ebf53fff581d5a6bc690c"
     },
     {
-      "file": "docs/images/companion-polish-preview.png",
-      "bytes": 405404,
-      "sha256": "ab4def2b75a350b858e8861bc1e00132a15653c97acc48afbab65e413b28ebf7"
-    },
-    {
-      "file": "docs/images/head-icon.png",
-      "bytes": 3117,
-      "sha256": "58c7b40e136015bc36676aebc407de4eb2fa3280935b8569df05c9321ca05eb2"
-    },
-    {
-      "file": "docs/images/work-states.png",
-      "bytes": 348641,
-      "sha256": "08d8c43c49ed4dc12e6caec550bd052ee12513a99336246e11a504f7ac4dd633"
-    },
-    {
       "file": "docs/verification/v42-companion-polish.json",
       "bytes": 11666,
       "sha256": "9893efbe105e615e0c5cbac10a0cb32ed32e9e5461c23ad90fea17561acc1d57"
@@ -588,13 +818,23 @@
     },
     {
       "file": "electron/codex-lifecycle.test.ts",
-      "bytes": 13695,
-      "sha256": "2829cbd5cf80b877a4e8604cc1f2f69392dc607178bd918f95d57daf510699f8"
+      "bytes": 24163,
+      "sha256": "8085f5c09f9016c6c33b3a7d04b505325d5e20c7263b89ae10898a3aa2213eb2"
     },
     {
       "file": "electron/codex-lifecycle.ts",
-      "bytes": 13728,
-      "sha256": "7f3b14a0d2f5733787148d7a8f41e9bcdded7c8a6dda76daadc7afa9da2af997"
+      "bytes": 16480,
+      "sha256": "7e065a040613595bbef2dd2d1bde8834d806e77d9459dc23a27a6537a38e8c2c"
+    },
+    {
+      "file": "electron/codex-projects.test.ts",
+      "bytes": 6997,
+      "sha256": "6208c69c279585b28d51038ba64cdd7db9fcbbadf6d3e4155696133f58548a81"
+    },
+    {
+      "file": "electron/codex-projects.ts",
+      "bytes": 4413,
+      "sha256": "64f888caba37aed701ef02b716ffdebde7c1dd23fa5351c85d66c24bd2801065"
     },
     {
       "file": "electron/codex-startup.ts",
@@ -608,28 +848,38 @@
     },
     {
       "file": "electron/main.ts",
-      "bytes": 26575,
-      "sha256": "2409a0c3b28dab46af538a27db7bff3b68e7cb43e03432276b60dde7019a8dae"
+      "bytes": 29519,
+      "sha256": "2f4046913902e2f34ac261338c0c8fe9319b8ab19359912d98d89cbf2c751b4a"
     },
     {
       "file": "electron/preload.ts",
-      "bytes": 2279,
-      "sha256": "b0e0e46654e9dfde193b3416defe7a503d5637f774314ea38977e777cf221062"
+      "bytes": 2344,
+      "sha256": "aa68e8fe319ad52149b32be41eab4d534cb8b9993b131d81f2f83ffa73017534"
+    },
+    {
+      "file": "electron/renderer-events.test.ts",
+      "bytes": 2809,
+      "sha256": "252663d5cd3626b7a1bc6076c262b35456971dbc770df89f74f8613a3b64c71d"
+    },
+    {
+      "file": "electron/renderer-events.ts",
+      "bytes": 737,
+      "sha256": "1a834f21ba2106fd049c5a9959bc027dfba854e12b7dc414559fb660a43622f4"
     },
     {
       "file": "package-lock.json",
-      "bytes": 217046,
-      "sha256": "188d7123b5330ef8fe8584933a3a44214cccdd2d4800c6d645a316f489b5c113"
+      "bytes": 217030,
+      "sha256": "2a1f2c2d706c366738c55eadab786db9d81e79c888c8ba19db453deb7b427b14"
     },
     {
       "file": "package.json",
-      "bytes": 1617,
-      "sha256": "7566f479f20479de1be2066677ad92e9608de9b6c183cc59fd5092f7919664d0"
+      "bytes": 1601,
+      "sha256": "df387cfa3965e297582fdad77150e5e5d3fc72d3c3cf0dbdffd68da371be01b9"
     },
     {
       "file": "plugins/liquid-glass-pet/.codex-plugin/plugin.json",
-      "bytes": 772,
-      "sha256": "e75d360f17eda8813f02fe30f6b3c1d4847bba4e682f9d1473599b1519d06e80"
+      "bytes": 764,
+      "sha256": "b1c7eeae5af2c9a4d0b710eaffda6e83cf2f694418876a0b05809f3f5d730762"
     },
     {
       "file": "plugins/liquid-glass-pet/hooks/hooks.json",
@@ -638,13 +888,18 @@
     },
     {
       "file": "plugins/liquid-glass-pet/hooks/notify.mjs",
-      "bytes": 3382,
-      "sha256": "0ee07552f3b192ed29df07c1c51076430fd6142d8ab370dfd30d6e0bce503c73"
+      "bytes": 3509,
+      "sha256": "0d1f8ed40eaa945344dbae884ebfd5872dfab76b97d475fcd279afff0d1200ae"
     },
     {
       "file": "plugins/liquid-glass-pet/skills/pet-notify/SKILL.md",
       "bytes": 856,
       "sha256": "bc4a8617e64114eb388f4eea9e64edf10db6958036c228536dea3ec7800adcaf"
+    },
+    {
+      "file": "README.md",
+      "bytes": 1705,
+      "sha256": "b7d96580df38061594a9e5f711794f31ee87296dc190025c659b55f1f5130b0d"
     },
     {
       "file": "renderer/articulated-rig.ts",
@@ -677,24 +932,39 @@
       "sha256": "e2a6ecbb055f7c273329e54970ea1ccbcaaa3baad354001be61ea1b3fd4addfa"
     },
     {
+      "file": "renderer/fonts/ChillRoundF-Regular.ttf",
+      "bytes": 6205268,
+      "sha256": "7ccfc2cd0e971edeac7f65516df8db379f0f84d0d8ff79ee4dfe377956418d3b"
+    },
+    {
       "file": "renderer/grand-transition.ts",
       "bytes": 2100,
       "sha256": "a3055faf720a32ee7f306bdfe729067486114fb637a6789cef3ea5474231937c"
     },
     {
       "file": "renderer/index.html",
-      "bytes": 4683,
-      "sha256": "8d1388b8faa142c4624cf47ada276f86cbf8b17a7bd6ed976156c9da32571571"
+      "bytes": 4628,
+      "sha256": "23cacf0d84c785c4505303f4ca54e833067ee830094c89d6c9b4cdf645b58df2"
     },
     {
       "file": "renderer/main.ts",
-      "bytes": 26112,
-      "sha256": "a169ed30ad6d7671c7935b8498e29666e1a1a3265f4cc75160bf9206f538f7bc"
+      "bytes": 29546,
+      "sha256": "58f4e9f8cc1b0afbb6aaa784f4ba545867ba8fa43ea5015678f48f36e836648a"
     },
     {
       "file": "renderer/mutsumi-rig.ts",
       "bytes": 130,
       "sha256": "fed985f1db3befef71000ae92f8497a55aa4b3b1f522efb623ec0ad493cb403c"
+    },
+    {
+      "file": "renderer/public/fonts/ChillRoundF-OFL.txt",
+      "bytes": 4374,
+      "sha256": "51a5db198c2b62b0f352eb7e119e7a69044ec923d7b324bcb5fd25702a7e1453"
+    },
+    {
+      "file": "renderer/public/fonts/ChillRoundF-SOURCE.txt",
+      "bytes": 746,
+      "sha256": "24632f6b5cea87fd60962ba784b709b260d95bae535726caddc984e7c27cec24"
     },
     {
       "file": "renderer/questions-view.ts",
@@ -713,13 +983,13 @@
     },
     {
       "file": "renderer/style.css",
-      "bytes": 24736,
-      "sha256": "aa33efce3303c065f42c136dd43ceb0edaa657dbd502f82329e1623e9226f473"
+      "bytes": 24898,
+      "sha256": "02dfc563b5513edceb6a24454401400799f946464ad69e0ba3494d87eefae7b9"
     },
     {
       "file": "renderer/three-rig.ts",
-      "bytes": 29837,
-      "sha256": "e70df7d9a151451cf3cd4d0dfe9632d39f6e62e206e53effbbbe1b210f3a81c1"
+      "bytes": 34726,
+      "sha256": "9eb27242dedb6809b7d77533316000a3f932c10c14954113643c009998752772"
     },
     {
       "file": "renderer/v37-review.ts",
@@ -743,8 +1013,8 @@
     },
     {
       "file": "renderer/v41-review.ts",
-      "bytes": 2685,
-      "sha256": "87535095494f12577139048e92f66beaf213a25bd89440e1430391fa718d0da7"
+      "bytes": 2760,
+      "sha256": "a93d376c94e1b598aebe20405922abc4cebe5ec60123f7d5c973bf864fe44d40"
     },
     {
       "file": "renderer/vite-env.d.ts",
@@ -757,9 +1027,14 @@
       "sha256": "b12ecef85ce6e8c49d4afeaabe7d6d9f779fb1053afa33818bd3027cb6ea2a6f"
     },
     {
-      "file": "scripts/CodexLauncher.cs",
-      "bytes": 5323,
-      "sha256": "d28c67929315d3ad069105f884bcd9e00e18bf360e94c870369657c7269288e4"
+      "file": "scripts/assemble-celebration-effects-krita.py",
+      "bytes": 2374,
+      "sha256": "28ae4aa4e860ddab5c2bc6bac136cab1d9bef2a429b180af64cc074710bd0635"
+    },
+    {
+      "file": "scripts/assemble-celebration-timelines.lua",
+      "bytes": 3864,
+      "sha256": "d1e0690f083b5a1c7d764e79cf888db93fe48b7a44f278b998976d4f5ec5d422"
     },
     {
       "file": "scripts/assemble-v42-collar-lift.lua",
@@ -777,6 +1052,16 @@
       "sha256": "4b5b94acec4528b05690708395789e391615221eef5c8269fcca2d1dd60a4a24"
     },
     {
+      "file": "scripts/build-celebration-effects.lua",
+      "bytes": 5165,
+      "sha256": "58a05cb6584697580c43bc98075f47ed865ca029d703993f3da54674b92b6eff"
+    },
+    {
+      "file": "scripts/build-celebration-poppers.py",
+      "bytes": 9168,
+      "sha256": "801c0fd29848f1a489860b9af15722f083c9eff1cbd2ba5ac5ab1cc29ca77af5"
+    },
+    {
       "file": "scripts/build-codex-launcher.cjs",
       "bytes": 694,
       "sha256": "c19cb3be55a55122b7411c12e07f61a191f8df7e3dff97bbc4aa0e06e48c792b"
@@ -790,6 +1075,16 @@
       "file": "scripts/build-v42-motion-source.py",
       "bytes": 4999,
       "sha256": "04edc192aea08899b6b13f3e155b06ee841f6d11e0622554ec811f6b9436e58e"
+    },
+    {
+      "file": "scripts/CodexLauncher.cs",
+      "bytes": 5323,
+      "sha256": "d28c67929315d3ad069105f884bcd9e00e18bf360e94c870369657c7269288e4"
+    },
+    {
+      "file": "scripts/export-celebration-effects-krita.py",
+      "bytes": 1742,
+      "sha256": "c3f93378b523bf890b5b69e4bcf8ed83d10b9947d7ab0ff653b1b778f182f785"
     },
     {
       "file": "scripts/export-v42-icons.cjs",
@@ -813,8 +1108,8 @@
     },
     {
       "file": "scripts/prepare-public-source.py",
-      "bytes": 7891,
-      "sha256": "c341579fda36ed1f954dbfa7131c0222b509feba7de19e55c5ce3a014aa902f7"
+      "bytes": 8169,
+      "sha256": "8afe33f9f5fd54255801bc3b770d6b8d823f860b2267ef7c8004a3ca82fbb484"
     },
     {
       "file": "scripts/prepare-v42-eye-art.py",
@@ -845,6 +1140,11 @@
       "file": "scripts/qa-v42-codex-startup.ps1",
       "bytes": 3964,
       "sha256": "ad499f93d32e0fb68c5918e50b86a83acd3924ed05afc661a6610b147a6c6ced"
+    },
+    {
+      "file": "scripts/qa-v42-companion-feedback.cjs",
+      "bytes": 11734,
+      "sha256": "22de3a2de271fca144db6cdedf4422767a10bb1f8a8b3130b6d8bd82946cd82a"
     },
     {
       "file": "scripts/qa-v42-companion-polish.cjs",
@@ -913,13 +1213,18 @@
     },
     {
       "file": "scripts/setup-codex.ps1",
-      "bytes": 5224,
-      "sha256": "1bffdb7fd7dd5451e949956fd1e014cec865c17d31f72a8434257c82d3268f22"
+      "bytes": 5200,
+      "sha256": "4610deecbc65937ad9ff1c3ce4ce47eca30e83fc497945f998d3cd71f920ac08"
     },
     {
       "file": "scripts/stage-v42-package.mjs",
       "bytes": 1638,
       "sha256": "256d721bfb96e00cfc4d1114e78f05bb753ca952a419a562d4ee7cc1c7a2c7b9"
+    },
+    {
+      "file": "scripts/verify-celebration-art.py",
+      "bytes": 4425,
+      "sha256": "85786f1455239f86ad1cba84839ccf9fdf66e0f76f7a41a927f62565627982e0"
     },
     {
       "file": "scripts/verify-v42-package.mjs",
@@ -928,13 +1233,23 @@
     },
     {
       "file": "shared/activity.test.ts",
-      "bytes": 11288,
-      "sha256": "816d46ac08c65d77d1e405bc683023074dbcae53ea68cc8c9be6add4847d274f"
+      "bytes": 24274,
+      "sha256": "d0f614a59bff6de448791c0a8f48fc1c7260cd6d6ade8cad72f9aa81e1716f35"
     },
     {
       "file": "shared/activity.ts",
-      "bytes": 7551,
-      "sha256": "dc799ca064415775cff57986c761d05335e2644acdf4b11c5c0b9171bcbfc2a8"
+      "bytes": 11177,
+      "sha256": "3fe86724e3861f8221836e39d6554449f7612fcfceae997f9e435a45c6c4b54f"
+    },
+    {
+      "file": "shared/companion-feedback.test.ts",
+      "bytes": 3177,
+      "sha256": "4fd52686e70729da32da8f18bb4fd8c694976f5cce51c77b5c37ef8bd788dad5"
+    },
+    {
+      "file": "shared/companion-feedback.ts",
+      "bytes": 2019,
+      "sha256": "814739f839a10c55ed0177906546b0c1521a0d19c439f41a4149946727bb80ff"
     },
     {
       "file": "shared/drag-motion.ts",
@@ -993,8 +1308,8 @@
     },
     {
       "file": "shared/types.ts",
-      "bytes": 2653,
-      "sha256": "906a79c84e7425c012303a09b2dbe43f6bc688e3f3bf97a285ee8989333460a1"
+      "bytes": 3212,
+      "sha256": "f1912bf21b3288a2bb85712b6db5ab3c284641c00158a9a68dfa91b52033d113"
     },
     {
       "file": "tsconfig.json",
@@ -1002,8 +1317,8 @@
       "sha256": "cba41f3fed6083904716be8ae276a3887ed603e010d80afe14a7614b78894329"
     }
   ],
-  "fileCount": 200,
-  "bytes": 160486813,
+  "fileCount": 263,
+  "bytes": 196842550,
   "over100MiB": [],
   "excluded": [
     "local Electron profiles",
@@ -1011,7 +1326,7 @@
     "local bridge tokens",
     "rollback snapshots",
     "builds/installers",
-    "historical artwork/source archives"
+    "unreviewed editable artwork originals"
   ],
-  "nativeSourcePolicy": "Packed portable Blender copies and metadata-sanitized Krita copies; original source files remain in the local development workspace."
+  "nativeSourcePolicy": "Previously reviewed portable sources plus native editable celebration copies in portable-source; original source files remain in the local workspace."
 }

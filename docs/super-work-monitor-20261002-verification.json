@@ -1,0 +1,126 @@
+{
+  "date": "2026-10-02",
+  "status": "fixed-and-installed",
+  "userConfirmed": "Count distinct local Codex sidebar project identities; merge multiple chats in one project",
+  "initialFinding": {
+    "workingParentChats": 3,
+    "oldDirectoryCount": 1,
+    "distinctSidebarProjects": 3,
+    "sharedWorkspaceRoot": true
+  },
+  "changes": [
+    "Retain progressive all-log startup discovery and FIFO queue fairness",
+    "Read verified local sidebar project assignments; use stable project IDs for aggregation, directory fallback only when unassigned",
+    "Reconcile changed/deleted assignments without inventing task activity or resetting questions"
+  ],
+  "modifiedSourceFiles": [
+    "electron/codex-projects.ts",
+    "electron/codex-projects.test.ts",
+    "electron/codex-lifecycle.ts",
+    "electron/codex-lifecycle.test.ts",
+    "shared/types.ts",
+    "shared/activity.ts",
+    "shared/activity.test.ts"
+  ],
+  "tests": {
+    "logicPassed": 58,
+    "typescriptPassed": true,
+    "productionBuildPassed": true,
+    "packagedRuntimePassed": 9,
+    "packagedRuntimeChecks": [
+      {
+        "label": "startup recovers two sidebar projects sharing one directory behind 40 newer child logs; same project chats merge",
+        "phase": "working",
+        "count": 2,
+        "fullPower": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "production full-power renderer frame rate",
+        "frames": 174,
+        "fps": 57.86340223432084
+      },
+      {
+        "label": "sidebar reassignment without new log bytes merges working chats",
+        "phase": "working",
+        "count": 1,
+        "fullPower": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "sidebar assignment restored without new log bytes enters super work",
+        "phase": "working",
+        "count": 2,
+        "fullPower": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "stop second sidebar project downgrades to ordinary work",
+        "phase": "working",
+        "count": 1,
+        "fullPower": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "native resume enters super work",
+        "phase": "working",
+        "count": 2,
+        "fullPower": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "stop one of two same-project chats keeps super work",
+        "phase": "working",
+        "count": 2,
+        "fullPower": true,
+        "action": "power-work",
+        "ready": true
+      },
+      {
+        "label": "stop last chat of first project downgrades",
+        "phase": "working",
+        "count": 1,
+        "fullPower": false,
+        "action": "work",
+        "ready": true
+      },
+      {
+        "label": "all stopped restores idle",
+        "phase": "idle",
+        "count": 0,
+        "fullPower": false,
+        "action": "idle",
+        "ready": true
+      }
+    ],
+    "fullPowerFps": 57.86340223432084,
+    "rendererBytesPreserved": true,
+    "characterBytesPreserved": true
+  },
+  "actualRuntime": {
+    "passed": true,
+    "workingParentChats": 1,
+    "workingDirectoryCount": 1,
+    "recognizedWorkingSidebarProjects": 1,
+    "actualWorkingProjectCount": 1,
+    "expectedWorkingProjectCount": 1,
+    "fullPowerEligible": false,
+    "dominantPhase": "working",
+    "assignmentsMatch": true,
+    "installedBuildMatches": true
+  },
+  "installed": {
+    "updated": true,
+    "restarted": true,
+    "version": "0.1.0",
+    "asarSha256": "0964ed257367f05fe72a7b50ddfcbca6fe7f86902eb29803b0735ff4283780dd"
+  },
+  "rollback": ".cache/power-work-20261002/project-count-before",
+  "screenshot": "docs/images/super-work-projects-20261002.png",
+  "githubUploaded": false
+}

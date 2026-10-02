@@ -1,0 +1,183 @@
+{
+  "date": "2026-10-02",
+  "passed": true,
+  "logicTestsPassed": 40,
+  "nativeChecks": [
+    {
+      "label": "native startup work preserved",
+      "passed": true
+    },
+    {
+      "label": "two real project directories enter full power",
+      "passed": true
+    },
+    {
+      "label": "one project succeeds while another remains working",
+      "passed": true
+    },
+    {
+      "label": "celebration restores remaining project work",
+      "passed": true
+    },
+    {
+      "label": "second completion alternates celebration",
+      "passed": true
+    },
+    {
+      "label": "second completion restores idle",
+      "passed": true
+    },
+    {
+      "label": "completion bubble layout",
+      "passed": true,
+      "fontSize": "20.4px",
+      "fontLoaded": true,
+      "fontFaces": [
+        {
+          "family": "ChillRoundF",
+          "status": "loaded"
+        }
+      ]
+    },
+    {
+      "label": "new task still starts normal work",
+      "passed": true
+    },
+    {
+      "label": "manual stop returns idle without celebration",
+      "passed": true
+    },
+    {
+      "label": "stop not celebrated",
+      "passed": true
+    },
+    {
+      "label": "failure start",
+      "passed": true
+    },
+    {
+      "label": "failure returns idle",
+      "passed": true
+    },
+    {
+      "label": "failure not celebrated",
+      "passed": true
+    },
+    {
+      "label": "quota start",
+      "passed": true
+    },
+    {
+      "label": "quota returns idle",
+      "passed": true
+    },
+    {
+      "label": "quota not celebrated",
+      "passed": true
+    },
+    {
+      "label": "question task running",
+      "passed": true
+    },
+    {
+      "label": "actual pending question displays reminder",
+      "passed": true
+    },
+    {
+      "label": "question reminder exits without answering native question",
+      "passed": true
+    },
+    {
+      "label": "question reminder elapsed",
+      "passed": true,
+      "milliseconds": 7978.226299999998,
+      "nativeStillPending": true
+    },
+    {
+      "label": "new call in same pending turn is reminded",
+      "passed": true
+    },
+    {
+      "label": "clean turn end while awaiting input preserves actual question",
+      "passed": true
+    },
+    {
+      "label": "questioning turn does not celebrate after reminder expires",
+      "passed": true
+    },
+    {
+      "label": "awaiting-answer turn not celebrated",
+      "passed": true
+    },
+    {
+      "label": "actual answer clears completed question without restarting work",
+      "passed": true
+    },
+    {
+      "label": "next actual turn resumes work",
+      "passed": true
+    },
+    {
+      "label": "actual production 3D working frame rate",
+      "passed": true,
+      "fps": 60.0075009376172,
+      "p95FrameMs": 17.200000002980232
+    },
+    {
+      "label": "actual mouse touch enters continuous panic motion",
+      "passed": true
+    },
+    {
+      "label": "completion during touch waits then celebrates",
+      "passed": true
+    },
+    {
+      "label": "touch and completion recover to idle",
+      "passed": true
+    },
+    {
+      "label": "tray settings preserved",
+      "passed": true
+    }
+  ],
+  "firstCelebration": "celebrate-clap",
+  "secondCelebration": "celebrate-poppers",
+  "package": {
+    "passed": true,
+    "compiledOutputMatches": true,
+    "asarSha256": "c84de42043a91454b4b7f1c9e60e4a36eac391594508cd1d6a33a4d228dda6c2",
+    "asarBytes": 37584437,
+    "modelUnchangedSha256": "231e1667469f9c7a43f5f43c11125ab23ed9f19fbc1adc06cedfb60edb7d6c57",
+    "editableSourcesOutsideRuntime": true,
+    "fontLicenseIncluded": true,
+    "originalModelBytesPreserved": true
+  },
+  "localUpdate": {
+    "installed": true,
+    "restarted": true,
+    "healthReady": true,
+    "engineMatched": true,
+    "asarSha256": "c84de42043a91454b4b7f1c9e60e4a36eac391594508cd1d6a33a4d228dda6c2",
+    "backup": "before/installed",
+    "version": "0.1.0",
+    "githubUploaded": false
+  },
+  "originalTouchEyeArtPreserved": true,
+  "frameTimelines": {
+    "touch": {
+      "fps": 30,
+      "frames": 48,
+      "milliseconds": 1600
+    },
+    "A": {
+      "fps": 30,
+      "frames": 75,
+      "milliseconds": 2500
+    },
+    "D": {
+      "fps": 30,
+      "frames": 72,
+      "milliseconds": 2400
+    }
+  }
+}

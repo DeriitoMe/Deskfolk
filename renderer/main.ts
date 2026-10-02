@@ -5,6 +5,7 @@ import { MutsumiRig, TURN_SECONDS, type RigAction } from './three-rig';
 import { isQuestionReminder, shouldShowBubble } from '../shared/reminders';
 import { setupReview } from './v41-review';
 import { presentationPolicy } from '../shared/runtime-policy';
+import { CelebrationSequence, QuestionReminderWindow, CELEBRATION_SECONDS, QUESTION_REMINDER_MS, TOUCH_SECONDS, isSuccessfulCompletion, type CelebrationVariant } from '../shared/companion-feedback';
 import type { PetActivity, PetEvent, PetEventType, PetModel, PetPreferences } from "../shared/types";
 
 const petView = document.querySelector<HTMLElement>("#pet-view")!;
@@ -35,6 +36,11 @@ let flatTouchTimer = 0;
 let flatTouchUntil = 0;
 let lastDanceAt = 0;
 let activityState: "idle" | "working" | "attention" = "idle";
+let latestActivity: PetActivity = { phase: 'idle', updatedAt: new Date().toISOString() };
+const questionReminder = new QuestionReminderWindow();
+const celebrationSequence = new CelebrationSequence();
+let celebration: { event: PetEvent; variant: CelebrationVariant; startedAt: number; noticeShown: boolean } | null = null;
+const deferredCompletionNotices: PetEvent[] = [];
 let fullPower=false;
 let dragPointer: number | null = null;
 let dragDistance = 0;
@@ -66,7 +72,8 @@ function updateLayout(): void {
   // Reserve the existing 512 px render surface once; action changes no longer
   // resize the native alpha window. Visible bounds still control edge dragging.
   const width=Math.ceil(Math.max(flat?(tall?752:canvasWidth-6)*k+12:size+12,overlay?370/window.devicePixelRatio:0));
-  const top=overlay?167/window.devicePixelRatio:6;
+  const top=overlay?Math.max(167/window.devicePixelRatio,
+    speechBubble.getBoundingClientRect().height+40/window.devicePixelRatio):6;
   const height=Math.ceil((flat?(tall?1146:canvasHeight-6)*k:size)+top+6);
   const x=overlay?width-size-20/window.devicePixelRatio:(width-size)/2,y=top;
   petRoot.style.setProperty('--art-size',size+'px');
@@ -114,7 +121,13 @@ function renderCharacter(model: PetModel): void {
   if (model === 'flat-chibi') {
     rig = new MutsumiRig();
     rig.onViewportChange=updateLayout;
-    rig.onTransientEnd = () => { flatTouchUntil = 0; syncFlatActivity(); };
+    rig.onTransientEnd = () => {
+      if (celebration && !celebration.noticeShown) displayBubble(celebration.event);
+      celebration = null;
+      flatTouchUntil = 0;
+      window.clearTimeout(flatTouchTimer);
+      syncFlatActivity();
+    };
     figure.append(rig.canvas); characterMount.replaceChildren(figure);
     petRoot.style.setProperty('--rig-size', `${195*512/449/window.devicePixelRatio}px`);
     syncFlatActivity(); return;
@@ -164,7 +177,7 @@ function eventMessage(event: PetEvent): { title: string; message: string; meta: 
     work_started: "我开始陪你一起处理了。",
     work_progress: "我还在处理。",
     approval_needed: "Codex 有一项操作等待确认。",
-    turn_ended: "结束了......",
+    turn_ended: "结束了……",
     interrupted: "我先停在这里。",
     stage_complete: "这一阶段已经收好了。",
     task_complete: "这件任务已经完成。",
@@ -172,19 +185,54 @@ function eventMessage(event: PetEvent): { title: string; message: string; meta: 
     info: "有一条新消息。",
   };
   const meta = [event.project, event.stage].filter(Boolean).join(" · ");
-  return { title, message: event.type === 'turn_ended' ? '结束了......' : event.message || fallback[event.type] || "有一条新消息。", meta };
+  return { title, message: ['turn_ended', 'task_complete'].includes(event.type) ? '结束了……' : event.message || fallback[event.type] || "有一条新消息。", meta };
 }
 
 function showEvent(event: PetEvent): void {
+  if (isQuestionReminder(event)) {
+    if (!questionReminder.show(event, performance.now())) return;
+    interruptCelebration(true);
+    displayBubble(event);
+    syncFlatActivity();
+    return;
+  }
+  if (isSuccessfulCompletion(event)) {
+    if (celebrationSequence.enqueue(event)) syncFlatActivity();
+    return;
+  }
+  if (event.replayed && ['turn_ended', 'task_complete'].includes(event.type)) return;
+  // An unverified Stop hook is a quiet message. A later native success supplies
+  // the celebration and its final notice without hiding another pending input.
+  if (questionReminder.active(performance.now()) || celebration) return;
+  displayBubble(event);
+}
+
+function interruptCelebration(deferNotice = false): void {
+  if (celebration && !celebration.noticeShown) {
+    if (deferNotice) deferredCompletionNotices.push(celebration.event);
+    else displayBubble(celebration.event);
+  }
+  celebration = null;
+}
+
+function hideBubble(): void {
+  window.clearTimeout(bubbleTimer);
+  speechBubble.hidden = true;
+  if (currentEvent) void window.petBridge.markRead(currentEvent.id);
+  currentEvent = null;
+}
+
+function displayBubble(event: PetEvent): void {
   if (!shouldShowBubble(event)) return;
   document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=!isQuestionReminder(event);
-  if (currentPreferences?.model === "flat-chibi" && event.type === "turn_ended" &&
-      activityState === "attention") return;
   resetSleepTimer();
   window.clearTimeout(workTransitionTimer);
   currentEvent = event;
   const content = eventMessage(event);
+  const question = isQuestionReminder(event);
+  speechBubble.dataset.kind = question ? 'question' : 'completion';
   kickerNode.textContent = content.title;
+  kickerNode.hidden = !question;
   messageNode.textContent = content.message;
   metaNode.textContent = content.meta ? "项目：" + content.meta : "";
   speechBubble.hidden = false;
@@ -193,17 +241,12 @@ function showEvent(event: PetEvent): void {
   speechBubble.classList.add("bubble-in");
   window.clearTimeout(bubbleTimer);
 
-  const sticky = event.type === "approval_needed" || event.type === "needs_input";
-  if (!sticky) {
-    const seconds = currentPreferences?.bubbleSeconds ?? 8;
-    bubbleTimer = window.setTimeout(() => {
-      speechBubble.hidden = true;
-      if (currentEvent?.id === event.id) {
-        void window.petBridge.markRead(event.id);
-        currentEvent = null;
-      }
-    }, seconds * 1000);
-  }
+  const milliseconds = question ? QUESTION_REMINDER_MS : (currentPreferences?.bubbleSeconds ?? 8) * 1000;
+  bubbleTimer = window.setTimeout(() => {
+    if (currentEvent?.id !== event.id) return;
+    hideBubble();
+    if (question) { questionReminder.dismiss(); syncFlatActivity(); }
+  }, milliseconds);
 
   if (currentPreferences?.model === "flat-chibi") return;
 
@@ -287,9 +330,34 @@ function resetSleepTimer(): void {
 
 function syncFlatActivity(): void {
   if (currentPreferences?.model !== 'flat-chibi' || SETTINGS_VIEW) return;
+  const now = performance.now();
+  if (currentEvent && isQuestionReminder(currentEvent) && !questionReminder.active(now)) {
+    hideBubble(); questionReminder.dismiss();
+  }
+  const questioning = questionReminder.active(now);
+  const workingCount = latestActivity.workingProjectCount ?? (latestActivity.phase === 'working' ? 1 : 0);
+  activityState = questioning ? 'attention' : latestActivity.phase === 'working' || workingCount > 0 ? 'working' : 'idle';
+  fullPower = activityState === 'working' && (latestActivity.fullPower === true || workingCount >= 2);
   const interaction=Date.now()<flatTouchUntil || (dragPointer!==null && dragDistance>4);
-  const step=idleCadence.tick(performance.now(),activityState!=='idle'?'busy':interaction?'interaction':'idle');
+  const step=idleCadence.tick(now,activityState!=='idle'||latestActivity.phase==='asking'||celebration?'busy':interaction?'interaction':'idle');
   if(interaction)return;
+  if (!questioning && deferredCompletionNotices.length) displayBubble(deferredCompletionNotices.shift()!);
+  if (!celebration && !questioning && rig?.canvas.dataset.ready === 'true') {
+    const next = celebrationSequence.takeNext();
+    if (next) {
+      if (currentEvent && !isQuestionReminder(currentEvent)) hideBubble();
+      celebration = { ...next, startedAt: now, noticeShown: false };
+      setAction(next.variant === 'A' ? 'celebrate-poppers' : 'celebrate-clap');
+      setStatus('任务完成了');
+    }
+  }
+  if (celebration) {
+    if (!celebration.noticeShown && now - celebration.startedAt >= (CELEBRATION_SECONDS[celebration.variant] - .55) * 1000) {
+      celebration.noticeShown = true;
+      displayBubble(celebration.event);
+    }
+    return;
+  }
   const action=activityState==='working'?(fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action;
   setAction(action);
   const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复'};
@@ -297,18 +365,14 @@ function syncFlatActivity(): void {
 }
 
 function applyActivity(activity: PetActivity): void {
-  const previous = activityState;
-  const previousPower=fullPower;fullPower=Boolean(activity.fullPower);
-  activityState = activity.phase === "asking" ? "attention" : activity.phase;
-  if (activity.phase !== 'idle') flatTouchUntil = 0;
+  latestActivity = activity;
   if (activity.phase !== "asking" &&
-      (currentEvent?.type === "approval_needed" || currentEvent?.type === "needs_input")) {
-    speechBubble.hidden = true;
-    void window.petBridge.markRead(currentEvent.id);
-    currentEvent = null;
+      currentEvent && isQuestionReminder(currentEvent)) {
+    hideBubble(); questionReminder.dismiss();
   }
+  if (activity.phase !== 'asking') questionReminder.dismiss();
   if(activity.phase!=='asking') document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=true;
-  if (previous !== activityState || previousPower!==fullPower || !rig) syncFlatActivity();
+  syncFlatActivity();
 }
 
 function resetIdleDance(): void {
@@ -342,6 +406,7 @@ function setupPetView(): void {
   document.body.dataset.view = "pet";
   new MutationObserver(updateLayout).observe(speechBubble,{attributes:true,attributeFilter:["hidden"]});
   new MutationObserver(updateLayout).observe(document.querySelector("#answer-button")!,{attributes:true,attributeFilter:["hidden"]});
+  new ResizeObserver(updateLayout).observe(speechBubble);
   window.petBridge.onViewport(v=>{petRoot.style.setProperty("--safe-left",v.left+"px");petRoot.style.setProperty("--safe-width",v.width+"px");});
   window.petBridge.onCursor(point=>{
     if(!rig)return;const b=rig.canvas.getBoundingClientRect();if(b.width<=0)return;
@@ -360,13 +425,6 @@ function setupPetView(): void {
     if (!presentationPolicy.transformation || !rig || activityState === 'attention') return;
     window.clearTimeout(flatIdleTimer); flatTouchUntil=Date.now()+TURN_SECONDS*1000; setAction('transform');
   });
-  document.querySelector("#dismiss-bubble")?.addEventListener("click", () => {
-    window.clearTimeout(bubbleTimer);
-    speechBubble.hidden = true;
-    if (currentEvent) void window.petBridge.markRead(currentEvent.id);
-    currentEvent = null;
-  });
-
   document.addEventListener("mousemove", (event) => {
     updateMouseMode(event);
 
@@ -378,6 +436,7 @@ function setupPetView(): void {
       Math.abs(event.clientX - lastClientPointer.x) + Math.abs(event.clientY - lastClientPointer.y),
     );
     if (rig && dragDistance > 4) {
+      interruptCelebration(questionReminder.active(performance.now()));
       window.clearTimeout(flatIdleTimer); flatTouchUntil=0;
       setAction('drag');
       const now=performance.now();rig.setDragMotion(event.screenX-lastPointer.x,now-lastPointerTime,event.screenX-dragStartPointer.x);lastPointerTime=now;
@@ -416,14 +475,15 @@ function setupPetView(): void {
     if ((!clicked || cancelledPastime) && rig) syncFlatActivity();
     window.petBridge.setMouseIgnored(true);
     if (clicked && !cancelledPastime && currentPreferences?.model === "flat-chibi") {
-      flatTouchUntil = Date.now() + 1150;
+      interruptCelebration(questionReminder.active(performance.now()));
+      flatTouchUntil = Date.now() + TOUCH_SECONDS * 1000;
       window.clearTimeout(flatIdleTimer);
       window.clearTimeout(flatTouchTimer);
       setAction("touch");
       flatTouchTimer = window.setTimeout(() => {
         flatTouchUntil = 0;
         syncFlatActivity();
-      }, 1150);
+      }, TOUCH_SECONDS * 1000);
     }
   };
   characterMount.addEventListener("pointerup", finishDrag);
@@ -441,9 +501,7 @@ function setupPetView(): void {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !speechBubble.hidden) {
-      speechBubble.hidden = true;
-      if (currentEvent) void window.petBridge.markRead(currentEvent.id);
-      currentEvent = null;
+      hideBubble(); questionReminder.dismiss(); syncFlatActivity();
     }
   });
 }
@@ -563,6 +621,19 @@ async function start(): Promise<void> {
   else setupPetView();
 
   let receivedActivity = false;
+  let initialized = false;
+  const earlyEvents: PetEvent[] = [];
+  window.petBridge.onEvent((event) => {
+    if (!SETTINGS_VIEW) {
+      if (initialized) showEvent(event);
+      else earlyEvents.push(event);
+    } else {
+      void window.petBridge.getBootstrap().then((state) => {
+        renderHistory(state.history);
+        updateConnectionStatus(state.bridgeReady, state.lastHookEventAt, state.lastMcpEventAt);
+      });
+    }
+  });
   window.petBridge.onActivity((activity) => {
     receivedActivity = true;
     applyActivity(activity);
@@ -572,6 +643,11 @@ async function start(): Promise<void> {
   if (!SETTINGS_VIEW) {
     if (!receivedActivity) applyActivity(bootstrap.activity);
     else syncFlatActivity();
+    if (bootstrap.activity.phase === 'asking') {
+      const pending = bootstrap.history.find(event => !event.read && isQuestionReminder(event) &&
+        (!bootstrap.activity.sessionId || event.sessionId === bootstrap.activity.sessionId));
+      if (pending) showEvent(pending);
+    }
   }
   if (SETTINGS_VIEW) {
     updateConnectionStatus(bootstrap.bridgeReady, bootstrap.lastHookEventAt, bootstrap.lastMcpEventAt);
@@ -579,15 +655,9 @@ async function start(): Promise<void> {
   }
 
   window.petBridge.onPreferences(applyPreferences);
-  window.petBridge.onEvent((event) => {
-    if (!SETTINGS_VIEW) showEvent(event);
-    if (SETTINGS_VIEW) {
-      void window.petBridge.getBootstrap().then((state) => {
-        renderHistory(state.history);
-        updateConnectionStatus(state.bridgeReady, state.lastHookEventAt, state.lastMcpEventAt);
-      });
-    }
-  });
+  initialized = true;
+  for (const event of earlyEvents) showEvent(event);
+  if (!SETTINGS_VIEW) await window.petBridge.rendererReady();
   if (!SETTINGS_VIEW) resetIdleDance();
   if (!SETTINGS_VIEW) { resetSleepTimer();updateLayout();window.setInterval(syncFlatActivity,100); }
 }

@@ -1,0 +1,24 @@
+{
+  "generator": "scripts/build-celebration-poppers.py",
+  "blenderVersion": "5.2.2 LTS",
+  "source": "source/mini-confetti-poppers.blend",
+  "runtime": "runtime/mini-confetti-poppers.glb",
+  "roots": [
+    "MiniPopper_L",
+    "MiniPopper_R"
+  ],
+  "rootTransformsInGLB": "identity; grip origin (0,0,0)",
+  "glbAxis": "+Y",
+  "diameter": 0.18,
+  "length": 0.4,
+  "aperture": [
+    0,
+    0.24,
+    0
+  ],
+  "meshCount": 22,
+  "materialCount": 6,
+  "oldCharacterSourceModified": false,
+  "nativeSourceSavedAndReopened": true,
+  "runtimeMaterialExtension": "KHR_materials_unlit"
+}
