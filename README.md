@@ -1,6 +1,6 @@
 # Deskfolk
 
-A tiny desktop companion featuring Wakaba Mutsumi, with a soft, illustrated look and a real-time 3D character. Available for Windows.
+A tiny desktop companion, with a soft, illustrated look and a real-time 3D character. Available for Windows.
 
 ## Features
 
