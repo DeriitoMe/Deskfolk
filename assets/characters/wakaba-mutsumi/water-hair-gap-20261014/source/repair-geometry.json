@@ -1,0 +1,16 @@
+{
+  "coordinateSpace": "Original HairUnified mesh local coordinates, runtime Y-up",
+  "method": "Two closed curved underlays behind the left cheek-side front locks",
+  "parent": "Hair.UnifiedScalp_Bangs_and_WavyFall",
+  "material": "Existing runtime hair projection shader and lower-hair bend",
+  "paintWeights": [1, 0, 0],
+  "patches": [
+    {"name": "HairGapFill.L.Upper", "center": [-0.8623, -0.8341, 0.850], "radii": [0.062, 0.110, 0.050]},
+    {"name": "HairGapFill.L.Lower", "center": [-0.9185, -0.9387, 0.850], "radii": [0.060, 0.080, 0.050]}
+  ],
+  "segments": 16,
+  "rings": 8,
+  "originalModelPreserved": true,
+  "source": "Mutsumi_Water_Hair_Gap_v2.blend",
+  "runtime": "../runtime/hair-gap-fill-v2.glb"
+}

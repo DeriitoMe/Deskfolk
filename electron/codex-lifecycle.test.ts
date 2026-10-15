@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {lifecycleEvent,CodexLifecycleObserver} from './codex-lifecycle.ts';
 import {mkdtemp,mkdir,writeFile,appendFile,utimes,rm} from 'node:fs/promises';import{tmpdir}from'node:os';import{join}from'node:path';
-import {dominantActivity,updateSessionActivities,type SessionActivities} from '../shared/activity.ts';
+import {dominantActivity,updateSessionActivities,shouldPresentLifecycleEvent,shouldDeliverPetEvent,shouldCelebrateCompletion,type SessionActivities} from '../shared/activity.ts';
 test('verified normal completion, stop, failure and quota records carry distinct outcomes',()=>{
  for(const [payload,expect,outcome] of [
   [{type:'task_complete',turn_id:'t'},'turn_ended','success'],
@@ -13,6 +13,57 @@ test('verified normal completion, stop, failure and quota records carry distinct
   assert.equal(e?.type,expect);assert.equal(e?.turnId,'t');assert.equal(e?.outcome,outcome);
  }
  assert.equal(lifecycleEvent({type:'response_item',payload:{type:'task_complete',turn_id:'t'}},'s'),null);
+});
+
+test('monitor health records successful reads, quiet periods, unavailability and recovery without expiring work',async(t)=>{
+ const root=await mkdtemp(join(tmpdir(),'pet-monitor-health-')),id='00000000-0000-4000-8000-000000000001';
+ let sessions:SessionActivities={};const observer=new CodexLifecycleObserver(root,e=>sessions=updateSessionActivities(sessions,e));
+ t.mock.method(console,'warn',()=>{});
+ try{
+  assert.equal(observer.getHealth().state,'starting');assert.equal(observer.getHealth().lastPollAt,null);
+  await writeFile(join(root,`rollout-${id}.jsonl`),JSON.stringify({type:'session_meta',payload:{id,cwd:'D:/Fixture'}})+'\n'+
+   JSON.stringify({type:'event_msg',timestamp:'2026-09-28T01:00:00Z',payload:{type:'task_started',turn_id:'fixture-turn'}})+'\n');
+  await observer.poll();const working=observer.getHealth();
+  assert.equal(working.state,'watching');assert.ok(working.lastPollAt);assert.ok(working.lastEventAt);assert.equal(working.observedSessions,1);
+  await observer.poll();assert.equal(observer.getHealth().lastEventAt,working.lastEventAt);assert.equal(dominantActivity(sessions).phase,'working');
+  await rm(root,{recursive:true,force:true});await observer.poll();
+  assert.equal(observer.getHealth().state,'unavailable');assert.equal(dominantActivity(sessions).phase,'working');
+  await mkdir(root);await observer.poll();assert.equal(observer.getHealth().state,'watching');
+ }finally{observer.stop();await rm(root,{recursive:true,force:true});}
+});
+
+test('native observer resolves each question call separately including multiple replies in one record',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'pet-multiple-questions-')),id='00000000-0000-4000-8000-000000000001';
+ const file=join(root,`rollout-${id}.jsonl`),events:any[]=[];let sessions:SessionActivities={};
+ const observer=new CodexLifecycleObserver(root,e=>{events.push(e);sessions=updateSessionActivities(sessions,e)});
+ const record=(type:string,payload:any)=>JSON.stringify({type,timestamp:'2026-09-28T01:00:00Z',payload})+'\n';
+ const question=(call_id:string)=>record('response_item',{type:'function_call',name:'request_user_input_async',call_id,arguments:'{"questions":[{}]}'})+
+  record('response_item',{type:'function_call_output',call_id,output:'{"accepted":true}'});
+ const replies=(ids:string[])=>record('response_item',{type:'message',role:'user',content:[{type:'input_text',text:'<send_user_message_question_reply>'+JSON.stringify(ids.map(callId=>({questionItemId:JSON.stringify(['request_user_input_async',callId,0]),answer:'Fixture answer'})))+'</send_user_message_question_reply>'}]});
+ try{
+  await writeFile(file,record('session_meta',{id,cwd:'D:/Fixture'})+record('event_msg',{type:'task_started',turn_id:'t'})+question('a')+question('b')+question('c'));
+  await observer.poll();assert.deepEqual(sessions[id].pendingInputIds,['a','b','c']);
+  await appendFile(file,replies(['a']));await observer.poll();
+  assert.equal(events.filter(x=>x.type==='input_resolved').length,1);assert.deepEqual(sessions[id].pendingInputIds,['b','c']);
+  await appendFile(file,replies(['b','c']));await observer.poll();
+  assert.deepEqual(events.filter(x=>x.type==='input_resolved').map(x=>x.nativeCallId),['a','b','c']);
+  assert.equal(sessions[id].phase,'working');
+ }finally{observer.stop();await rm(root,{recursive:true,force:true});}
+});
+
+test('late terminal records from another turn cannot discard the current question call',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'pet-late-terminal-')),id='00000000-0000-4000-8000-000000000001';
+ const file=join(root,`rollout-${id}.jsonl`),events:any[]=[];let sessions:SessionActivities={};
+ const observer=new CodexLifecycleObserver(root,e=>{events.push(e);sessions=updateSessionActivities(sessions,e)});
+ const record=(type:string,payload:any)=>JSON.stringify({type,timestamp:'2026-09-28T01:00:00Z',payload})+'\n';
+ try{
+  await writeFile(file,record('session_meta',{id,cwd:'D:/Fixture'})+record('event_msg',{type:'task_started',turn_id:'new'})+
+   record('response_item',{type:'function_call',name:'request_user_input',call_id:'new-call',arguments:'{"questions":[{}]}'})+
+   record('event_msg',{type:'turn_aborted',turn_id:'old'}));
+  await observer.poll();assert.equal(sessions[id].phase,'asking');
+  await appendFile(file,record('response_item',{type:'function_call_output',call_id:'new-call',output:'{"answers":{}}'}));
+  await observer.poll();assert.equal(events.filter(e=>e.type==='input_resolved').at(-1).nativeCallId,'new-call');assert.equal(sessions[id].phase,'working');
+ }finally{observer.stop();await rm(root,{recursive:true,force:true});}
 });
 
 test('initial completed turns are replayed while delayed appended success is live',async()=>{
@@ -31,7 +82,8 @@ test('initial completed turns are replayed while delayed appended success is liv
   await appendFile(file,record('event_msg',{type:'task_started',turn_id:'live'})+
    record('event_msg',{type:'task_complete',turn_id:'live'}));
   await observer.poll();
-  assert.equal(events.at(-1).outcome,'success');assert.equal(events.at(-1).replayed,false);
+  const liveEnd=events.filter(e=>e.type==='turn_ended').at(-1);
+  assert.equal(liveEnd.outcome,'success');assert.equal(liveEnd.replayed,false);
   assert.equal(events.filter(e=>e.type==='turn_ended'&&!e.replayed).length,1);
   await observer.poll();assert.equal(events.filter(e=>e.type==='turn_ended'&&!e.replayed).length,1);
  }finally{observer.stop();await rm(root,{recursive:true,force:true});}
@@ -73,7 +125,7 @@ test('Desktop metadata beyond 16 KB still restores work and observes native paus
   const started=events.filter(e=>e.type==='work_started');
   assert.equal(started.length,1);assert.equal(started[0].projectPath,'D:/Project');
   await appendFile(file,JSON.stringify({type:'event_msg',timestamp:'2026-09-27T17:45:00.322Z',payload:{type:'turn_aborted',turn_id:'t',reason:'interrupted'}})+'\n');await observer.poll();
-  assert.equal(events.filter(e=>e.type==='interrupted').length,1);assert.equal(events.at(-1).type,'interrupted');assert.equal(events.at(-1).sessionId,id);
+  const interrupted=events.filter(e=>e.type==='interrupted');assert.equal(interrupted.length,1);assert.equal(interrupted[0].sessionId,id);
  }finally{observer.stop();await rm(root,{recursive:true,force:true});}
 });
 
@@ -203,10 +255,10 @@ test('native context switches projects and discovers a chat created after startu
  }finally{observer.stop();await rm(root,{recursive:true,force:true});}
 });
 
-test('a native failed async post clears a hook-only question when reconciliation catches up',async()=>{
+test('a rejected native async post clears a cached question when reconciliation catches up',async()=>{
  const root=await mkdtemp(join(tmpdir(),'pet-failed-post-')),id='00000000-0000-4000-8000-000000000001';
- let sessions:SessionActivities=updateSessionActivities({}, {id:'fixture-start',type:'work_started',source:'hook',sessionId:id,turnId:'t',createdAt:'2026-09-28T01:00:01Z',read:false});
- sessions=updateSessionActivities(sessions,{id:'fixture-question',type:'needs_input',nativeQuestion:true,source:'hook',sessionId:id,turnId:'t',createdAt:'2026-09-28T01:00:02Z',read:false});
+ let sessions:SessionActivities=updateSessionActivities({}, {id:'fixture-start',type:'work_started',source:'codex-log',sessionId:id,turnId:'t',createdAt:'2026-09-28T01:00:01Z',read:false});
+ sessions=updateSessionActivities(sessions,{id:'fixture-question',type:'needs_input',nativeQuestion:true,nativeCallId:'failed',source:'codex-log',sessionId:id,turnId:'t',createdAt:'2026-09-28T01:00:02Z',read:false});
  assert.equal(dominantActivity(sessions).phase,'asking');
  const observer=new CodexLifecycleObserver(root,e=>sessions=updateSessionActivities(sessions,e));
  const record=(type:string,payload:any)=>JSON.stringify({type,timestamp:'2026-09-28T01:00:00Z',payload})+'\n';
@@ -230,7 +282,7 @@ test('a question completion from an older turn cannot clear a newer native quest
   await appendFile(file,record('event_msg',{type:'task_started',turn_id:'new'})+question('new-call')+record('response_item',{type:'function_call_output',call_id:'old-call',output:'{}'}));
   await observer.poll();assert.equal(events.filter(e=>e.type==='input_resolved').length,0);
   await appendFile(file,record('response_item',{type:'function_call_output',call_id:'new-call',output:'{"answers":{}}'}));
-  await observer.poll();assert.equal(events.at(-1)?.type,'input_resolved');assert.equal(events.at(-1)?.turnId,'new');
+  await observer.poll();const resolved=events.filter(e=>e.type==='input_resolved').at(-1);assert.equal(resolved?.turnId,'new');assert.equal(resolved?.nativeCallId,'new-call');
  }finally{observer.stop();await rm(root,{recursive:true,force:true});}
 });
 
@@ -267,14 +319,167 @@ test('restart reconciles a changed sidebar assignment on an already-known pendin
  const home=await mkdtemp(join(tmpdir(),'pet-sidebar-pending-')),root=join(home,'sessions');await mkdir(root);
  const id='00000000-0000-4000-8000-000000000001',oldProject='00000000-0000-4000-8000-000000000100',newProject='00000000-0000-4000-8000-000000000200';
  const line=(type:string,payload:any)=>JSON.stringify({timestamp:'2026-10-02T08:00:00Z',type,payload})+'\n';
- let sessions:SessionActivities={[id]:{sessionId:id,turnId:'t',nativeTurnId:'t',nativeProjectIdConfirmed:true,projectId:`codex-local:${oldProject}`,projectPath:'d:/workspace',phase:'asking',waitingFor:'input',terminal:true,updatedAt:'2026-10-02T08:00:00Z'}};
+ let sessions:SessionActivities={[id]:{sessionId:id,turnId:'t',nativeTurnId:'t',nativeProjectIdConfirmed:true,projectId:`codex-local:${oldProject}`,projectPath:'d:/workspace',phase:'asking',waitingFor:'input',pendingInputIds:['terminal-call'],terminal:true,updatedAt:'2026-10-02T08:00:00Z'}};
  const observer=new CodexLifecycleObserver(root,e=>sessions=updateSessionActivities(sessions,e));
  try{
   await writeFile(join(home,'.codex-global-state.json'),JSON.stringify({'local-projects':{[newProject]:{id:newProject,rootPaths:['D:/Workspace']}},'thread-project-assignments':{[id]:{projectKind:'local',projectId:newProject}}}));
-  await writeFile(join(root,`rollout-${id}.jsonl`),line('session_meta',{id,cwd:'D:/Workspace',source:'vscode'})+line('event_msg',{type:'task_started',turn_id:'t'})+line('event_msg',{type:'task_complete',turn_id:'t'}));
+  await writeFile(join(root,`rollout-${id}.jsonl`),line('session_meta',{id,cwd:'D:/Workspace',source:'vscode'})+line('event_msg',{type:'task_started',turn_id:'t'})+
+   line('response_item',{type:'function_call',name:'request_user_input_async',call_id:'terminal-call',arguments:'{"questions":[{}]}'})+
+   line('response_item',{type:'function_call_output',call_id:'terminal-call',output:'{"accepted":true}'})+line('event_msg',{type:'task_complete',turn_id:'t'}));
   await observer.poll();assert.equal(sessions[id].projectId,`codex-local:${newProject}`);
   assert.equal(sessions[id].phase,'asking');assert.equal(sessions[id].waitingFor,'input');assert.equal(sessions[id].terminal,true);
   await writeFile(join(home,'.codex-global-state.json'),JSON.stringify({'local-projects':{},'thread-project-assignments':{}}));
   await observer.poll();assert.equal(sessions[id].projectId,undefined);assert.equal(sessions[id].phase,'asking');assert.equal(sessions[id].terminal,true);
  }finally{observer.stop();await rm(home,{recursive:true,force:true});}
+});
+
+// These fixtures are synthetic native JSONL files. They contain only structural
+// records and exercise the same bounded reader used in the running observer.
+const syncRecord=(type:string,payload:any,timestamp='2026-10-02T08:00:00Z')=>JSON.stringify({type,timestamp,payload})+'\n';
+const syncStart=(turn_id='current-turn')=>syncRecord('event_msg',{type:'task_started',turn_id});
+const syncCall=(call_id:string,asynchronous=true,count=1)=>syncRecord('response_item',{
+ type:'function_call',name:asynchronous?'functions.request_user_input_async':'request_user_input',call_id,
+ arguments:JSON.stringify({questions:Array.from({length:count},()=>({question:'Fixture choice'}))})});
+const syncOutput=(call_id:string,output:any)=>syncRecord('response_item',{type:'function_call_output',call_id,output:JSON.stringify(output)});
+const syncReply=(callId:string,index=0,turnId='current-turn')=>syncRecord('response_item',{type:'message',role:'user',
+ content:[{type:'input_text',text:'<send_user_message_question_reply>'+JSON.stringify([{
+  questionItemId:JSON.stringify(['request_user_input_async',callId,index]),answer:'Fixture answer'
+ }])+'</send_user_message_question_reply>'}],internal_chat_message_metadata_passthrough:{turn_id:turnId}});
+async function syncFixture(cached:any=undefined,source:any='vscode'){
+ const root=await mkdtemp(join(tmpdir(),'pet-input-sync-')),id='00000000-0000-4000-8000-000000000001';
+ const file=join(root,`rollout-${id}.jsonl`),events:any[]=[];
+ let sessions:SessionActivities=cached?{[id]:{sessionId:id,turnId:'current-turn',nativeTurnId:'current-turn',
+  phase:'asking',waitingFor:'input',pendingInputIds:['cached-call'],terminal:true,updatedAt:'2026-10-02T08:01:00Z',...cached}}:{};
+ const observer=new CodexLifecycleObserver(root,e=>{events.push(e);sessions=updateSessionActivities(sessions,e)});
+ return {id,file,observer,events,state:()=>sessions[id],snapshots:()=>events.filter(e=>e.type==='input_sync'),
+  write:(body:string)=>writeFile(file,syncRecord('session_meta',{id,cwd:'D:/Fixture',source})+body),
+  append:async(body:string)=>{await appendFile(file,body);await observer.poll()},
+  dispose:async()=>{observer.stop();await rm(root,{recursive:true,force:true})}};
+}
+
+test('complete native snapshots contain accepted unanswered calls and never unacknowledged or rejected async posts',async()=>{
+ const f=await syncFixture();
+ try{
+  await f.write(syncStart()+syncCall('accepted',true,2)+syncOutput('accepted',{accepted:true})+
+   syncCall('before-ack')+syncCall('rejected')+syncOutput('rejected',{accepted:false})+syncCall('sync-call',false));
+  await f.observer.poll();
+  const first=f.snapshots().at(-1);
+  assert.deepEqual(first.nativePendingInputIds,['accepted','sync-call']);assert.equal(first.nativeTurnTerminal,false);assert.equal(first.outcome,undefined);
+  assert.equal(first.source,'codex-log');assert.equal(first.sessionId,f.id);assert.equal(first.turnId,'current-turn');
+  assert.equal(first.projectPath,'D:/Fixture');assert.equal(first.project,'Fixture');assert.equal(first.isSubagent,false);assert.equal(first.replayed,true);
+  assert.deepEqual(f.events.filter(e=>e.type==='needs_input').map(e=>e.nativeCallId),['accepted','sync-call']);
+  await f.observer.poll();assert.equal(f.snapshots().length,1,'quiet complete polls are deduplicated');
+  await f.append(syncOutput('before-ack',{accepted:true}));
+  assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,['accepted','before-ack','sync-call']);
+  await f.append(syncReply('accepted',0));assert.equal(f.snapshots().length,2,'partly answered call is still pending');
+  await f.append(syncReply('accepted',1));assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,['before-ack','sync-call']);
+  await f.append(syncOutput('sync-call',{answers:{fixture:'Fixture answer'}}));assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,['before-ack']);
+  await f.append(syncReply('before-ack'));assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,[]);assert.equal(f.state().phase,'working');
+  await f.append(syncRecord('response_item',{type:'function_call_output',call_id:'unrelated-call',output:'{}'}));
+  assert.equal(f.snapshots().length,5,'unrelated records do not renew native snapshots');
+ }finally{await f.dispose()}
+});
+
+test('async replies cannot resolve a question before the native accepted acknowledgement',async()=>{
+ const f=await syncFixture();
+ try{
+  await f.write(syncStart()+syncCall('deferred',true,2));await f.observer.poll();
+  assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,[]);assert.equal(f.events.filter(e=>e.type==='needs_input').length,0);
+  await f.append(syncReply('deferred',0));assert.equal(f.events.filter(e=>e.type==='input_resolved').length,0);
+  await f.append(syncOutput('deferred',{accepted:true}));assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,['deferred']);
+  await f.append(syncReply('deferred',1));assert.deepEqual(f.state().pendingInputIds,['deferred']);
+  await f.append(syncReply('deferred',0));assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,[]);assert.equal(f.state().phase,'working');
+ }finally{await f.dispose()}
+});
+
+test('successful native completion retains unanswered calls until their exact reply and internal snapshots never present or celebrate',async()=>{
+ const f=await syncFixture();
+ try{
+  await f.write(syncStart()+syncCall('completed-call')+syncOutput('completed-call',{accepted:true})+
+   syncRecord('event_msg',{type:'task_complete',turn_id:'current-turn'}));
+  await f.observer.poll();
+  const pending=f.snapshots().at(-1);assert.deepEqual(pending.nativePendingInputIds,['completed-call']);assert.equal(pending.nativeTurnTerminal,true);assert.equal(pending.outcome,'success');
+  assert.equal(f.state().phase,'asking');assert.equal(f.state().terminal,true);
+  await f.append(syncReply('completed-call'));
+  const resolved=f.snapshots().at(-1);assert.deepEqual(resolved.nativePendingInputIds,[]);assert.equal(resolved.nativeTurnTerminal,true);assert.equal(resolved.outcome,'success');
+  assert.equal(f.state().phase,'idle');assert.equal(f.state().terminalOutcome,'success');
+  for(const snapshot of f.snapshots()){
+   assert.equal(shouldPresentLifecycleEvent(snapshot,true,Date.now()),false);
+   assert.equal(shouldDeliverPetEvent(snapshot,dominantActivity({[f.id]:f.state()})),false);
+   assert.equal(shouldCelebrateCompletion({[f.id]:f.state()},snapshot),false);
+  }
+ }finally{await f.dispose()}
+});
+
+test('restart clears a cached phantom request from a complete terminal log without any newly appended native records',async()=>{
+ const f=await syncFixture({terminalOutcome:'success'});
+ try{
+  await f.write(syncStart()+syncRecord('event_msg',{type:'task_complete',turn_id:'current-turn'}));
+  await f.observer.poll();assert.equal(f.snapshots().length,1);
+  assert.deepEqual(f.snapshots()[0].nativePendingInputIds,[]);assert.equal(f.snapshots()[0].nativeTurnTerminal,true);
+  assert.equal(f.state().phase,'idle');assert.deepEqual(f.state().pendingInputIds,[]);assert.equal(f.state().terminalOutcome,'success');
+  await f.observer.poll();assert.equal(f.snapshots().length,1);
+ }finally{await f.dispose()}
+});
+
+for(const [type,error,outcome] of [
+ ['turn_aborted',undefined,'interrupted'],
+ ['task_complete',{codex_error_info:'server_error'},'failed'],
+ ['task_complete',{codex_error_info:'usage_limit_exceeded'},'quota_exhausted']
+] as const)test(`native ${outcome} clears pending calls and a new turn resets the terminal snapshot`,async()=>{
+ const f=await syncFixture();
+ try{
+  await f.write(syncStart()+syncCall('waiting')+syncOutput('waiting',{accepted:true}));await f.observer.poll();
+  assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,['waiting']);
+  await f.append(syncRecord('event_msg',{type,turn_id:'current-turn',error}));
+  const terminal=f.snapshots().at(-1);assert.deepEqual(terminal.nativePendingInputIds,[]);assert.equal(terminal.nativeTurnTerminal,true);assert.equal(terminal.outcome,outcome);assert.equal(f.state().phase,'idle');
+  await f.append(syncStart('next-turn'));
+  const next=f.snapshots().at(-1);assert.equal(next.turnId,'next-turn');assert.deepEqual(next.nativePendingInputIds,[]);assert.equal(next.nativeTurnTerminal,false);assert.equal(next.outcome,undefined);
+  assert.equal(f.state().phase,'working');assert.equal(f.state().terminalOutcome,undefined);
+ }finally{await f.dispose()}
+});
+
+test('old-turn completions and aborts do not change the current native input snapshot',async()=>{
+ const f=await syncFixture();
+ try{
+  await f.write(syncStart()+syncCall('current-call')+syncOutput('current-call',{accepted:true}));await f.observer.poll();
+  await f.append(syncRecord('event_msg',{type:'task_complete',turn_id:'old-turn'})+syncRecord('event_msg',{type:'turn_aborted',turn_id:'old-turn'}));
+  assert.equal(f.snapshots().length,1);assert.deepEqual(f.snapshots()[0].nativePendingInputIds,['current-call']);assert.equal(f.snapshots()[0].nativeTurnTerminal,false);
+  assert.equal(f.state().phase,'asking');assert.equal(f.state().terminal,false);
+ }finally{await f.dispose()}
+});
+
+test('more than 8 MB of initial catch-up emits no authoritative snapshot during backward search or incomplete forward reads',async()=>{
+ const f=await syncFixture();
+ try{
+  const body=syncRecord('response_item',{type:'message',role:'assistant',content:[{type:'output_text',text:'x'.repeat(13*1024*1024)}]});
+  await f.write(syncStart()+syncCall('long-call')+syncOutput('long-call',{accepted:true})+body+syncReply('long-call')+
+   syncRecord('event_msg',{type:'task_complete',turn_id:'current-turn'}));
+  await f.observer.poll();assert.equal(f.snapshots().length,0,'backward search has not found the current turn');
+  await f.observer.poll();assert.equal(f.events.filter(e=>e.type==='work_started').length,1,'forward replay has found the start');
+  assert.equal(f.snapshots().length,0,'forward reader has not reached the native reply at the end');
+  await f.observer.poll();assert.equal(f.snapshots().length,1);
+  const complete=f.snapshots()[0];assert.deepEqual(complete.nativePendingInputIds,[]);assert.equal(complete.nativeTurnTerminal,true);assert.equal(complete.outcome,'success');
+  assert.equal(f.state().phase,'idle');await f.observer.poll();assert.equal(f.snapshots().length,1);
+ }finally{await f.dispose()}
+});
+
+test('partial native output writes preserve the unanswered sync call until a complete JSONL record arrives',async()=>{
+ const f=await syncFixture();
+ try{
+  await f.write(syncStart()+syncCall('partial-call',false));await f.observer.poll();
+  const output=syncOutput('partial-call',{answers:{fixture:'Fixture answer'}});
+  await f.append(output.slice(0,-1));assert.equal(f.snapshots().length,1);assert.deepEqual(f.state().pendingInputIds,['partial-call']);
+  await f.append('\n');assert.equal(f.snapshots().length,2);assert.deepEqual(f.snapshots().at(-1).nativePendingInputIds,[]);assert.equal(f.state().phase,'working');
+ }finally{await f.dispose()}
+});
+
+test('explicitly tracked native subagents preserve identity in internal snapshots without producing user reminders',async()=>{
+ const f=await syncFixture(undefined,{subagent:{thread_spawn:{parent_thread_id:'fixture-parent'}}});
+ try{
+  f.observer.track(f.id);
+  await f.write(syncStart()+syncCall('child-call')+syncOutput('child-call',{accepted:true}));await f.observer.poll();
+  const snapshot=f.snapshots().at(-1);assert.equal(snapshot.isSubagent,true);assert.deepEqual(snapshot.nativePendingInputIds,['child-call']);
+  assert.equal(shouldPresentLifecycleEvent(snapshot,true,Date.now()),false);assert.equal(shouldDeliverPetEvent(snapshot,dominantActivity({})),false);
+ }finally{await f.dispose()}
 });

@@ -22,14 +22,20 @@ import type {
   PetPreferences,
   PetModel,
   CompletionOutcome,
+  ProjectDashboardData,
 } from "../shared/types";
-import { dominantActivity, isSuccessfulCompletion, shouldCelebrateCompletion, shouldDeliverBufferedEvent, shouldDeliverPetEvent, shouldIgnoreHookQuestion, shouldPresentLifecycleEvent, successfulCompletionIdentity, updateSessionActivities, type SessionActivities } from "../shared/activity";
+import { dominantActivity, isSuccessfulCompletion, isUnconfirmedHookWork, sanitizeStoredActivities, shouldCelebrateCompletion, shouldDeliverBufferedEvent, shouldDeliverPetEvent, shouldIgnoreHookQuestion, successfulCompletionIdentity, updateSessionActivities, type SessionActivities } from "../shared/activity";
 import { activateCodex } from './codex-window';
 import { isQuestionReminder } from '../shared/reminders';
 import { CodexLifecycleObserver } from './codex-lifecycle';
 import { presentationPolicy } from '../shared/runtime-policy';
 import { syncCodexStartup } from './codex-startup';
 import { RendererEventQueue } from './renderer-events';
+import {shouldPresentAcceptedEvent} from './event-presentation';
+import {CurrentQuestionLedger} from './current-questions';
+import {projectDashboard} from '../shared/project-dashboard';
+import {CodexQuotaMonitor} from './codex-quota';
+import {unknownCodexQuota} from '../shared/quota';
 
 const APP_NAME = "Deskfolk";
 // Keep the existing data directory and bridge identifier during the branding update.
@@ -40,6 +46,7 @@ const ALLOWED_TYPES = new Set<PetEventType>([
   "work_started",
   "work_progress",
   "approval_needed",
+  "approval_resolved",
   "turn_ended",
   "interrupted",
   "stage_complete",
@@ -55,6 +62,8 @@ const DEFAULT_PREFERENCES: PetPreferences = {
   reducedMotion: false,
   bubbleSeconds: 8,
   startWithCodex: true,
+  doNotDisturb: false,
+  notificationsEnabled: true,
 };
 
 app.setName(APP_NAME);
@@ -68,8 +77,15 @@ const activityPath = join(userDataPath, "activity.json");
 
 let mainWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
+let projectsWindow: BrowserWindow | null = null;
 const rendererEvents=new RendererEventQueue(event=>mainWindow?.webContents.send('pet:event',event));
 function currentActivity() { return dominantActivity(sessionActivities); }
+function currentProjects():ProjectDashboardData {
+  return projectDashboard(sessionActivities,history,{preferences,bridgeReady:!!bridgeServer?.listening,
+    monitor:lifecycle?.getHealth()??{state:process.env.PET_TEST_MODE==='1'?'disabled':'starting',lastPollAt:null,lastEventAt:null,observedSessions:0,discoveryPending:0},
+    projectName:id=>lifecycle?.getProjectName(id)});
+}
+function sendProjects(){if(projectsWindow&&!projectsWindow.isDestroyed())projectsWindow.webContents.send('pet:projects',currentProjects());}
 let tray: Tray | null = null;
 let trayMenu: Menu | null = null;
 let bridgeServer: Server | null = null;
@@ -79,7 +95,9 @@ let preferenceSaveQueue: Promise<PetPreferences | void> = Promise.resolve();
 let history: PetEvent[] = [];
 let sessionActivities: SessionActivities = {};
 const successfulCompletions=new Set<string>();
+const currentQuestions=new CurrentQuestionLedger();
 let lifecycle: CodexLifecycleObserver | undefined;
+let quotaMonitor: CodexQuotaMonitor | undefined;
 const knownSessions=new Set<string>();
 let isQuitting = false;
 let lastHookEventAt: string | null = null;
@@ -90,6 +108,8 @@ let dragPosition: { x: number; y: number } | null = null;
 let mouseIgnored = true;
 let petLayout: PetLayout | null = null;
 let layoutAnchorWorld: {x:number;y:number} | null = null;
+let layoutPositionTimer:ReturnType<typeof setTimeout>|undefined;
+let layoutPositionTarget:{x:number;y:number}|undefined;
 function sendViewport(){
  if(!mainWindow||mainWindow.isDestroyed())return;
  const b=mainWindow.getBounds(),area=screen.getDisplayMatching(b).workArea;
@@ -159,6 +179,8 @@ function normalizePreferences(input: Partial<PetPreferences>): PetPreferences {
       : preferences.reducedMotion,
     bubbleSeconds,
     startWithCodex:typeof input.startWithCodex==='boolean'?input.startWithCodex:preferences.startWithCodex,
+    doNotDisturb:typeof input.doNotDisturb==='boolean'?input.doNotDisturb:preferences.doNotDisturb,
+    notificationsEnabled:typeof input.notificationsEnabled==='boolean'?input.notificationsEnabled:preferences.notificationsEnabled,
   };
 }
 
@@ -195,6 +217,7 @@ function makeEvent(input: Record<string, unknown>, source: EventSource): PetEven
     turnId: sanitizeText(input.turnId, 120),
     questionId: sanitizeText(input.questionId, 120),
     nativeQuestion: input.nativeQuestion === true,
+    nativeApproval: input.nativeApproval === true,
     nativeCallId: sanitizeText(input.nativeCallId??legacyCallId, 120),
     outcome,
     replayed: input.replayed === true,
@@ -209,8 +232,15 @@ function eventSignature(event: PetEvent): string {
 
 function acceptEvent(event: PetEvent): void {
   lifecycle?.track(event.sessionId);
+  // A prompt hook may use an auxiliary session ID that has no native rollout.
+  // Track it for discovery, and let actual task_started evidence activate work.
+  if(isUnconfirmedHookWork(sessionActivities,event))return;
   if (['needs_input','approval_needed'].includes(event.type) && !isQuestionReminder(event)) return;
+  // Startup question/reply replay is represented by the complete native
+  // snapshot. Intermediate historical calls cannot confirm a current prompt.
+  if(event.replayed&&['needs_input','input_resolved'].includes(event.type))return;
   if(shouldIgnoreHookQuestion(sessionActivities,event))return;
+  event=currentQuestions.filterSnapshot(event);
   const session=event.sessionId?sessionActivities[event.sessionId]:undefined;
   if(isSuccessfulCompletion(event)&&session&&(!event.turnId||event.turnId===session.turnId)){
     // A verified MCP milestone may omit turn_id; attach the known native turn
@@ -231,15 +261,27 @@ function acceptEvent(event: PetEvent): void {
   const success=shouldCelebrateCompletion(sessionActivities,event);
   const ownPendingCompletion=isSuccessfulCompletion(event)&&!success;
   const before=currentActivity();
+  const beforeSessions=sessionActivities;
   if (!event.questionId) sessionActivities = updateSessionActivities(sessionActivities, event, now);
   const fingerprint=(a:PetActivity)=>JSON.stringify([a.phase,a.sessionId,a.workingProjectCount,a.fullPower]);
   const stateChanged=fingerprint(before)!==fingerprint(currentActivity());
+  const acceptedSession=event.sessionId?sessionActivities[event.sessionId]:undefined;
+  if(acceptedSession?.turnId===event.turnId&&
+    (!isQuestionReminder(event)||shouldDeliverBufferedEvent(sessionActivities,event)))currentQuestions.accepted(event);
+  sendProjects();
+  // A native ledger snapshot reconciles stored state; it is never a message.
+  // Delayed/rejected questions also must not create a bubble or history entry.
+  if(event.type==='input_sync'||(isQuestionReminder(event)&&!shouldDeliverBufferedEvent(sessionActivities,event))){
+    writeJsonAtomically(activityPath,sessionActivities);
+    if(stateChanged)mainWindow?.webContents.send('pet:activity',{...currentActivity(),replayed:event.replayed===true});
+    return;
+  }
   const completionKey=success?successfulCompletionIdentity(event):undefined;
   const duplicateCompletion=!!completionKey&&successfulCompletions.has(completionKey);
   // Log reconciliation does not replay historical messages or duplicate hooks.
-  if(ownPendingCompletion||!shouldPresentLifecycleEvent(event,stateChanged,now)||duplicateCompletion) {
+  if(ownPendingCompletion||!shouldPresentAcceptedEvent(event,beforeSessions,sessionActivities,stateChanged,now)||duplicateCompletion) {
     writeJsonAtomically(activityPath,sessionActivities);
-    if(stateChanged)mainWindow?.webContents.send('pet:activity',currentActivity());
+    if(stateChanged)mainWindow?.webContents.send('pet:activity',{...currentActivity(),replayed:event.replayed===true});
     return;
   }
   if(completionKey)successfulCompletions.add(completionKey);
@@ -248,12 +290,13 @@ function acceptEvent(event: PetEvent): void {
     history = [event, ...history.filter((item) => item.id !== event.id)].slice(0, 20);
     writeJsonAtomically(historyPath, history);
   }
+  sendProjects();
   if (mainWindow && !mainWindow.isDestroyed()) {
     // Send aggregate state first: one session ending must not hide another's question.
-    mainWindow.webContents.send("pet:activity", currentActivity());
-    if (shouldDeliverPetEvent(event,currentActivity())) rendererEvents.deliver(event);
+    mainWindow.webContents.send("pet:activity", {...currentActivity(),replayed:event.replayed===true});
+    if (shouldDeliverPetEvent(event,currentActivity())&&shouldDeliverBufferedEvent(sessionActivities,event)) rendererEvents.deliver(event);
     mainWindow.showInactive();
-  } else if(shouldDeliverPetEvent(event,currentActivity())) {
+  } else if(shouldDeliverPetEvent(event,currentActivity())&&shouldDeliverBufferedEvent(sessionActivities,event)) {
     rendererEvents.deliver(event);
   }
   if (settingsWindow && !settingsWindow.isDestroyed()) {
@@ -344,14 +387,19 @@ async function startBridge(): Promise<void> {
 
 function loadPreferences(): void {
   preferences = normalizePreferences(readJson<Partial<PetPreferences>>(preferencesPath, {}));
-  history = readJson<PetEvent[]>(historyPath, []).slice(0, 20);
+  history = readJson<PetEvent[]>(historyPath, []).filter(event=>
+    !['needs_input','approval_needed'].includes(event.type)||isQuestionReminder(event)).slice(0, 20);
   for(const event of history)if(isSuccessfulCompletion(event))successfulCompletions.add(successfulCompletionIdentity(event));
-  sessionActivities = updateSessionActivities(readJson<SessionActivities>(activityPath, {}), {
+  sessionActivities = updateSessionActivities(sanitizeStoredActivities(readJson<SessionActivities>(activityPath, {})), {
     id: "startup-prune", source: "demo", type: "info", createdAt: new Date().toISOString(), read: true,
   });
   for(const id of Object.keys(sessionActivities))knownSessions.add(id);
-  // Keep native pending questions; reconcile working turns from actual logs.
-  sessionActivities = Object.fromEntries(Object.entries(sessionActivities).filter(([,s])=>s.phase==='asking'));
+  // Preserve project metadata and opaque question IDs, but quarantine cached
+  // activity until the complete native snapshot confirms its current state.
+  sessionActivities = Object.fromEntries(Object.entries(sessionActivities).map(([id,s])=>
+    [id,s.phase!=='idle'?{...s,phase:'idle' as const}:s]));
+  writeJsonAtomically(activityPath,sessionActivities);
+  writeJsonAtomically(historyPath,history);
   lastHookEventAt = history.find((event) => event.source === "hook")?.createdAt ?? null;
   lastMcpEventAt = history.find((event) => event.source === "mcp")?.createdAt ?? null;
 }
@@ -375,7 +423,7 @@ function clampPosition(x: number, y: number): { x: number; y: number } {
   const area = display.workArea;
   return {
     x: Math.round(Math.min(area.x+area.width-v.x-v.width,Math.max(area.x-v.x,x))),
-    y: Math.round(Math.min(area.y+area.height-v.y-v.height,Math.max(area.y-(petLayout?.overlay?0:v.y),y))),
+    y: Math.round(Math.min(area.y+area.height-v.y-v.height,Math.max(area.y-v.y,y))),
   };
 }
 
@@ -384,7 +432,23 @@ function savePosition(): void {
   positionSaveTimer = undefined;
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const [x, y] = mainWindow.getPosition();
-  writeJsonAtomically(join(userDataPath, "position.json"), { x, y });
+  writeJsonAtomically(join(userDataPath, "position.json"), { x, y,
+    ...(petLayout?{footX:x+petLayout.anchorX,footY:y+petLayout.anchorY}:{}) });
+}
+
+function fitVisiblePosition():void {
+  if(!mainWindow||mainWindow.isDestroyed())return;
+  const b=mainWindow.getBounds(),safe=clampPosition(b.x,b.y);
+  if(Math.abs(safe.x-b.x)<=1&&Math.abs(safe.y-b.y)<=1)return;
+  if(layoutPositionTarget?.x===safe.x&&layoutPositionTarget?.y===safe.y)return;
+  clearTimeout(layoutPositionTimer);layoutPositionTarget=safe;
+  const started=Date.now();
+  const step=()=>{
+    if(!mainWindow||mainWindow.isDestroyed())return;
+    const u=Math.min(1,(Date.now()-started)/160),ease=u*u*(3-2*u);
+    mainWindow.setPosition(Math.round(b.x+(safe.x-b.x)*ease),Math.round(b.y+(safe.y-b.y)*ease));
+    if(u<1)layoutPositionTimer=setTimeout(step,16);else{layoutPositionTarget=undefined;layoutPositionTimer=undefined;}
+  };step();
 }
 
 function showPet(): void {
@@ -405,13 +469,13 @@ function openSettings(): void {
   }
   mainWindow?.setAlwaysOnTop(false);
   settingsWindow = new BrowserWindow({
-    width: 460,
-    height: 720,
+    width: 520,
+    height: 760,
     minWidth: 400,
     minHeight: 620,
     title: `${APP_NAME} 设置`,
     icon: APPLICATION_ICON,
-    backgroundColor: "#f3f7fa",
+    backgroundColor: "#f3f6ef",
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, "../preload/index.cjs"),
@@ -429,6 +493,15 @@ function openSettings(): void {
 
 function openCodex(): void { void activateCodex(); }
 
+function openProjects():void {
+  if(projectsWindow&&!projectsWindow.isDestroyed()){projectsWindow.show();projectsWindow.focus();return;}
+  projectsWindow=new BrowserWindow({width:760,height:800,minWidth:620,minHeight:600,title:'Deskfolk · 当前项目',icon:APPLICATION_ICON,backgroundColor:'#f3f7ef',autoHideMenuBar:true,
+    webPreferences:{preload:join(__dirname,'../preload/index.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  void projectsWindow.loadURL(rendererUrl('?projects=1'));
+  const timer=setInterval(sendProjects,1000);timer.unref();
+  projectsWindow.on('closed',()=>{clearInterval(timer);projectsWindow=null;});
+}
+
 async function createTray(): Promise<void> {
   // 16 DIP base image; nativeImage loads the accompanying DPI representations.
   let icon = nativeImage.createFromPath(join(ICON_DIRECTORY, 'tray.png'));
@@ -442,10 +515,15 @@ async function createTray(): Promise<void> {
   });
   const buildTrayMenu = () => Menu.buildFromTemplate([
       { label: "显示桌宠", click: showPet },
+      { label: "当前项目", click: openProjects },
       { label: "设置", click: openSettings },
       { label: '打开 Codex', click: openCodex },
       { label: presentationPolicy.transformation ? '转身 · 华丽形态预览' : '旋转变身（暂时停用）', enabled:presentationPolicy.transformation, click: () => {if(presentationPolicy.transformation)mainWindow?.webContents.send('pet:transform');} },
       { type: "separator" },
+      {label:'勿扰模式',type:'checkbox',checked:preferences.doNotDisturb,click:item=>{
+        preferences={...preferences,doNotDisturb:item.checked};writeJsonAtomically(preferencesPath,preferences);
+        for(const w of [mainWindow,settingsWindow,projectsWindow])w?.webContents.send('pet:preferences',preferences);sendProjects();
+      }},
       {
         label: "启用待机舞蹈",
         type: "checkbox",
@@ -480,7 +558,8 @@ async function createTray(): Promise<void> {
 }
 
 function createPetWindow(): void {
-  const savedPosition = readJson<{ x?: number; y?: number }>(join(userDataPath, "position.json"), {});
+  const savedPosition = readJson<{ x?: number; y?: number;footX?:number;footY?:number }>(join(userDataPath, "position.json"), {});
+  if(typeof savedPosition.footX==='number'&&Number.isFinite(savedPosition.footX)&&typeof savedPosition.footY==='number'&&Number.isFinite(savedPosition.footY))layoutAnchorWorld={x:savedPosition.footX,y:savedPosition.footY};
   const display = screen.getPrimaryDisplay().workArea;
   const startX = typeof savedPosition.x === "number" && Number.isFinite(savedPosition.x)
     ? Math.round(savedPosition.x)
@@ -520,6 +599,7 @@ function createPetWindow(): void {
   void mainWindow.loadURL(rendererUrl());
   mainWindow.once("ready-to-show", showPet);
   mainWindow.on("move", () => {
+    if(petLayout&&mainWindow){const moved=mainWindow.getBounds();layoutAnchorWorld={x:moved.x+petLayout.anchorX,y:moved.y+petLayout.anchorY};}
     sendViewport();
     clearTimeout(positionSaveTimer);
     positionSaveTimer = setTimeout(savePosition, 150);
@@ -546,6 +626,9 @@ function startCursorTracking(): void {
 }
 
 function registerIpc(): void {
+  const quotaSender=(event:Electron.IpcMainInvokeEvent)=>[mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender);
+  ipcMain.handle('pet:get-quota',event=>quotaSender(event)?quotaMonitor?.snapshot()??unknownCodexQuota():unknownCodexQuota());
+  ipcMain.handle('pet:refresh-quota',event=>quotaSender(event)?quotaMonitor?.refresh()??unknownCodexQuota():unknownCodexQuota());
   ipcMain.handle('pet:renderer-ready',event=>{
     if(!mainWindow||mainWindow.isDestroyed()||event.sender!==mainWindow.webContents)return {ok:false,delivered:0};
     return {ok:true,delivered:rendererEvents.makeReady(event=>shouldDeliverBufferedEvent(sessionActivities,event))};
@@ -558,7 +641,11 @@ function registerIpc(): void {
     const b=mainWindow.getBounds(),old=petLayout;
     if(JSON.stringify(layout)===JSON.stringify(petLayout)&&Math.abs(b.width-Math.ceil(layout.width))<1&&Math.abs(b.height-Math.ceil(layout.height))<1)return;
     petLayout=layout;
-    if(old&&old.width===layout.width&&old.height===layout.height&&old.anchorX===layout.anchorX&&old.anchorY===layout.anchorY&&b.width===Math.ceil(layout.width)&&b.height===Math.ceil(layout.height))return;
+    if(old&&old.width===layout.width&&old.height===layout.height&&old.anchorX===layout.anchorX&&old.anchorY===layout.anchorY&&b.width===Math.ceil(layout.width)&&b.height===Math.ceil(layout.height)){
+      const grew=layout.visible.x<old.visible.x-1||layout.visible.y<old.visible.y-1||layout.visible.x+layout.visible.width>old.visible.x+old.visible.width+1||layout.visible.y+layout.visible.height>old.visible.y+old.visible.height+1;
+      if(grew||(!old.overlay&&layout.overlay))fitVisiblePosition();
+      return;
+    }
     // Keep the world-space foot anchor across a round trip of canvas sizes.
     // Windows DPI rounding otherwise loses about one DIP at every resize.
     if(!layoutAnchorWorld && old) layoutAnchorWorld={x:b.x+old.anchorX,y:b.y+old.anchorY};
@@ -581,15 +668,21 @@ function registerIpc(): void {
     lastHookEventAt,
     lastMcpEventAt,
     activity: currentActivity(),
-
+    quota: quotaMonitor?.snapshot() ?? unknownCodexQuota(),
+    pendingReminder:history.find(event=>!event.read&&isQuestionReminder(event)&&shouldDeliverBufferedEvent(sessionActivities,event)),
   }));
+  ipcMain.handle('pet:get-projects',event=>{
+    if(![mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender))throw Error('Unknown window');
+    return currentProjects();
+  });
   ipcMain.handle("pet:save-preferences", (_event, patch: Partial<PetPreferences>) => {
     const save=preferenceSaveQueue.catch(()=>{}).then(async()=>{
       const next=normalizePreferences(patch);
       if(next.startWithCodex!==preferences.startWithCodex)await syncCodexStartup(next.startWithCodex);
       preferences = normalizePreferences(patch);
       writeJsonAtomically(preferencesPath, preferences);
-      mainWindow?.webContents.send("pet:preferences", preferences);
+      for(const w of [mainWindow,settingsWindow,projectsWindow])w?.webContents.send('pet:preferences',preferences);
+      sendProjects();
       return preferences;
     });
     preferenceSaveQueue=save;
@@ -603,11 +696,11 @@ function registerIpc(): void {
     const event = makeEvent(
       {
         type,
-        nativeQuestion: type === 'approval_needed',
+        nativeQuestion: type === 'needs_input',
         project: "桌宠预览",
         stage: type === "stage_complete" ? "视觉样机" : undefined,
-        message: type === "approval_needed"
-          ? "这件事需要你确认一下。"
+        message: type === "needs_input"
+          ? "Codex 有一个问题等你回答。"
           : type === "task_complete"
             ? "原型任务已完成，来看看新效果吧。"
             : "玻璃角色的阶段样机已经准备好了。",
@@ -618,7 +711,7 @@ function registerIpc(): void {
   });
   ipcMain.on("pet:open-settings", openSettings);
   ipcMain.handle('pet:open-codex', event => {
-    if(event.sender!==mainWindow?.webContents && event.sender!==settingsWindow?.webContents) return {ok:false};
+    if(![mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender)) return {ok:false};
     return activateCodex();
   });
   ipcMain.on("pet:set-mouse-ignored", (event, ignored: boolean) => {
@@ -634,6 +727,7 @@ function registerIpc(): void {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     if (event.sender !== mainWindow.webContents) return;
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    clearTimeout(layoutPositionTimer);layoutPositionTarget=undefined;
     layoutAnchorWorld=null;
     const [x, y] = mainWindow.getPosition();
     const origin = dragPosition ?? { x, y };
@@ -660,6 +754,8 @@ if (!hasLock) {
     loadPreferences();
     await syncCodexStartup(preferences.startWithCodex).catch((error:unknown)=>console.warn('Deskfolk could not register Codex startup. The setting can be retried.',(error as NodeJS.ErrnoException)?.code||'STARTUP_ERROR'));
     registerIpc();
+    quotaMonitor=new CodexQuotaMonitor(process.env.CODEX_HOME||join(app.getPath('home'),'.codex'),quota=>mainWindow?.webContents.send('pet:quota',quota));
+    quotaMonitor.start();
     await startBridge();
     createPetWindow();
     if(!process.env.PET_TEST_MODE){
@@ -678,6 +774,8 @@ if (!hasLock) {
   app.on("before-quit", () => {
     isQuitting = true;
     lifecycle?.stop();
+    quotaMonitor?.stop();
+    clearTimeout(layoutPositionTimer);
     savePosition();
     if (bridgeServer?.listening) bridgeServer.close();
   });

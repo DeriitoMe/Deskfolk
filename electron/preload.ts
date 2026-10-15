@@ -1,11 +1,17 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { PetActivity, PetBootstrap, PetBridge, PetEvent, PetEventType, PetPreferences, PetQuestion } from "../shared/types";
+import type { PetActivity, PetBootstrap, PetBridge, PetEvent, PetEventType, PetPreferences, PetQuestion,ProjectDashboardData } from "../shared/types";
+import type {CodexQuotaSnapshot} from '../shared/quota';
 
 const bridge: PetBridge = {
   onCursor:callback=>{const listener=(_event:Electron.IpcRendererEvent,p:{x:number;y:number})=>callback(p);ipcRenderer.on('pet:cursor',listener);return ()=>ipcRenderer.removeListener('pet:cursor',listener);},
   setLayout: layout=>ipcRenderer.send('pet:layout',layout),
   onViewport: callback=>{const listener=(_event:Electron.IpcRendererEvent,v:{left:number;width:number})=>callback(v);ipcRenderer.on('pet:viewport',listener);return ()=>ipcRenderer.removeListener('pet:viewport',listener);},
   getBootstrap: () => ipcRenderer.invoke("pet:get-bootstrap") as Promise<PetBootstrap>,
+  getProjects: () => ipcRenderer.invoke('pet:get-projects') as Promise<ProjectDashboardData>,
+  getQuota: () => ipcRenderer.invoke('pet:get-quota') as Promise<CodexQuotaSnapshot>,
+  refreshQuota: () => ipcRenderer.invoke('pet:refresh-quota') as Promise<CodexQuotaSnapshot>,
+  onQuota: callback => {const listener=(_event:Electron.IpcRendererEvent,quota:CodexQuotaSnapshot)=>callback(quota);ipcRenderer.on('pet:quota',listener);return ()=>ipcRenderer.removeListener('pet:quota',listener);},
+  onProjects: callback => {const listener=(_event:Electron.IpcRendererEvent,data:ProjectDashboardData)=>callback(data);ipcRenderer.on('pet:projects',listener);return ()=>ipcRenderer.removeListener('pet:projects',listener);},
   rendererReady: () => ipcRenderer.invoke('pet:renderer-ready'),
   savePreferences: (patch) =>
     ipcRenderer.invoke("pet:save-preferences", patch) as Promise<PetPreferences>,

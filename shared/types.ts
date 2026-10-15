@@ -1,13 +1,17 @@
+import type {CodexQuotaSnapshot} from './quota';
+
 export type PetEventType =
   | "work_started"
   | "work_progress"
   | "approval_needed"
+  | "approval_resolved"
   | "turn_ended"
   | "interrupted"
   | "stage_complete"
   | "task_complete"
   | "needs_input"
   | "input_resolved"
+  | "input_sync"
   | "info";
 
 export type EventSource = "hook" | "mcp" | "demo" | "codex-log";
@@ -21,6 +25,8 @@ export interface PetActivity {
   updatedAt: string;
   workingProjectCount?: number;
   fullPower?: boolean;
+  /** Activity-push presentation context; historical reconciliation is silent. */
+  replayed?: boolean;
 }
 
 export interface PetEvent {
@@ -41,7 +47,11 @@ export interface PetEvent {
   turnId?: string;
   questionId?: string;
   nativeQuestion?: boolean;
+  nativeApproval?: boolean;
   nativeCallId?: string;
+  /** Internal native-log reconciliation; never a user-facing notification. */
+  nativePendingInputIds?: string[];
+  nativeTurnTerminal?: boolean;
   /** A clean native completion or an explicitly verified task milestone. */
   outcome?: CompletionOutcome;
   /** Initial log catch-up; never replay a historical celebration. */
@@ -70,6 +80,31 @@ export interface PetPreferences {
   reducedMotion: boolean;
   bubbleSeconds: number;
   startWithCodex: boolean;
+  doNotDisturb: boolean;
+  notificationsEnabled: boolean;
+}
+
+export interface ProjectDashboardData {
+  capturedAt: string;
+  bridgeReady: boolean;
+  monitor: {
+    state: 'starting' | 'watching' | 'unavailable' | 'disabled';
+    lastPollAt: string | null;
+    lastEventAt: string | null;
+    observedSessions: number;
+    discoveryPending: number;
+  };
+  approvalSupport: 'hook-ready' | 'not-observed' | 'native-questions-only';
+  workingProjectCount: number;
+  pendingRequestCount: number;
+  projects: Array<{
+    key: string; name: string; path?: string;
+    state: 'working' | 'asking' | 'approval' | 'paused' | 'failed' | 'quota_exhausted' | 'completed' | 'idle';
+    sessionCount: number; workingSessionCount: number;
+    lastEventAt: string; lastEventLabel: string;
+  }>;
+  recentEvents: Array<{id: string; project?: string; label: string; createdAt: string}>;
+  preferences: PetPreferences;
 }
 
 export interface PetBootstrap {
@@ -79,6 +114,8 @@ export interface PetBootstrap {
   lastHookEventAt: string | null;
   lastMcpEventAt: string | null;
   activity: PetActivity;
+  pendingReminder?: PetEvent;
+  quota?: CodexQuotaSnapshot;
 
 }
 
@@ -88,6 +125,11 @@ export interface PetBridge {
   setLayout(layout:PetLayout):void;
   onViewport(callback:(viewport:{left:number;width:number})=>void):()=>void;
   getBootstrap(): Promise<PetBootstrap>;
+  getProjects(): Promise<ProjectDashboardData>;
+  getQuota(): Promise<CodexQuotaSnapshot>;
+  refreshQuota(): Promise<CodexQuotaSnapshot>;
+  onQuota(callback: (quota: CodexQuotaSnapshot) => void): () => void;
+  onProjects(callback: (data: ProjectDashboardData) => void): () => void;
   /** Install onEvent first, then flush events accepted during document startup. */
   rendererReady(): Promise<{ok:boolean;delivered:number}>;
   savePreferences(patch: Partial<PetPreferences>): Promise<PetPreferences>;

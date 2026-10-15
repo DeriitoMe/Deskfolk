@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="416" viewBox="0 0 1024 416">
+ <defs>
+  <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#efd1a0"/><stop offset=".25" stop-color="#dca770"/><stop offset=".64" stop-color="#edc38c"/><stop offset="1" stop-color="#c99256"/></linearGradient>
+  <linearGradient id="bevel" x2="0" y2="1"><stop stop-color="#f8dfb8"/><stop offset=".48" stop-color="#d6a069"/><stop offset="1" stop-color="#b87b42"/></linearGradient>
+  <radialGradient id="paper"><stop stop-color="#fffdf4"/><stop offset=".76" stop-color="#faf5e6"/><stop offset="1" stop-color="#f1e5ca"/></radialGradient>
+  <pattern id="grain" width="176" height="34" patternUnits="userSpaceOnUse"><path d="M-20 7C20 2 42 14 90 7S145 2 196 9M-20 22C34 14 65 30 118 21S164 19 196 25" fill="none" stroke="#a16b39" stroke-opacity=".14" stroke-width="2"/></pattern>
+  <clipPath id="outer"><rect x="9" y="9" width="1006" height="398" rx="30"/></clipPath>
+ </defs>
+ <rect x="10" y="11" width="1004" height="394" rx="30" fill="url(#wood)" stroke="#9b693e" stroke-width="6"/>
+ <rect x="17" y="18" width="990" height="380" rx="23" fill="none" stroke="#ffdfad" stroke-opacity=".75" stroke-width="5"/>
+ <g clip-path="url(#outer)"><rect x="9" y="9" width="1006" height="398" fill="url(#grain)"/>
+  <path d="M22 25L66 63H958L1003 25M23 391L67 352H957L1003 391" fill="none" stroke="#936038" stroke-opacity=".46" stroke-width="3"/>
+  <path d="M26 26L62 65V352L26 389M999 26L962 65V352L999 389" fill="none" stroke="#fff0d2" stroke-opacity=".52" stroke-width="4"/>
+ </g>
+ <rect x="54" y="53" width="916" height="311" rx="11" fill="url(#bevel)" stroke="#98643b" stroke-opacity=".60" stroke-width="3"/>
+ <rect x="64" y="63" width="896" height="290" rx="6" fill="url(#paper)" stroke="#d7bd8d" stroke-width="3"/>
+ <path d="M68 349H956M68 67H956" fill="none" stroke="#fffff7" stroke-opacity=".60" stroke-width="3"/>
+</svg>

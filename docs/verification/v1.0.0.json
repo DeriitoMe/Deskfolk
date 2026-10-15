@@ -1,0 +1,43 @@
+{
+  "releaseVersion": "1.0.0",
+  "checkedOn": "2026-10-15",
+  "platform": "Windows x64",
+  "tools": {
+    "node": "24.19.0",
+    "electron": "37.10.3",
+    "electronBuilder": "26.15.3"
+  },
+  "checks": {
+    "typescript": "passed",
+    "unitTests": { "passed": 188, "failed": 0 },
+    "productionElectronScenarios": { "passed": 19, "failed": 0 },
+    "productionDrawingFps": 60,
+    "interactionFramesObserved": 844,
+    "blankHeadFrames": 0,
+    "fixedPublicCanvas": [1024, 768],
+    "packagedExecutableStartup": "passed",
+    "packagedModelRendering": "passed",
+    "packagedPreloadAndBridge": "passed",
+    "packagedCompiledFilesMatchReviewedBuild": true,
+    "packagedMainAndPreloadMatchTestedBuild": true,
+    "packagedIconsAndLauncherMatch": true,
+    "packagedRequiredModelsAudioAndFontPresent": true,
+    "packagedRuntimePrivacyPatternFindings": 0
+  },
+  "installer": {
+    "name": "Deskfolk-Setup-1.0.0.exe",
+    "bytes": 120929479,
+    "sha256": "a774da60af489e3f555c7c24cbb7c8352446bd81f81dc165dd052d428970a41c"
+  },
+  "publicSourceReview": {
+    "genuineCredentialFindings": 0,
+    "reviewedPortableBlenderFiles": 12,
+    "reviewedPortableKritaFiles": 8,
+    "reviewedPortableOraFiles": 3,
+    "reviewedPortableAsepriteFiles": 27,
+    "flaggedExamples": "Synthetic launcher self-test paths and resource/dependency strings were manually reviewed.",
+    "scope": "Reviewed public source and portable editable copies; local profiles, sessions, credentials and rollback snapshots are excluded."
+  },
+  "method": "Production tests used private application data and synthetic native lifecycle records. The final packaged executable was started with a private profile, synthetic Codex home, log-only quota and startup registration disabled. The installed desktop pet and real account data were not changed.",
+  "limits": "Pattern scanning cannot prove that every possible secret is absent. Frame-rate and visual measurements describe the tested environment. Known event-interface limitations are documented in the release notes."
+}

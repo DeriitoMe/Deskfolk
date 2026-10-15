@@ -534,7 +534,7 @@ body[data-view="pet"] #pet-root .answer-button:hover {background:#dcebd6;}
 
 body[data-view="review"] .mutsumi-canvas[data-tall="true"]{width:calc(var(--review-art-size,222px)*1.5);height:calc(var(--review-art-size,222px)*2.25);}
 body[data-view="pet"] #pet-root .speech-bubble {
- left:calc(var(--safe-left,0px) + 8px * var(--ui-scale,1));top:calc(8px * var(--ui-scale,1));
+ left:var(--bubble-x,calc(var(--safe-left,0px) + 8px * var(--ui-scale,1)));top:var(--bubble-y,calc(8px * var(--ui-scale,1)));
  width:calc(var(--safe-width,264px) - 16px * var(--ui-scale,1));min-height:calc(125px * var(--ui-scale,1));
  padding:calc(17px * var(--ui-scale,1)) calc(31px * var(--ui-scale,1)) calc(18px * var(--ui-scale,1));
  border-width:calc(2px * var(--ui-scale,1));
@@ -545,30 +545,89 @@ body[data-view="pet"] #pet-root .answer-button {font-size:calc(12px * var(--ui-s
 body[data-view="pet"] .speech-bubble::after {bottom:calc(-13px * var(--ui-scale,1));width:calc(9px * var(--ui-scale,1));height:calc(7px * var(--ui-scale,1));border-width:calc(2px * var(--ui-scale,1));}
 body[data-view="pet"] .thought-dots {bottom:calc(-24px * var(--ui-scale,1));transform:scale(var(--ui-scale,1));transform-origin:top left;}
 
-/* Compact thought bubble above and to the left of the head. */
+/* Shared oval reminder bubble above and to the left of the head. */
 body[data-view="pet"] #pet-root .speech-bubble {
- width:min(calc(250px * var(--ui-scale,1)),calc(var(--safe-width,370px) - 16px * var(--ui-scale,1)));
- min-height:0;
+ width:min(calc(248px * var(--ui-scale,1)),calc(var(--safe-width,370px) - 16px * var(--ui-scale,1)));
+ min-height:calc(168px * var(--ui-scale,1));
+ border-radius:50%;
+ display:flex;flex-direction:column;justify-content:center;
  font-family:"ChillRoundF","YouYuan","幼圆","Microsoft YaHei UI",sans-serif;
- border-color:#52724c;background:#FFFFFF;
- box-shadow:0 calc(3px * var(--ui-scale,1)) calc(9px * var(--ui-scale,1)) #4a60311c;
- padding:calc(14px * var(--ui-scale,1)) calc(24px * var(--ui-scale,1));
+ border-color:transparent;background:transparent;box-shadow:none;isolation:isolate;
+ padding:calc(32px * var(--ui-scale,1)) calc(30px * var(--ui-scale,1));
 }
 body[data-view="pet"] #bubble-message {
- font-size:calc(20.4px * var(--ui-scale,1));font-weight:400;line-height:1.4;
+ font-size:calc(20.4px * var(--ui-scale,1));font-weight:700;line-height:1.4;
+ font-synthesis:weight;
  max-height:none;overflow:visible;white-space:pre-wrap;overflow-wrap:anywhere;
- color:#2d4937;
+ color:#1f4d35;
 }
 body[data-view="pet"] .bubble-kicker {font-size:calc(12px * var(--ui-scale,1));font-weight:400;}
 body[data-view="pet"] .bubble-kicker:empty {display:none;}
-body[data-view="pet"] #pet-root .speech-bubble[data-kind="question"] {
- width:min(calc(278px * var(--ui-scale,1)),calc(var(--safe-width,370px) - 16px * var(--ui-scale,1)));
- padding:calc(17px * var(--ui-scale,1)) calc(24px * var(--ui-scale,1));
- border-radius:calc(40px * var(--ui-scale,1));
-}
 body[data-view="pet"] #pet-root .answer-button {
  font-size:calc(16px * var(--ui-scale,1));border-color:#bad1a4;background:#edf5e3;
 }
-body[data-view="pet"] .speech-bubble::after,
-body[data-view="pet"] .thought-dots,
-body[data-view="pet"] .thought-dots::after {background:#FFFFFF;border-color:#52724c;}
+/* Paint the oval separately so the smaller thought circles can appear first. */
+body[data-view="pet"] .speech-bubble::before {
+ content:"";position:absolute;inset:calc(-2px * var(--ui-scale,1));z-index:-1;
+ border:calc(2px * var(--ui-scale,1)) solid #52724c;border-radius:inherit;background:#FFFFFF;
+ box-shadow:0 calc(3px * var(--ui-scale,1)) calc(9px * var(--ui-scale,1)) #4a60311c;
+ pointer-events:none;
+}
+body[data-view="pet"] .speech-bubble::after {
+ width:calc(14.4px * var(--ui-scale,1));height:calc(11.2px * var(--ui-scale,1));
+ bottom:calc(-17px * var(--ui-scale,1));background:#FFFFFF;border-color:#52724c;
+}
+body[data-view="pet"] .thought-dots {
+ width:calc(9.6px * var(--ui-scale,1));height:calc(8px * var(--ui-scale,1));
+ bottom:calc(-34px * var(--ui-scale,1));border:0;background:transparent;transform:none;
+}
+body[data-view="pet"] .thought-dots::before {
+ content:"";position:absolute;inset:0;border:calc(1.7px * var(--ui-scale,1)) solid #52724c;
+ border-radius:50%;background:#FFFFFF;
+}
+body[data-view="pet"] .thought-dots::after {
+ left:calc(11px * var(--ui-scale,1));top:calc(12px * var(--ui-scale,1));
+ width:calc(4.8px * var(--ui-scale,1));height:calc(4.8px * var(--ui-scale,1));
+ border-width:calc(1.3px * var(--ui-scale,1));background:#FFFFFF;border-color:#52724c;
+}
+body[data-view="pet"] #pet-root .speech-bubble.bubble-in {animation:none;}
+.speech-bubble.bubble-out {
+ animation:bubble-fade-out var(--bubble-fade-duration,220ms) ease-out both !important;
+ pointer-events:none;
+}
+@keyframes bubble-fade-out {to {opacity:0;}}
+body[data-view="pet"] .bubble-in .thought-dots::after {
+ animation:bubble-part-in .16s ease-out 0s both;
+}
+body[data-view="pet"] .bubble-in .thought-dots::before {
+ animation:bubble-part-in .17s ease-out .13s both;
+}
+body[data-view="pet"] .speech-bubble.bubble-in::after {
+ animation:bubble-part-in .18s ease-out .27s both;
+}
+body[data-view="pet"] .speech-bubble.bubble-in::before {
+ animation:bubble-part-in .24s ease-out .42s both;
+}
+body[data-view="pet"] .bubble-in :is(.bubble-kicker,#bubble-message,.bubble-meta,.answer-button) {
+ animation:bubble-copy-in .22s ease-out .68s both;
+}
+@keyframes bubble-part-in {from {opacity:0;} to {opacity:1;}}
+@keyframes bubble-copy-in {
+ from {opacity:0;visibility:hidden;} 1% {visibility:visible;} to {opacity:1;visibility:visible;}
+}
+body[data-view="pet"] .speech-bubble.bubble-reduced::before,
+body[data-view="pet"] .speech-bubble.bubble-reduced::after,
+body[data-view="pet"] .bubble-reduced .thought-dots::before,
+body[data-view="pet"] .bubble-reduced .thought-dots::after,
+body[data-view="pet"] .bubble-reduced :is(.bubble-kicker,#bubble-message,.bubble-meta,.answer-button) {
+ animation:none !important;
+}
+@media (prefers-reduced-motion:reduce) {
+ body[data-view="pet"] .speech-bubble::before,
+ body[data-view="pet"] .speech-bubble::after,
+ body[data-view="pet"] .thought-dots::before,
+ body[data-view="pet"] .thought-dots::after,
+ body[data-view="pet"] .speech-bubble :is(.bubble-kicker,#bubble-message,.bubble-meta,.answer-button) {
+  animation:none !important;
+ }
+}

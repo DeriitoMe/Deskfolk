@@ -1,0 +1,108 @@
+{
+  "checkedOn": "2026-10-15",
+  "timezone": "Asia/Tokyo",
+  "product": "Deskfolk",
+  "packageVersion": "1.0.0",
+  "releaseTag": "v1.0.0",
+  "projectRoot": ".",
+  "sourceOfTruthOrder": [
+    "current checked-out source, package version, Git tag, and working-tree changes",
+    "release artifact checksums and release-specific verification",
+    "current code tests and task-specific verified evidence",
+    "current handoff",
+    "historical docs",
+    "historical local installation snapshots"
+  ],
+  "gitBaseline": {
+    "releaseRef": "v1.0.0",
+    "checkCommands": ["git rev-parse HEAD", "git rev-parse v1.0.0", "git status --short"],
+    "workingTreeChangesMustBePreserved": true
+  },
+  "github": {
+    "repository": "https://github.com/DeriitoMe/Deskfolk",
+    "defaultBranch": "main",
+    "releaseTag": "v1.0.0",
+    "releaseUrl": "https://github.com/DeriitoMe/Deskfolk/releases/tag/v1.0.0",
+    "verification": "Resolve the live tag and Release assets when handing off; document preparation does not establish remote publication success."
+  },
+  "preReleaseInstalledBaseline": {
+    "internalPackageVersion": "0.1.0",
+    "archivePathTemplate": "%LOCALAPPDATA%/Programs/Liquid Glass Pet/resources/app.asar",
+    "executablePathTemplate": "%LOCALAPPDATA%/Programs/Liquid Glass Pet/Deskfolk.exe",
+    "userDataPathTemplate": "%APPDATA%/liquid-glass-pet",
+    "sha256": "b89151f933cc89d2418bfa37134d470fff1906af5897222b8d739750cfca787c",
+    "lastDeploymentEvidence": ".cache/board-arm-timing-20261014/deployment-verification.json",
+    "historicalRestartPassed": true,
+    "historicalHealthPassed": true,
+    "scope": "Historical local deployment reference; publishing v1.0.0 does not automatically upgrade this local installation."
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "electron": "37.10.3",
+    "three": "0.183.2",
+    "electronVite": "4.0.1",
+    "typescript": "5.9.3"
+  },
+  "currentBehavior": {
+    "activeCharacter": "wakaba-mutsumi",
+    "activeRig": "renderer/three-rig.ts::MutsumiRig",
+    "qOnly": true,
+    "transformation": false,
+    "publicCanvasPixels": [
+      1024,
+      768
+    ],
+    "nativeQuestionSupport": "confirmed native request_user_input / accepted request_user_input_async",
+    "realPermissionReminderSupport": false,
+    "superWorkMinimumDistinctWorkingProjects": 2,
+    "touchSeconds": 0.38,
+    "tearfulThreshold": 10,
+    "tearfulSeconds": 4,
+    "touchClipVolumes": [
+      0.75,
+      0.75,
+      0.75
+    ],
+    "tearfulClipOrder": "first, second, first, second per application instance",
+    "dizzyLaps": 3,
+    "bubbleFadeMilliseconds": 220,
+    "bubbleQuestionDisplaySeconds": 8,
+    "quotaBoardTrigger": "pet right-click",
+    "quotaBoardSeconds": 3.8,
+    "automaticQuotaThresholdReminders": false,
+    "armReturnStartSeconds": 2.7274193548387093,
+    "armReturnDurationSeconds": 0.6129032258064515,
+    "armReturnEndSeconds": 3.340322580645161,
+    "boardFadeStartSeconds": 2.8316129032258064,
+    "boardFadeEndSeconds": 3.2851612903225806
+  },
+  "knownInterfaceLimits": [
+    "pause and manual stop share native turn_aborted evidence",
+    "missing native terminal events cannot be replaced with a guessed fixed timeout",
+    "historical ended-session questions do not automatically become current pending questions",
+    "only the confirmed native question interface is used for real input reminders"
+  ],
+  "verificationScope": {
+    "performedNow": [
+      "update handoff for the v1.0.0 source baseline",
+      "preserve the distinction between historical installation hashes and new release artifacts"
+    ],
+    "notPerformedNow": [
+      "This handoff document is not a build, deployment, test, or publication receipt; consult the release verification records."
+    ],
+    "historicalEvidence": [
+      "docs/board-arm-timing-20261014.md",
+      "docs/water-hair-and-bubble-fade-20261014.md",
+      "docs/bubble-anchor-and-touch-volume-20261014.md",
+      "docs/click-display-and-board-motion-20261014.md"
+    ]
+  },
+  "sharing": {
+    "documentationBundleOnly": true,
+    "sourceBytesIncluded": false,
+    "privateProfilesIncluded": false,
+    "rawSessionDataIncluded": false,
+    "editableSourceBytesIncluded": false,
+    "remoteAgentSource": "GitHub v1.0.0 tag or corresponding reviewed public source archive; later local-only changes require a separately reviewed snapshot."
+  }
+}

@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {feedbackKind,OutcomeFeedbackQueue,remindersEnabled} from './outcome-feedback.ts';
+import type {PetEvent} from './types';
+const event=(patch:Partial<PetEvent>={}):PetEvent=>({id:'a',source:'codex-log',type:'interrupted',sessionId:'s',turnId:'t',outcome:'interrupted',createdAt:'2026-10-06T00:00:00Z',read:false,...patch});
+test('only verified terminal outcomes use stop-feedback',()=>{assert.equal(feedbackKind(event()),'paused');assert.equal(feedbackKind(event({outcome:'failed'})),'failed');assert.equal(feedbackKind(event({outcome:'quota_exhausted'})),'quota');for(const patch of [{type:'work_progress' as const},{replayed:true},{isSubagent:true},{type:'turn_ended' as const,outcome:'success' as const}])assert.equal(feedbackKind(event(patch)),undefined);});
+test('hook and native interruption of the same turn give one feedback',()=>{const q=new OutcomeFeedbackQueue();assert(q.enqueue(event({source:'hook'})));assert(!q.enqueue(event({id:'b'})));assert.equal(q.takeNext()?.kind,'paused');assert.equal(q.takeNext(),undefined);});
+test('resume drops queued feedback for its session while retaining other project feedback',()=>{const q=new OutcomeFeedbackQueue();q.enqueue(event());q.enqueue(event({id:'b',sessionId:'other'}));q.clearSession('s');assert.equal(q.takeNext()?.event.sessionId,'other');});
+test('silencing reminders preserves an independent activity policy',()=>{assert(remindersEnabled(null));assert(!remindersEnabled({doNotDisturb:true,notificationsEnabled:true}));assert(!remindersEnabled({doNotDisturb:false,notificationsEnabled:false}));});

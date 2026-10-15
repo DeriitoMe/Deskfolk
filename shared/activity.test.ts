@@ -1,13 +1,43 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { dominantActivity, isSuccessfulCompletion, shouldCelebrateCompletion, shouldDeliverPetEvent, shouldIgnoreHookQuestion, shouldPresentLifecycleEvent, successfulCompletionIdentity, updateSessionActivities, type SessionActivities } from "./activity.ts";
-import {projectIdentity} from './activity.ts';
+import {projectIdentity,sanitizeStoredActivities,shouldDeliverBufferedEvent,isUnconfirmedHookWork} from './activity.ts';
 import type { PetEvent, PetEventType } from "./types";
 
 function event(type: PetEventType, turnId = "turn-1", sessionId = "session-1"): PetEvent {
-  return { id: `${type}-${turnId}`, source: "hook", type, sessionId, turnId,
+  const input=type==='needs_input'||type==='input_resolved';
+  return { id: `${type}-${turnId}`, source: input?'codex-log':'hook', type, sessionId, turnId,
+    nativeQuestion:type==='needs_input',nativeCallId:input?'question':undefined,
     createdAt: "2026-09-25T12:00:00.000Z", read: false };
 }
+
+test('hook work requires the same turn confirmed by native lifecycle evidence',()=>{
+ const hook=event('work_started');
+ assert.equal(isUnconfirmedHookWork({},hook),true);
+ const hookOnly=updateSessionActivities({},hook);
+ assert.equal(isUnconfirmedHookWork(hookOnly,hook),true);
+ const native=updateSessionActivities({}, {...hook,source:'codex-log'});
+ assert.equal(isUnconfirmedHookWork(native,hook),false);
+ assert.equal(isUnconfirmedHookWork(native,event('work_progress','turn-2')),true);
+ assert.equal(isUnconfirmedHookWork(native,{...hook,turnId:undefined}),true);
+ for(const type of ['turn_ended','interrupted','task_complete'] as const)
+  assert.equal(isUnconfirmedHookWork({},event(type)),false);
+ assert.equal(isUnconfirmedHookWork({}, {...hook,source:'mcp'}),false);
+});
+
+test('an orphan hook cannot hold work open or create an extra working project',()=>{
+ let sessions:SessionActivities={};
+ const receive=(e:PetEvent)=>{if(!isUnconfirmedHookWork(sessions,e))sessions=updateSessionActivities(sessions,e)};
+ receive({...event('work_started','browser-hook','orphan'),projectPath:'D:/Browser'});
+ assert.equal(dominantActivity(sessions).phase,'idle');
+ receive({...event('work_started','native-turn','real'),source:'codex-log',projectPath:'D:/Real'});
+ receive({...event('work_started','browser-hook','orphan'),projectPath:'D:/Browser'});
+ assert.equal(dominantActivity(sessions).workingProjectCount,1);
+ receive({...event('turn_ended','native-turn','real'),source:'codex-log',outcome:'success'});
+ assert.equal(dominantActivity(sessions).phase,'idle');
+ receive({...event('work_progress','native-turn','real'),projectPath:'D:/Real'});
+ assert.equal(dominantActivity(sessions).phase,'idle');
+});
 
 test("question remains visible after Stop and resumes on next user prompt", () => {
   let sessions: SessionActivities = {};
@@ -18,7 +48,7 @@ test("question remains visible after Stop and resumes on next user prompt", () =
   sessions = updateSessionActivities(sessions, event("work_progress"), now);
   sessions = updateSessionActivities(sessions, event("turn_ended"), now);
   assert.equal(dominantActivity(sessions).phase, "asking");
-  sessions = updateSessionActivities(sessions, event("work_started", "turn-2"), now);
+  sessions = updateSessionActivities(sessions, {...event("work_started", "turn-2"),source:'codex-log'}, now);
   assert.equal(dominantActivity(sessions).phase, "working");
   sessions = updateSessionActivities(sessions, event("turn_ended", "turn-1"), now);
   assert.equal(dominantActivity(sessions).phase, "working");
@@ -26,11 +56,14 @@ test("question remains visible after Stop and resumes on next user prompt", () =
   assert.equal(dominantActivity(sessions).phase, "idle");
 });
 
-test("permission resumes after a tool proceeds and unrelated sessions stay independent", () => {
+test("generic permission notices leave work running and unrelated native questions stay independent", () => {
   const now = Date.parse("2026-09-25T12:00:00.000Z");
-  let sessions = updateSessionActivities({}, event("approval_needed"), now);
-  assert.equal(dominantActivity(sessions).phase, "asking");
+  let sessions = updateSessionActivities({}, event("work_started"), now);
+  sessions = updateSessionActivities(sessions, event("approval_needed"), now);
+  assert.equal(dominantActivity(sessions).phase, "working");
   sessions = updateSessionActivities(sessions, event("work_progress"), now);
+  assert.equal(dominantActivity(sessions).phase, "working");
+  sessions = updateSessionActivities(sessions, event("approval_resolved"), now);
   assert.equal(dominantActivity(sessions).phase, "working");
   sessions = updateSessionActivities(sessions, event("needs_input", "turn-x", "session-2"), now);
   assert.equal(dominantActivity(sessions).phase, "asking");
@@ -127,11 +160,11 @@ test('native turn order survives delayed hook starts and late question hooks',()
  assert.equal(s['session-1'].turnId,'new');
  s=updateSessionActivities(s,native('needs_input','new','2026-09-28T00:00:12Z'));
  s=updateSessionActivities(s,{...event('work_started','new'),createdAt:'2026-09-28T00:00:13Z'});
- s=updateSessionActivities(s,event('input_resolved','new'));
+ s=updateSessionActivities(s,{...event('input_resolved','new'),source:'hook'});
  assert.equal(dominantActivity(s).phase,'asking');
  s=updateSessionActivities(s,native('input_resolved','new','2026-09-28T00:00:14Z'));
- assert.equal(shouldIgnoreHookQuestion(s,event('needs_input','new')),true);
- s=updateSessionActivities(s,event('needs_input','new'));
+ assert.equal(shouldIgnoreHookQuestion(s,{...event('needs_input','new'),source:'hook'}),true);
+ s=updateSessionActivities(s,{...event('needs_input','new'),source:'hook'});
  assert.equal(dominantActivity(s).phase,'working');
  s=updateSessionActivities(s,native('turn_ended','new','2026-09-28T00:00:15Z'));
  for(const type of ['work_started','work_progress','needs_input','input_resolved'] as const)s=updateSessionActivities(s,event(type,'new'));
@@ -176,14 +209,108 @@ test('unattributed hook endings do not stop a native turn and hooks cannot chang
  assert.equal(dominantActivity(s).phase,'idle');
 });
 
-test('native directory context preserves a pending approval until a tool proceeds',()=>{
+test('native directory context preserves a pending question until its own reply arrives',()=>{
  let s=updateSessionActivities({}, {...event('work_started'),source:'codex-log',projectPath:'D:/Initial'});
- s=updateSessionActivities(s,event('approval_needed'));
+ s=updateSessionActivities(s,event('needs_input'));
  s=updateSessionActivities(s,{...event('work_progress'),source:'codex-log',projectPath:'E:/Current'});
- assert.equal(dominantActivity(s).phase,'asking');assert.equal(s['session-1'].waitingFor,'approval');
+ assert.equal(dominantActivity(s).phase,'asking');assert.equal(s['session-1'].waitingFor,'input');
  assert.equal(s['session-1'].projectPath,'e:/current');
  s=updateSessionActivities(s,event('work_progress'));
+ assert.equal(dominantActivity(s).phase,'asking');
+ s=updateSessionActivities(s,event('input_resolved'));
  assert.equal(dominantActivity(s).phase,'working');
+});
+
+test('multiple pending native questions require their own exact resolution and ignore permission notices',()=>{
+ const native=(type:PetEventType,key:string)=>({...event(type),source:'codex-log' as const,nativeCallId:key});
+ let sessions=updateSessionActivities({}, {...event('work_started'),source:'codex-log'});
+ for(const key of ['question-a','question-b'])sessions=updateSessionActivities(sessions,native('needs_input',key));
+ for(const key of ['approval-a','approval-b'])sessions=updateSessionActivities(sessions,{...event('approval_needed'),nativeCallId:key,nativeApproval:true});
+ // Duplicate delivery and unrelated tool progress change no pending requests.
+ sessions=updateSessionActivities(sessions,native('needs_input','question-a'));
+ sessions=updateSessionActivities(sessions,event('work_progress'));
+ sessions=updateSessionActivities(sessions,native('input_resolved','unrelated-question'));
+ sessions=updateSessionActivities(sessions,{...event('approval_resolved'),nativeCallId:'unrelated-approval'});
+ assert.deepEqual(sessions['session-1'].pendingInputIds,['question-a','question-b']);
+ assert.deepEqual(sessions['session-1'].pendingApprovalIds,[]);
+ sessions=updateSessionActivities(sessions,native('input_resolved','question-a'));
+ assert.equal(sessions['session-1'].waitingFor,'input');
+ sessions=updateSessionActivities(sessions,native('input_resolved','question-b'));
+ assert.equal(sessions['session-1'].waitingFor,undefined);
+ sessions=updateSessionActivities(sessions,{...event('approval_resolved'),nativeCallId:'approval-a'});
+ assert.equal(sessions['session-1'].phase,'working');
+ sessions=updateSessionActivities(sessions,{...event('approval_resolved'),nativeCallId:'approval-b'});
+ assert.equal(sessions['session-1'].phase,'working');
+});
+
+test('missing request identity and hook replies cannot dismiss identified pending native questions',()=>{
+ let sessions=updateSessionActivities({},event('work_started'));
+ sessions=updateSessionActivities(sessions,{...event('needs_input'),nativeCallId:'question'});
+ sessions=updateSessionActivities(sessions,{...event('approval_needed'),nativeCallId:'approval'});
+ for(const type of ['input_resolved','approval_resolved'] as const)sessions=updateSessionActivities(sessions,{...event(type),nativeCallId:undefined});
+ sessions=updateSessionActivities(sessions,{...event('input_resolved'),source:'hook'});
+ assert.deepEqual(sessions['session-1'].pendingInputIds,['question']);
+ assert.deepEqual(sessions['session-1'].pendingApprovalIds,[]);
+ assert.equal(sessions['session-1'].phase,'asking');
+});
+
+test('duplicate starts and delayed resolved question notices cannot rewind the same turn',()=>{
+ let sessions=updateSessionActivities({},event('work_started'));
+ sessions=updateSessionActivities(sessions,{...event('needs_input'),nativeCallId:'question'});
+ sessions=updateSessionActivities(sessions,event('work_started'));
+ assert.equal(sessions['session-1'].phase,'asking');
+ sessions=updateSessionActivities(sessions,{...event('input_resolved'),nativeCallId:'question'});
+ sessions=updateSessionActivities(sessions,{...event('needs_input'),nativeCallId:'question'});
+ assert.equal(sessions['session-1'].phase,'working');
+ sessions=updateSessionActivities(sessions,{...event('work_started','next'),source:'codex-log'});
+ sessions=updateSessionActivities(sessions,{...event('needs_input','next'),nativeCallId:'question'});
+ assert.equal(sessions['session-1'].phase,'asking');
+});
+
+test('terminal outcome clears approvals, success preserves unanswered input and replies stay terminal',()=>{
+ for(const outcome of ['success','failed','quota_exhausted','interrupted'] as const){
+  let sessions=updateSessionActivities({},event('work_started'));
+  sessions=updateSessionActivities(sessions,{...event('needs_input'),nativeCallId:'question'});
+  sessions=updateSessionActivities(sessions,{...event('approval_needed'),nativeCallId:'approval'});
+  sessions=updateSessionActivities(sessions,{...event('turn_ended'),outcome});
+  assert.deepEqual(sessions['session-1'].pendingApprovalIds,[]);
+  assert.equal(sessions['session-1'].phase,outcome==='success'?'asking':'idle');
+  sessions=updateSessionActivities(sessions,{...event('input_resolved'),nativeCallId:'question'});
+  sessions=updateSessionActivities(sessions,event('work_progress'));
+  assert.equal(sessions['session-1'].phase,'idle');
+  assert.equal(sessions['session-1'].terminal,true);
+ }
+});
+
+test('buffer flush delivers only the individual native question that is still pending',()=>{
+ let sessions=updateSessionActivities({},event('work_started'));
+ const question={...event('needs_input'),nativeCallId:'question',nativeQuestion:true};
+ const approval={...event('approval_needed'),nativeCallId:'approval',nativeApproval:true};
+ const otherQuestion={...question,nativeCallId:'other-question'};
+ sessions=updateSessionActivities(sessions,question);sessions=updateSessionActivities(sessions,otherQuestion);sessions=updateSessionActivities(sessions,approval);
+ sessions=updateSessionActivities(sessions,{...event('input_resolved'),nativeCallId:'question'});
+ assert.equal(shouldDeliverBufferedEvent(sessions,question),false);
+ assert.equal(shouldDeliverBufferedEvent(sessions,approval),false);
+ assert.equal(shouldDeliverBufferedEvent(sessions,otherQuestion),true);
+});
+
+test('verified success settles residual approval and persistent terminal outcome survives request cleanup',()=>{
+ let sessions=updateSessionActivities({},event('work_started'));
+ sessions=updateSessionActivities(sessions,{...event('approval_needed'),nativeCallId:'approval'});
+ const success={...event('turn_ended'),source:'codex-log' as const,outcome:'success' as const};
+ assert.equal(shouldCelebrateCompletion(sessions,success),true);
+ sessions=updateSessionActivities(sessions,success);
+ assert.equal(sessions['session-1'].phase,'idle');assert.equal(sessions['session-1'].terminalOutcome,'success');
+ sessions=updateSessionActivities(sessions,{...event('approval_resolved'),nativeCallId:'approval'});
+ assert.equal(sessions['session-1'].terminalOutcome,'success');
+ sessions=updateSessionActivities(sessions,{...event('work_started','next'),source:'codex-log'});
+ assert.equal(sessions['session-1'].terminalOutcome,undefined);
+ sessions=updateSessionActivities(sessions,{...event('interrupted','next'),source:'codex-log',outcome:'quota_exhausted'});
+ assert.equal(sessions['session-1'].terminalOutcome,'quota_exhausted');
+ assert.equal(sessions['session-1'].lastEventType,'interrupted');
+ sessions=updateSessionActivities(sessions,event('work_progress','next'));
+ assert.equal(sessions['session-1'].terminalOutcome,'quota_exhausted');
+ assert.equal(sessions['session-1'].lastEventType,'interrupted');
 });
 
 test('confirmed completion is delivered while another project works or awaits input',()=>{
@@ -368,4 +495,118 @@ test('a new native turn adopts its current assignment including an explicit remo
  sessions=updateSessionActivities(sessions,{...event('work_started','next'),source:'codex-log',projectId:undefined});
  assert.equal(sessions['session-1'].projectId,undefined);
  assert.equal(sessions['session-1'].nativeProjectIdConfirmed,true);
+});
+
+test('unconfirmed input and every generic permission event leave task state unchanged',()=>{
+ const working=updateSessionActivities({},event('work_started'));
+ const question=event('needs_input');
+ for(const candidate of [
+  {...question,source:'hook' as const}, {...question,source:'mcp' as const},
+  {...question,nativeQuestion:false}, {...question,questionId:'pet-question'},
+  {...question,sessionId:undefined}, {...question,turnId:undefined},
+  {...question,nativeCallId:undefined}, {...question,nativeCallId:'legacy:input'},
+  {...question,isSubagent:true},
+  ...(['hook','mcp','codex-log'] as const).map(source=>({...question,type:'approval_needed' as const,source,nativeApproval:true})),
+ ]){
+  assert.deepEqual(updateSessionActivities(working,candidate),working);
+  assert.equal(shouldDeliverBufferedEvent(working,candidate),false);
+  assert.equal(shouldDeliverPetEvent(candidate,dominantActivity(working)),false);
+ }
+});
+
+test('demo notifications preview visuals without creating or changing real activities',()=>{
+ const working=updateSessionActivities({},event('work_started'));
+ for(const type of ['needs_input','approval_needed','work_started','turn_ended','interrupted'] as const){
+  assert.deepEqual(updateSessionActivities(working,{...event(type),source:'demo'}),working);
+  assert.deepEqual(updateSessionActivities({}, {...event(type),source:'demo'}),{});
+ }
+ assert.equal(dominantActivity({demo:{sessionId:'demo',phase:'working',projectPath:'D:/Demo',updatedAt:event('info').createdAt}}).phase,'idle');
+});
+
+test('stored request migration removes placeholders and approvals while preserving project metadata',()=>{
+ const time=event('info').createdAt;
+ const previous:SessionActivities={
+  old:{sessionId:'old',turnId:'turn-old',phase:'asking',waitingFor:'input',pendingInputIds:['legacy:input'],terminal:true,terminalOutcome:'success',projectId:'project-old',projectPath:'D:/Old',updatedAt:time},
+  unknown:{sessionId:'unknown',turnId:'unknown-turn',phase:'asking',pendingInputIds:['unproven-question'],updatedAt:time},
+  approval:{sessionId:'approval',turnId:'approval-turn',nativeTurnId:'approval-turn',phase:'asking',waitingFor:'approval',pendingApprovalIds:['call-approval'],updatedAt:time},
+  real:{sessionId:'real',turnId:'native-turn',nativeTurnId:'native-turn',phase:'asking',waitingFor:'input',pendingInputIds:['native-question','legacy:input','native-question','resolved-question'],resolvedInputIds:['resolved-question'],terminal:true,terminalOutcome:'success',projectId:'real-project',updatedAt:time},
+ };
+ const before=structuredClone(previous),clean=sanitizeStoredActivities(previous);
+ assert.deepEqual(previous,before);
+ for(const id of ['old','unknown','approval']){
+  assert.equal(clean[id].phase,'idle');assert.equal(clean[id].waitingFor,undefined);
+  assert.deepEqual(clean[id].pendingInputIds,[]);assert.deepEqual(clean[id].pendingApprovalIds,[]);
+ }
+ assert.equal(clean.old.projectId,'project-old');assert.equal(clean.old.projectPath,'D:/Old');
+ assert.equal(clean.old.terminal,true);assert.equal(clean.old.terminalOutcome,'success');
+ assert.equal(clean.unknown.terminal,undefined);
+ assert.deepEqual(clean.real.pendingInputIds,['native-question']);assert.equal(clean.real.phase,'asking');
+});
+
+test('resolved native input cannot be revived by a delayed question or buffered reminder',()=>{
+ let sessions=updateSessionActivities({},event('work_started'));
+ const question=event('needs_input');
+ sessions=updateSessionActivities(sessions,event('input_resolved'));
+ sessions=updateSessionActivities(sessions,question);
+ assert.equal(sessions['session-1'].phase,'working');
+ assert.deepEqual(sessions['session-1'].pendingInputIds,[]);
+ assert.equal(shouldDeliverBufferedEvent(sessions,question),false);
+});
+
+test('live and buffered delivery reject old turns, missing pending IDs and subagent sessions',()=>{
+ const question=event('needs_input');
+ let sessions=updateSessionActivities({},question);
+ assert.equal(shouldDeliverBufferedEvent(sessions,question),true);
+ assert.equal(shouldDeliverBufferedEvent(sessions,{...question,nativeCallId:'absent'}),false);
+ assert.equal(shouldDeliverBufferedEvent(sessions,{...question,turnId:'older-turn'}),false);
+ assert.equal(shouldDeliverBufferedEvent(sessions,{...question,sessionId:'absent'}),false);
+ assert.equal(shouldDeliverBufferedEvent({...sessions,'session-1':{...sessions['session-1'],isSubagent:true}},question),false);
+ sessions=updateSessionActivities(sessions,{...event('work_started','next'),source:'codex-log'});
+ assert.equal(shouldDeliverBufferedEvent(sessions,question),false);
+});
+
+const inputSnapshot=(ids:string[],terminal:boolean,extra:Partial<PetEvent>={}):PetEvent=>({
+ ...event('input_sync'),source:'codex-log',nativePendingInputIds:ids,nativeTurnTerminal:terminal,...extra,
+});
+
+test('native snapshots restore real work and completed turns without pending questions',()=>{
+ let sessions=updateSessionActivities({},inputSnapshot([],false));
+ assert.equal(sessions['session-1'].phase,'working');assert.equal(sessions['session-1'].nativeTurnId,'turn-1');
+ const completed=inputSnapshot([],true,{outcome:'success'});
+ sessions=updateSessionActivities(sessions,completed);
+ assert.equal(sessions['session-1'].phase,'idle');assert.equal(sessions['session-1'].terminalOutcome,'success');
+ assert.equal(shouldCelebrateCompletion(sessions,completed),false);
+ assert.equal(shouldPresentLifecycleEvent(completed,true,Date.parse(completed.createdAt)),false);
+ assert.equal(shouldDeliverPetEvent(completed,dominantActivity(sessions)),false);
+ assert.equal(shouldDeliverBufferedEvent(sessions,completed),false);
+});
+
+test('native snapshots preserve actual unanswered questions after a successful turn',()=>{
+ let sessions=updateSessionActivities({},inputSnapshot(['q1','q2','legacy:input'],true,{outcome:'success'}));
+ assert.equal(sessions['session-1'].phase,'asking');assert.equal(sessions['session-1'].terminal,true);
+ assert.deepEqual(sessions['session-1'].pendingInputIds,['q1','q2']);
+ sessions=updateSessionActivities(sessions,{...event('input_resolved'),nativeCallId:'q1'});
+ assert.deepEqual(sessions['session-1'].pendingInputIds,['q2']);assert.equal(sessions['session-1'].phase,'asking');
+ sessions=updateSessionActivities(sessions,{...event('input_resolved'),nativeCallId:'q2'});
+ assert.equal(sessions['session-1'].phase,'idle');assert.equal(sessions['session-1'].terminal,true);
+});
+
+test('native snapshots clear answered cached requests and prevent their late notices from reviving them',()=>{
+ let sessions=updateSessionActivities({},event('needs_input'));
+ sessions=updateSessionActivities(sessions,inputSnapshot([],false));
+ assert.equal(sessions['session-1'].phase,'working');assert.deepEqual(sessions['session-1'].pendingInputIds,[]);
+ sessions=updateSessionActivities(sessions,event('needs_input'));
+ assert.equal(sessions['session-1'].phase,'working');
+ sessions=updateSessionActivities(sessions,inputSnapshot(['question'],true,{outcome:'success'}));
+ assert.equal(sessions['session-1'].phase,'asking');assert.deepEqual(sessions['session-1'].resolvedInputIds,[]);
+});
+
+test('native snapshots reject older turns and unconfirmed producers and recover an unassigned stored turn',()=>{
+ const working=updateSessionActivities({}, {...event('work_started','new'),source:'codex-log'});
+ for(const snapshot of [inputSnapshot(['old'],true),inputSnapshot([],false,{source:'mcp',turnId:'new'}),inputSnapshot([],false,{turnId:undefined}),inputSnapshot([],false,{nativeTurnTerminal:undefined}),inputSnapshot([],false,{nativePendingInputIds:undefined})])
+  assert.deepEqual(updateSessionActivities(working,snapshot),working);
+ const unknown:SessionActivities={'session-1':{sessionId:'session-1',phase:'idle',projectId:'preserved',updatedAt:event('info').createdAt}};
+ const restored=updateSessionActivities(unknown,inputSnapshot([],false));
+ assert.equal(restored['session-1'].phase,'working');assert.equal(restored['session-1'].projectId,'preserved');
+ assert.equal(restored['session-1'].turnId,'turn-1');
 });

@@ -21,13 +21,22 @@ export function lifecycleEvent(record:any, sessionId:string, cwd?:string, subage
 interface InputCall {
   turnId:string;
   asynchronous:boolean;
+  accepted:boolean;
   remaining:Set<number>;
 }
 interface ObservedSession {
   file?:string;offset:number;pending:string;cwd?:string;projectId?:string;subagent?:boolean;turnId?:string;
+  startedAt?:string;
+  terminal?:boolean;outcome?:CompletionOutcome;
+  inputSyncSignature?:string;inputSyncSequence?:number;
   replayUntil:number;projectSyncPending?:boolean;
   inputs:Map<string,InputCall>;
   search?:{end:number;size:number};
+}
+
+export interface CodexMonitorHealth {
+  state:'starting'|'watching'|'unavailable';lastPollAt:string|null;lastEventAt:string|null;
+  observedSessions:number;discoveryPending:number;
 }
 
 export class CodexLifecycleObserver {
@@ -39,13 +48,17 @@ export class CodexLifecycleObserver {
   private root:string;private emit:(event:PetEvent)=>void;
   private projects:CodexProjectCatalog;
   private observingSince=Date.now();
+  private health:CodexMonitorHealth={state:'starting',lastPollAt:null,lastEventAt:null,observedSessions:0,discoveryPending:0};
   constructor(root:string,emit:(event:PetEvent)=>void){this.root=root;this.emit=emit;this.projects=new CodexProjectCatalog(dirname(root));}
   track(id?:string){if(id&&/^[a-z0-9-]{20,80}$/i.test(id)&&!this.sessions.has(id))this.sessions.set(id,{offset:0,pending:'',replayUntil:0,inputs:new Map()});}
   start(){this.timer=setInterval(()=>void this.poll(),750);void this.poll();}
   stop(){clearInterval(this.timer);}
+  getHealth():CodexMonitorHealth{return {...this.health,observedSessions:[...this.sessions.values()].filter(x=>!!x.file).length,discoveryPending:this.discoveryQueue.length};}
+  getProjectName(id:string):string|undefined{return this.projects.projectName(id);}
+  private notify(event:PetEvent){this.health.lastEventAt=new Date().toISOString();this.emit(event);}
   private async catalog(dir:string,depth=0):Promise<string[]>{
     if(depth>4)return [];const out:string[]=[];
-    for(const x of await readdir(dir,{withFileTypes:true}).catch(()=>[])){
+    for(const x of await readdir(dir,{withFileTypes:true}).catch(error=>{if(depth===0)throw error;return []})){
       const p=join(dir,x.name);if(x.isDirectory())out.push(...await this.catalog(p,depth+1));
       else if(x.name.endsWith('.jsonl'))out.push(p);
     }return out;
@@ -119,10 +132,27 @@ export class CodexLifecycleObserver {
   }
   private syncProject(id:string,s:ObservedSession){
     if(!s.turnId)return;
-    this.emit({id:`log:${id}:${s.turnId}:project:${Date.now()}`,source:'codex-log',type:'work_progress',
+    this.notify({id:`log:${id}:${s.turnId}:project:${Date.now()}`,source:'codex-log',type:'work_progress',
       sessionId:id,turnId:s.turnId,projectPath:s.cwd,projectId:s.projectId,project:s.cwd?basename(s.cwd):undefined,
       isSubagent:s.subagent,createdAt:new Date().toISOString(),read:false});
     s.projectSyncPending=false;
+  }
+  private async syncInputs(id:string,s:ObservedSession){
+    // Until the backward search and bounded forward reads reach the actual
+    // end, an empty or partly replayed ledger cannot invalidate stored calls.
+    if(s.search||!s.file||!s.turnId||(await stat(s.file)).size!==s.offset)return;
+    const pending=[...s.inputs].filter(([,input])=>input.turnId===s.turnId&&input.accepted&&input.remaining.size)
+      .map(([callId])=>callId).sort();
+    const terminal=s.terminal===true;
+    const signature=JSON.stringify([s.turnId,pending,terminal,s.outcome,s.cwd,s.projectId,s.subagent]);
+    if(signature===s.inputSyncSignature)return;
+    s.inputSyncSignature=signature;s.inputSyncSequence=(s.inputSyncSequence??0)+1;
+    // This is internal state reconciliation, including successful terminal
+    // turns that still have unanswered questions. It never presents a notice.
+    this.notify({id:`log:${id}:${s.turnId}:input_sync:${Date.now()}:${s.inputSyncSequence}`,source:'codex-log',type:'input_sync',
+      sessionId:id,turnId:s.turnId,nativePendingInputIds:pending,nativeTurnTerminal:terminal,outcome:s.outcome,
+      projectPath:s.cwd,projectId:s.projectId,project:s.cwd?basename(s.cwd):undefined,isSubagent:s.subagent,
+      replayed:true,createdAt:new Date().toISOString(),read:false});
   }
   private consume(record:any,id:string,s:ObservedSession,initialRecord:boolean){
     // Age alone never decides whether an appended completion is historical.
@@ -131,13 +161,18 @@ export class CodexLifecycleObserver {
     const lifecycle=lifecycleEvent(record,id,s.cwd,s.subagent);
     if(lifecycle){
       if(lifecycle.type==='work_started'){
-        if(s.turnId!==lifecycle.turnId)s.inputs.clear();s.turnId=lifecycle.turnId;
-      }else if(lifecycle.type==='interrupted')s.inputs.clear();
-      this.emit({...lifecycle,projectId:s.projectId,replayed});return;
+        if(s.startedAt&&Date.parse(lifecycle.createdAt)<Date.parse(s.startedAt))return;
+        if(s.turnId!==lifecycle.turnId)s.inputs.clear();s.turnId=lifecycle.turnId;s.startedAt=lifecycle.createdAt;
+        s.terminal=false;s.outcome=undefined;
+      }else if(lifecycle.turnId===s.turnId){
+        s.terminal=true;s.outcome=lifecycle.outcome;
+        if(lifecycle.outcome!=='success')s.inputs.clear();
+      }
+      this.notify({...lifecycle,projectId:s.projectId,replayed});return;
     }
     if(record?.type==='turn_context'&&record.payload?.turn_id===s.turnId&&typeof record.payload.cwd==='string'&&Number.isFinite(Date.parse(record.timestamp))){
       s.cwd=record.payload.cwd;
-      this.emit({id:`log:${id}:${s.turnId}:context:${record.timestamp}`,source:'codex-log',type:'work_progress',
+      this.notify({id:`log:${id}:${s.turnId}:context:${record.timestamp}`,source:'codex-log',type:'work_progress',
         sessionId:id,turnId:s.turnId,projectPath:s.cwd,projectId:s.projectId,project:basename(record.payload.cwd),isSubagent:s.subagent,replayed,createdAt:record.timestamp,read:false});
       return;
     }
@@ -147,23 +182,25 @@ export class CodexLifecycleObserver {
       let argumentsValue;try{argumentsValue=JSON.parse(p.arguments)}catch{return}
       if(!Array.isArray(argumentsValue?.questions)||!argumentsValue.questions.length)return;
       const asynchronous=p.name.endsWith('_async');
-      s.inputs.set(p.call_id,{turnId:s.turnId,asynchronous,remaining:new Set(argumentsValue.questions.map((_:unknown,index:number)=>index))});
-      if(!asynchronous)this.emit(this.inputEvent(record,id,s,'needs_input',p.call_id,s.turnId,replayed));
+      s.inputs.set(p.call_id,{turnId:s.turnId,asynchronous,accepted:!asynchronous,remaining:new Set(argumentsValue.questions.map((_:unknown,index:number)=>index))});
+      if(!asynchronous)this.notify(this.inputEvent(record,id,s,'needs_input',p.call_id,s.turnId,replayed));
       return;
     }
     if(p?.type==='function_call_output'){
       const input=s.inputs.get(p.call_id);if(!input)return;
       if(input.asynchronous){
         let output;try{output=JSON.parse(p.output)}catch{output=undefined}
-        if(output?.accepted===true)this.emit(this.inputEvent(record,id,s,'needs_input',p.call_id,input.turnId,replayed));
+        if(output?.accepted===true){
+          if(!input.accepted){input.accepted=true;this.notify(this.inputEvent(record,id,s,'needs_input',p.call_id,input.turnId,replayed));}
+        }
         else {
           s.inputs.delete(p.call_id);
-          if(![...s.inputs.values()].some(x=>x.turnId===input.turnId))this.emit(this.inputEvent(record,id,s,'input_resolved',p.call_id,input.turnId,replayed));
+          this.notify(this.inputEvent(record,id,s,'input_resolved',p.call_id,input.turnId,replayed));
         }
         return; // An asynchronous acknowledgement contains no user answer.
       }
       s.inputs.delete(p.call_id);
-      if(![...s.inputs.values()].some(x=>x.turnId===input.turnId))this.emit(this.inputEvent(record,id,s,'input_resolved',p.call_id,input.turnId,replayed));
+      this.notify(this.inputEvent(record,id,s,'input_resolved',p.call_id,input.turnId,replayed));
       return;
     }
     if(p?.type!=='message'||p.role!=='user'||!Array.isArray(p.content))return;
@@ -174,18 +211,18 @@ export class CodexLifecycleObserver {
     if(!envelope)return;
     let replies;try{replies=JSON.parse(envelope[1])}catch{return}
     if(!Array.isArray(replies))return;
-    let resolved:{callId:string;turnId:string}|undefined;
+    const resolved:{callId:string;turnId:string}[]=[];
     const replyTurn=p.internal_chat_message_metadata_passthrough?.turn_id;
     for(const reply of replies){
       if(typeof reply?.answer!=='string'||!reply.answer.trim())continue;
       let tuple;try{tuple=JSON.parse(reply.questionItemId)}catch{continue}
       if(!Array.isArray(tuple)||tuple.length!==3||tuple[0]!=='request_user_input_async'||typeof tuple[1]!=='string'||!Number.isInteger(tuple[2]))continue;
       const input=s.inputs.get(tuple[1]);
-      if(!input?.asynchronous||input.turnId!==s.turnId||(replyTurn&&replyTurn!==input.turnId)||!input.remaining.has(tuple[2]))continue;
+      if(!input?.asynchronous||!input.accepted||input.turnId!==s.turnId||(replyTurn&&replyTurn!==input.turnId)||!input.remaining.has(tuple[2]))continue;
       input.remaining.delete(tuple[2]);
-      if(!input.remaining.size){s.inputs.delete(tuple[1]);resolved={callId:tuple[1],turnId:input.turnId};}
+      if(!input.remaining.size){s.inputs.delete(tuple[1]);resolved.push({callId:tuple[1],turnId:input.turnId});}
     }
-    if(resolved&&![...s.inputs.values()].some(x=>x.turnId===resolved!.turnId))this.emit(this.inputEvent(record,id,s,'input_resolved',resolved.callId,resolved.turnId,replayed));
+    for(const item of resolved)this.notify(this.inputEvent(record,id,s,'input_resolved',item.callId,item.turnId,replayed));
   }
   private relevant(line:string,s:ObservedSession):boolean {
     if(line.includes('"turn_context"'))return true;
@@ -198,6 +235,9 @@ export class CodexLifecycleObserver {
   async poll(){
     if(this.busy)return;this.busy=true;
     try{
+      // Monitor availability is a real readable-directory check, never a guess
+      // about task state from missing events or quiet log timestamps.
+      await readdir(this.root);
       await this.projects.refresh();
       if(Date.now()-this.refreshed>5000){this.files=await this.catalog(this.root);await this.discover();this.refreshed=Date.now();}
       else for(const file of this.discoveryQueue.splice(0,8)){
@@ -220,7 +260,8 @@ export class CodexLifecycleObserver {
         const {file,meta}=selected,size=(await stat(file)).size;
         if(file!==s.file || size<s.offset || (s.search&&size<s.search.size)){
           s.cwd=meta.cwd;s.subagent=typeof meta.source==='object'&&!!meta.source?.subagent;
-          s.file=file;s.pending='';s.offset=0;s.replayUntil=size;s.search={end:size,size};s.turnId=undefined;s.inputs.clear();s.projectSyncPending=true;
+          s.file=file;s.pending='';s.offset=0;s.replayUntil=size;s.search={end:size,size};s.turnId=undefined;s.startedAt=undefined;
+          s.terminal=false;s.outcome=undefined;s.inputSyncSignature=undefined;s.inputs.clear();s.projectSyncPending=true;
         }
         // Sidebar assignment is independent of cwd and may change without any
         // new lifecycle log bytes. Reconcile identity without starting a task.
@@ -236,7 +277,10 @@ export class CodexLifecycleObserver {
           s.offset=result.offset;s.search=undefined;
           if(s.offset>0)s.pending='__skip_partial__';
         }
-        if(size===s.offset)continue;
+        if(size===s.offset){
+          if(s.projectSyncPending&&s.turnId)this.syncProject(id,s);
+          await this.syncInputs(id,s);continue;
+        }
         const readStart=s.offset;
         const f=await open(file,'r');const data=Buffer.alloc(Math.min(size-s.offset,8*1024*1024));
         const n=(await f.read(data,0,data.length,s.offset)).bytesRead;await f.close();s.offset+=n;
@@ -254,7 +298,9 @@ export class CodexLifecycleObserver {
         // start must not rewind it, so apply its current sidebar assignment as
         // separate metadata once catch-up has established the latest turn ID.
         if(s.projectSyncPending&&s.turnId)this.syncProject(id,s);
+        if(s.offset===size)await this.syncInputs(id,s);
       }
-    }catch(error){console.warn('Codex lifecycle read deferred:',(error as Error).message);}finally{this.busy=false;}
+      this.health.state='watching';this.health.lastPollAt=new Date().toISOString();
+    }catch(error){this.health.state='unavailable';console.warn('Codex lifecycle read deferred:',(error as NodeJS.ErrnoException).code??'read_failed');}finally{this.busy=false;}
   }
 }

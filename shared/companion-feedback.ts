@@ -3,7 +3,9 @@ import { isSuccessfulCompletion, successfulCompletionIdentity } from './activity
 export { isSuccessfulCompletion } from './activity.ts';
 
 export const QUESTION_REMINDER_MS = 8_000;
-export const TOUCH_SECONDS = 1.6;
+export { TOUCH_SECONDS } from './touch-motion.ts';
+export const FEEDBACK_SECONDS = { failed: 2.2, paused: 1.6, quota: 2.4 } as const;
+export const DIZZY_SECONDS = 4;
 export type CelebrationVariant = 'A' | 'D';
 export const CELEBRATION_SECONDS: Record<CelebrationVariant, number> = { A: 2.5, D: 2.4 };
 
@@ -35,6 +37,7 @@ export class CelebrationSequence {
   }
 
   get queued(): number { return this.pending.length; }
+  clearPending(): void { this.pending=[]; }
 }
 
 export class QuestionReminderWindow {

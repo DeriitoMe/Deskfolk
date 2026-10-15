@@ -13,7 +13,7 @@ function validSections(value:unknown):value is Record<string,unknown>{
   return ['local-projects','thread-project-assignments','thread-project-membership-host-ids'].every(key=>value[key]===undefined||record(value[key]));
 }
 
-/** Select stable local project IDs only; never retain chat bodies or names. */
+/** Select stable local project IDs without retaining conversation text or titles. */
 export function parseCodexProjectAssignments(value:unknown):Map<string,string>{
   const assignments=new Map<string,string>();
   if(!validSections(value))return assignments;
@@ -48,6 +48,7 @@ export class CodexProjectCatalog {
   private file:string;
   private signature?:string;
   private assignments=new Map<string,string>();
+  private names=new Map<string,string>();
   private refreshing?:Promise<void>;
 
   constructor(home:string){this.file=join(home,'.codex-global-state.json');}
@@ -72,6 +73,14 @@ export class CodexProjectCatalog {
       // instead of installing a snapshot assembled across different writes.
       if(after.mtimeMs!==before.mtimeMs||after.size!==before.size)return;
       this.assignments=parseCodexProjectAssignments(value);
+      const names=new Map<string,string>();
+      for(const [key,project] of Object.entries(value['local-projects']??{})){
+        const id=identity(key);
+        if(id&&record(project)&&identity(project.id)===id&&Array.isArray(project.rootPaths)&&project.rootPaths.some(rootPath)&&typeof project.name==='string'){
+          const name=project.name.replace(/[\u0000-\u001f\u007f]/g,'').trim();if(name)names.set(`codex-local:${id}`,Array.from(name).slice(0,128).join(''));
+        }
+      }
+      this.names=names;
       this.signature=signature;
     }catch{
       // Atomic replacement and partially written JSON are transient. Keep only
@@ -86,4 +95,5 @@ export class CodexProjectCatalog {
     // Directory fallbacks remain the lifecycle consumer's responsibility.
     return id?this.assignments.get(id):undefined;
   }
+  projectName(projectId:string):string|undefined{return this.names.get(projectId);}
 }

@@ -1,0 +1,522 @@
+{
+  "checkedOn": "2026-10-15",
+  "scope": "Current v1.0.0 public code and critical runtime assets; hash references, not an exhaustive dependency archive.",
+  "files": [
+    {
+      "path": "assets/characters/wakaba-mutsumi/quota-board-20261014/runtime/quota-board-frame.svg",
+      "bytes": 1910,
+      "sha256": "736ab550a2688e73bd65632fe54abaa695723027fe6b3ca228b70f6c31483179"
+    },
+    {
+      "path": "assets/characters/wakaba-mutsumi/side-hair-lines-20261012/runtime/side-hair-lines.png",
+      "bytes": 3328832,
+      "sha256": "b8af187816cd6f70ac26970af5f66264673e665fd60a3599e648857fedf26c08"
+    },
+    {
+      "path": "assets/characters/wakaba-mutsumi/tearful-20261009/runtime/tearful-eye-base.png",
+      "bytes": 6039,
+      "sha256": "67aac1ac6733cf1c64882e00ad92a9f5b0e2e87088d261ba51519e15a5aa1578"
+    },
+    {
+      "path": "assets/characters/wakaba-mutsumi/v41-3d/runtime/mutsumi-v05.glb",
+      "bytes": 12383840,
+      "sha256": "231e1667469f9c7a43f5f43c11125ab23ed9f19fbc1adc06cedfb60edb7d6c57"
+    },
+    {
+      "path": "assets/characters/wakaba-mutsumi/water-hair-gap-20261014/runtime/hair-gap-fill-v2.glb",
+      "bytes": 27180,
+      "sha256": "f9abb667f8019fc0fbe7e67a2342d483c7f57e3d1a2df75078ae804b3db13515"
+    },
+    {
+      "path": "bridge/pet-mcp.mjs",
+      "bytes": 7486,
+      "sha256": "16435024c45c77858fb0d00530914824539293e4a3124a0e00ee708bc795e531"
+    },
+    {
+      "path": "electron/codex-lifecycle.test.ts",
+      "bytes": 40871,
+      "sha256": "1993b2283cfea225456dc5f22924bc57d2d50b0dee1e8b4458563e6dbaf09621"
+    },
+    {
+      "path": "electron/codex-lifecycle.ts",
+      "bytes": 19448,
+      "sha256": "76d8cb9e1a634994e2426eb0d7d6b1d4b225944ce30953bad2ed445f1eaa1e22"
+    },
+    {
+      "path": "electron/codex-projects.test.ts",
+      "bytes": 6997,
+      "sha256": "6208c69c279585b28d51038ba64cdd7db9fcbbadf6d3e4155696133f58548a81"
+    },
+    {
+      "path": "electron/codex-projects.ts",
+      "bytes": 5059,
+      "sha256": "c57bfc43d0a6c91e205187d5c603bd24bfa9e86919327f6a1f4f653d24ceea51"
+    },
+    {
+      "path": "electron/codex-quota.test.ts",
+      "bytes": 3866,
+      "sha256": "f3b2d06f8b21dad98c956bbd21cfff2815f75e0bdd767418d0c140c13fb2d656"
+    },
+    {
+      "path": "electron/codex-quota.ts",
+      "bytes": 8266,
+      "sha256": "5d8e854021f2cfb6a1b8f7f1817e4ff7ec2f6ba4493966c553e50f486117cf09"
+    },
+    {
+      "path": "electron/codex-startup.ts",
+      "bytes": 3326,
+      "sha256": "66be9aa39583487bf273d787b93fc4cd23d9bac5c5ec68d8e9f7b1c3889d26b6"
+    },
+    {
+      "path": "electron/codex-window.ts",
+      "bytes": 3439,
+      "sha256": "cc3d34a4978d7064d450ad0bc463cd1f03ddacb150a427b2f656aeac00938156"
+    },
+    {
+      "path": "electron/current-questions.test.ts",
+      "bytes": 6084,
+      "sha256": "b8ef4d34effef2acf9fa16c0295a619133b42bf073c362c0715f688e02d1a6ee"
+    },
+    {
+      "path": "electron/current-questions.ts",
+      "bytes": 3013,
+      "sha256": "a994d2318242510aa67c924dd0e58b8bb0d9c8440fe0917fd2e3bc960d7f7693"
+    },
+    {
+      "path": "electron/event-presentation.test.ts",
+      "bytes": 7717,
+      "sha256": "2d699ab3542be89e5af0eefdfcea212f7183da1849862366bb877ffc784a4fb3"
+    },
+    {
+      "path": "electron/event-presentation.ts",
+      "bytes": 2079,
+      "sha256": "151d61c1a2e5f320684c5c4ce733921d3b2efa86edb819f91a386fb49d04b20d"
+    },
+    {
+      "path": "electron/main.ts",
+      "bytes": 36592,
+      "sha256": "e08b3b7c64b5d30dae2f6a6d7813138aa27712de3156b80542fa61aa373a85bf"
+    },
+    {
+      "path": "electron/preload.ts",
+      "bytes": 3137,
+      "sha256": "f551cfd44429bc45da03c768a5e2a4508dfa8e944622f424587162e2be75b8cc"
+    },
+    {
+      "path": "electron/renderer-events.test.ts",
+      "bytes": 2809,
+      "sha256": "252663d5cd3626b7a1bc6076c262b35456971dbc770df89f74f8613a3b64c71d"
+    },
+    {
+      "path": "electron/renderer-events.ts",
+      "bytes": 737,
+      "sha256": "1a834f21ba2106fd049c5a9959bc027dfba854e12b7dc414559fb660a43622f4"
+    },
+    {
+      "path": "electron.vite.config.ts",
+      "bytes": 829,
+      "sha256": "50f4f2e671460dafcd8026938a7e213589506a5f97fde6433a4f3a2f834e7c66"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 217030,
+      "sha256": "75baa844608518f0ce69f26c301d29f0406ba463880340df9356998a303b9be1"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1696,
+      "sha256": "be24ac8b693eeae9334fc607f379b3db08e478f619fd6b6df6e34d4a94c4f394"
+    },
+    {
+      "path": "plugins/liquid-glass-pet/.codex-plugin/plugin.json",
+      "bytes": 764,
+      "sha256": "b1c7eeae5af2c9a4d0b710eaffda6e83cf2f694418876a0b05809f3f5d730762"
+    },
+    {
+      "path": "plugins/liquid-glass-pet/hooks/hooks.json",
+      "bytes": 1569,
+      "sha256": "3013acb061f274d59defe8dfee249965c5ad7d1ffab99fa81d5d9ac851a1075d"
+    },
+    {
+      "path": "plugins/liquid-glass-pet/hooks/notify.mjs",
+      "bytes": 3968,
+      "sha256": "36e9e34c8be3fccd6b1194fff18a829d94bbe951e4250f28c7fbe16bef2acacf"
+    },
+    {
+      "path": "plugins/liquid-glass-pet/hooks/notify.test.mjs",
+      "bytes": 7802,
+      "sha256": "dc27cde7d86fcbe6b6fdd6339f852c3cbe4a686a9bfe962dd36e230153a8eed1"
+    },
+    {
+      "path": "plugins/liquid-glass-pet/skills/pet-notify/SKILL.md",
+      "bytes": 856,
+      "sha256": "bc4a8617e64114eb388f4eea9e64edf10db6958036c228536dea3ec7800adcaf"
+    },
+    {
+      "path": "renderer/articulated-rig.ts",
+      "bytes": 18686,
+      "sha256": "cfe329a20e6fe1cd0a51c4a13744032889f9fcfe96bf36c56d9f088001974070"
+    },
+    {
+      "path": "renderer/assets/audio/mutsumi-bubble-complete.wav",
+      "bytes": 185303,
+      "sha256": "d9848661566a06eb56724d116bdadc4773798febeff0e0e42676276d5a4dc22f"
+    },
+    {
+      "path": "renderer/assets/audio/mutsumi-bubble-question.wav",
+      "bytes": 199574,
+      "sha256": "e5fd05502f982ca5268f1559cea8e3ad0b5d4196cdd04bcb2b1a112c07160fd1"
+    },
+    {
+      "path": "renderer/assets/audio/mutsumi-bubble-super-work.wav",
+      "bytes": 216044,
+      "sha256": "ed956d6f8327082fa0df6db0febcc11de2f8efb6435af7b4e7aa8218ed9d10b3"
+    },
+    {
+      "path": "renderer/assets/audio/mutsumi-bubble-working.wav",
+      "bytes": 116549,
+      "sha256": "acc794424b384d6435b12c10b31efb2b9203d44ea3578de605449dea8bf8df2e"
+    },
+    {
+      "path": "renderer/assets/audio/mutsumi-headpat.wav",
+      "bytes": 51884,
+      "sha256": "8a00a1e45612c756baac0d083acaada588cb6d6ebca98d9fe926414b78f1f43a"
+    },
+    {
+      "path": "renderer/assets/audio/mutsumi-tearful-first.wav",
+      "bytes": 144044,
+      "sha256": "7855af8fe0ef1e31ab7e186679b2f23c0f4eded7e1b7651b64bcf7c0045de1e0"
+    },
+    {
+      "path": "renderer/assets/audio/mutsumi-tearful-second.wav",
+      "bytes": 342764,
+      "sha256": "b50cc9969d759716a1cc1a1706169f1e44056c4ab7ba5a013a4d9eb6d57c76b0"
+    },
+    {
+      "path": "renderer/bubble-voice.ts",
+      "bytes": 1419,
+      "sha256": "0843bb8f92e1b9c2991a1b2875a7a3c868d8b0c58dfacbb28b9856fd051a1ccf"
+    },
+    {
+      "path": "renderer/grand-transition.ts",
+      "bytes": 2100,
+      "sha256": "a3055faf720a32ee7f306bdfe729067486114fb637a6789cef3ea5474231937c"
+    },
+    {
+      "path": "renderer/index.html",
+      "bytes": 5494,
+      "sha256": "426365cc5a4c0c869b116613a6ed2c19b149bc47a26038f13e5f44e520a7a6b7"
+    },
+    {
+      "path": "renderer/main.ts",
+      "bytes": 43183,
+      "sha256": "5cc647d88c2e95a0c17aba21a25d43024ead116a1832cdc01e8b906194ff39a1"
+    },
+    {
+      "path": "renderer/mutsumi-rig.ts",
+      "bytes": 130,
+      "sha256": "fed985f1db3befef71000ae92f8497a55aa4b3b1f522efb623ec0ad493cb403c"
+    },
+    {
+      "path": "renderer/projects-view.css",
+      "bytes": 6820,
+      "sha256": "a179fdc042ecc3bd46cf8b4517773c0f0702e465ae5932b8f71949f84a96081b"
+    },
+    {
+      "path": "renderer/projects-view.ts",
+      "bytes": 11881,
+      "sha256": "e5394649552316dd54fe8e68ab56f040a07b32a3ef5b60b2242423d4ffd091a6"
+    },
+    {
+      "path": "renderer/questions-view.ts",
+      "bytes": 3675,
+      "sha256": "e9c6a570d915ef586bb0fa5f1e3d3474fe432e2aaee3ea12ac70840f88c9bcec"
+    },
+    {
+      "path": "renderer/review-entry.ts",
+      "bytes": 86,
+      "sha256": "fa33b243d7dd0d5ec87e0ece757960e34cab0785cb8a9d890298a04057b74d6b"
+    },
+    {
+      "path": "renderer/review.html",
+      "bytes": 262,
+      "sha256": "a38de4be61489ce72d7b5b4009578e5eef41acee43f41be28dd85e9caf16a3f7"
+    },
+    {
+      "path": "renderer/settings-view.css",
+      "bytes": 9667,
+      "sha256": "19fb07a0a17eb3cd5c3f4462af0d8d43e3132b3d8bba952af6749409103320d1"
+    },
+    {
+      "path": "renderer/style.css",
+      "bytes": 27629,
+      "sha256": "b8c67c6abc5fe9aedc5929df2a08b4a85640980dc2c9963b7b6e45dbbcc1c835"
+    },
+    {
+      "path": "renderer/three-rig.ts",
+      "bytes": 52742,
+      "sha256": "c9ded90b5b34c2a55804b128e4a6d9d924dfc838828023dd9a67e2cdbac69481"
+    },
+    {
+      "path": "renderer/touch-voice.test.ts",
+      "bytes": 2197,
+      "sha256": "91980e21934e3396d50d922e8577e84d512972cd8830df4396f2f0463dab6b6e"
+    },
+    {
+      "path": "renderer/touch-voice.ts",
+      "bytes": 2071,
+      "sha256": "7d68b782007510b8e2e8203d34c99a873d494a3919542f63d62e39b31edeaf91"
+    },
+    {
+      "path": "renderer/v37-review.ts",
+      "bytes": 3868,
+      "sha256": "ae61be27ceb5af80c70490faee845e7d2a0d49601ff05065787b8eac1966527b"
+    },
+    {
+      "path": "renderer/v38-review.ts",
+      "bytes": 4462,
+      "sha256": "3e7ea0572d0b2a5aa1580de0aeb951f8e3a42ee9d589691ad9d1b7cd695c3c3f"
+    },
+    {
+      "path": "renderer/v39-review.ts",
+      "bytes": 4792,
+      "sha256": "7d2fb2ab702dcb32568917217fd29c4d233073c2275a6ff8fc83fe2dc9ee6e86"
+    },
+    {
+      "path": "renderer/v40-review.ts",
+      "bytes": 4804,
+      "sha256": "c6b7521f0e5612b7c776afa5b88b5f282075799dd89ff3c21461af3a853bbb38"
+    },
+    {
+      "path": "renderer/v41-review.ts",
+      "bytes": 3046,
+      "sha256": "b1a0a9c9c7f576b61ed8f7948a8b3c796f3263a43bcd66e538580b0d0fcef79e"
+    },
+    {
+      "path": "renderer/vite-env.d.ts",
+      "bytes": 38,
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "path": "review.vite.config.ts",
+      "bytes": 291,
+      "sha256": "b12ecef85ce6e8c49d4afeaabe7d6d9f779fb1053afa33818bd3027cb6ea2a6f"
+    },
+    {
+      "path": "scripts/build-codex-launcher.cjs",
+      "bytes": 694,
+      "sha256": "c19cb3be55a55122b7411c12e07f61a191f8df7e3dff97bbc4aa0e06e48c792b"
+    },
+    {
+      "path": "scripts/CodexLauncher.cs",
+      "bytes": 5323,
+      "sha256": "d28c67929315d3ad069105f884bcd9e00e18bf360e94c870369657c7269288e4"
+    },
+    {
+      "path": "scripts/installer-startup.nsh",
+      "bytes": 366,
+      "sha256": "9ff1fa55c8125df022027f91059050064b1b8b615406e2db21571bfb27cd612f"
+    },
+    {
+      "path": "scripts/prepare-public-source.py",
+      "bytes": 11389,
+      "sha256": "c9cd633d8db0fbeb1d2457284082dc8dbdb12e74a7743e11ad2baa9103e20a54"
+    },
+    {
+      "path": "scripts/privacy-preflight.py",
+      "bytes": 10888,
+      "sha256": "1088b0e6f1cec2a1d374a488cb69d819ce6158434c35ca11a3182f314c16f349"
+    },
+    {
+      "path": "scripts/stage-v42-package.mjs",
+      "bytes": 1638,
+      "sha256": "256d721bfb96e00cfc4d1114e78f05bb753ca952a419a562d4ee7cc1c7a2c7b9"
+    },
+    {
+      "path": "scripts/verify-v42-package.mjs",
+      "bytes": 4228,
+      "sha256": "48438641fc97f11ffa1be18da945c080ea3114ab1513272526a3f7b63ea6486c"
+    },
+    {
+      "path": "shared/activity.test.ts",
+      "bytes": 41339,
+      "sha256": "6948dd084a5a3deeb9638fa1e7e9a9749faf622b71cd2b0c74dee360538d6ed2"
+    },
+    {
+      "path": "shared/activity.ts",
+      "bytes": 15812,
+      "sha256": "27153427e51239b39612d6ca07a8fe0c6a0c21ae4968b39a136bd2e992389f3b"
+    },
+    {
+      "path": "shared/companion-feedback.test.ts",
+      "bytes": 3177,
+      "sha256": "4fd52686e70729da32da8f18bb4fd8c694976f5cce51c77b5c37ef8bd788dad5"
+    },
+    {
+      "path": "shared/companion-feedback.ts",
+      "bytes": 2195,
+      "sha256": "96eb434d63cbfed512137b5fa9d13b3d07d8c2c77971091bee24cf53fc7ecd0d"
+    },
+    {
+      "path": "shared/drag-motion.ts",
+      "bytes": 547,
+      "sha256": "0eb019cf606d183a30dd7477f8f670042d0e4249cf71c66e2eda0e607d928675"
+    },
+    {
+      "path": "shared/drag-physics.ts",
+      "bytes": 2415,
+      "sha256": "a06d55c813817bc525b5bb6ae0e17c670d2ddfad80ca1b8f8632ed778c762e6f"
+    },
+    {
+      "path": "shared/gaze.test.ts",
+      "bytes": 848,
+      "sha256": "8904ce18e7aa7da1621d614f12578a29a10356ed8dadaadf5cd5689494ffdedc"
+    },
+    {
+      "path": "shared/gaze.ts",
+      "bytes": 1063,
+      "sha256": "11f7e950e38afb1d7127020f443d787e4caf9ca603619d2cf4d123b62a3d52cb"
+    },
+    {
+      "path": "shared/hair-physics.test.ts",
+      "bytes": 3489,
+      "sha256": "1745ea424140809a1a89100a6b7ef36cc498b63d82eb5494d62acd5fd962eb24"
+    },
+    {
+      "path": "shared/hair-physics.ts",
+      "bytes": 1085,
+      "sha256": "6c33fdfc654518b45b03a7aec666c86f88e336592c8b1f1bf3be4996daa3ec93"
+    },
+    {
+      "path": "shared/idle-cadence.test.ts",
+      "bytes": 1494,
+      "sha256": "b29669c103f3bc4a91d0ca0d7a8f66183032dfb76520af0fa2f38a0aee090d3c"
+    },
+    {
+      "path": "shared/idle-cadence.ts",
+      "bytes": 1242,
+      "sha256": "41be693c12284e339a42374a34199503f9df44a773aeb37463c9a78aa8d08547"
+    },
+    {
+      "path": "shared/orbit-gesture.test.ts",
+      "bytes": 4257,
+      "sha256": "60a6626fce5166483f433e2f4a450105804eff402b76f27927152ef843e46b30"
+    },
+    {
+      "path": "shared/orbit-gesture.ts",
+      "bytes": 2244,
+      "sha256": "629aeb4425774976006434787aae57b381086210cd8f0728e13d3542c7ea4c8d"
+    },
+    {
+      "path": "shared/outcome-feedback.test.ts",
+      "bytes": 1638,
+      "sha256": "d71339a8e9d7cf22e216232ffe46d1905e04275e6afdf08f317aaccdd1bcf383"
+    },
+    {
+      "path": "shared/outcome-feedback.ts",
+      "bytes": 1581,
+      "sha256": "cfe52bcc16a940a1abd1d59b74854a09c62f06c543589aadadc3818b33031123"
+    },
+    {
+      "path": "shared/project-dashboard.test.ts",
+      "bytes": 5597,
+      "sha256": "a322c61821b6e555e4549006f11babc779d697778fc2300da2282f15661da483"
+    },
+    {
+      "path": "shared/project-dashboard.ts",
+      "bytes": 4190,
+      "sha256": "7159fe1146d6e17d4f6a99f93a29abfc617dd442d5c63e4f6ee4abbca37a8eff"
+    },
+    {
+      "path": "shared/questions.test.ts",
+      "bytes": 2076,
+      "sha256": "9911477ff8a5331c166d3b06ecc6eb9937985be104f9c6dd5564337d44aecec5"
+    },
+    {
+      "path": "shared/questions.ts",
+      "bytes": 3903,
+      "sha256": "e77ffbe60b562041347707e07da14e70f0fb13ffdb676de986553d992022dd26"
+    },
+    {
+      "path": "shared/quota-board-motion.ts",
+      "bytes": 895,
+      "sha256": "d87711f38935bcf8b82516e0858b8f733f3e8b263b8f42dc8ef845a95054d619"
+    },
+    {
+      "path": "shared/quota.test.ts",
+      "bytes": 3020,
+      "sha256": "397d73403004248762ee9b0ddaf8ae05939294215adf5bd02fa4f4b989e02af0"
+    },
+    {
+      "path": "shared/quota.ts",
+      "bytes": 3261,
+      "sha256": "ab296ce61af3fe4eceafbe48794ce45ab0a8873662355bd0dcdeadef2ec512c3"
+    },
+    {
+      "path": "shared/reminders.test.ts",
+      "bytes": 2813,
+      "sha256": "4a809abc1e7c0c7bf695f9ceb8ab843d39ed19fd503808b37abfce662497a15d"
+    },
+    {
+      "path": "shared/reminders.ts",
+      "bytes": 1396,
+      "sha256": "d4310875692d02a5e88ecc509e5ae1b027c9ccd40d31c474b8c240858ff1f1aa"
+    },
+    {
+      "path": "shared/runtime-policy.ts",
+      "bytes": 162,
+      "sha256": "3fcc1cda6be2236a262bc821ee52ad5fff158b0342496b02e9587a09e69b0a01"
+    },
+    {
+      "path": "shared/tearful-motion.test.ts",
+      "bytes": 1240,
+      "sha256": "82116ee7d1df8f295ead89024c4e11e4c2716bd223ec2f431a9cbbb582952872"
+    },
+    {
+      "path": "shared/tearful-motion.ts",
+      "bytes": 566,
+      "sha256": "afca69da65afd72bef49223420311f846d55a34d7e0ed0308404e30513420915"
+    },
+    {
+      "path": "shared/touch-motion.test.ts",
+      "bytes": 1216,
+      "sha256": "509d4b9d939a72937473e814deb881e9e0504c5e2d18dd190dd35418c5bac507"
+    },
+    {
+      "path": "shared/touch-motion.ts",
+      "bytes": 931,
+      "sha256": "f828c3c443d843cc3d05efda964b55574de45f7aefdfa3ac8e5501777b199a6c"
+    },
+    {
+      "path": "shared/touch-response.test.ts",
+      "bytes": 1552,
+      "sha256": "ec09cc9be01adfd1cd7d85024dde76f2e0698fdcea48cecbbaaa23c3f3e58f6c"
+    },
+    {
+      "path": "shared/touch-response.ts",
+      "bytes": 1059,
+      "sha256": "5510163149975653c06b0ea981c7db4c4f2c6796c61187e70b14de49a627212a"
+    },
+    {
+      "path": "shared/types.ts",
+      "bytes": 4822,
+      "sha256": "38c6f93ea5b54c12f0f97f24aca91b0f31430bce86f1e2daa399a370d055dee2"
+    },
+    {
+      "path": "shared/work-bubble.test.ts",
+      "bytes": 2558,
+      "sha256": "e6378c96788417de9915d4ad775d1594268c4b2323feedd7896c17a89cb6bcb7"
+    },
+    {
+      "path": "shared/work-bubble.ts",
+      "bytes": 1192,
+      "sha256": "446dd6dc32b3916cc96dfbfa1dcd67e48ec2b63ac3501eb42fb1934ec07c174d"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 418,
+      "sha256": "cba41f3fed6083904716be8ae276a3887ed603e010d80afe14a7614b78894329"
+    }
+  ],
+  "releaseTag": "v1.0.0"
+}

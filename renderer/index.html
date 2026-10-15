@@ -21,9 +21,9 @@
       </div>
     </main>
 
-    <main id="settings-view" hidden>
+    <main id="settings-view" aria-label="桌宠设置" hidden>
       <header class="settings-header">
-        <div class="eyebrow">LIQUID GLASS COMPANION</div>
+        <div class="eyebrow">Deskfolk</div>
         <h1>桌宠设置</h1>
         <p>把通知和一点安静的陪伴，放在桌面角落。</p>
       </header>
@@ -32,29 +32,34 @@
         <div class="connection-row"><span>Codex MCP</span><span id="mcp-status">等待首次通知</span></div>
         <div class="connection-row"><span>自动状态 Hook</span><span id="hook-status">等待首次事件</span></div>
       </section>
-      <section class="settings-section">
-        <div class="section-heading"><div><h2>角色形态</h2><p>选择若叶睦的桌面造型。</p></div></div>
+      <section class="settings-section appearance-section" aria-labelledby="appearance-heading">
+        <div class="section-heading"><div><h2 id="appearance-heading">外观</h2><p>选择若叶睦的桌面造型与大小。</p></div></div>
         <div class="model-options" role="group" aria-label="选择角色形态">
           <button class="model-option" data-model-choice="flat-chibi" aria-pressed="false">简约若叶睦<small>默认形态 · 表情与动作</small></button>
           <button class="model-option" data-model-choice="hires-soft" aria-pressed="false" disabled>高清柔光<small>暂时停用 · 素材已保留</small></button>
         </div>
+        <div class="scale-setting">
+          <label class="range-label" for="scale-range"><span><strong>角色大小</strong><small id="scale-hint">默认约 220 像素高</small></span><output id="scale-value">100%</output></label>
+          <input id="scale-range" type="range" min="82" max="130" step="1" value="100" />
+        </div>
       </section>
-      <section class="settings-section">
-        <label class="range-label" for="scale-range"><span><strong>角色大小</strong><small id="scale-hint">默认约 220 像素高</small></span><output id="scale-value">100%</output></label>
-        <input id="scale-range" type="range" min="82" max="130" step="1" value="100" />
+      <section class="settings-section" aria-labelledby="companion-heading">
+        <div class="section-heading"><div><h2 id="companion-heading">通知与陪伴</h2></div></div>
+        <div class="toggle-list">
+          <label class="toggle-row" for="dnd-toggle"><span><strong>勿扰模式</strong><small>暂时隐藏气泡与提醒动作，工作状态仍会同步</small></span><input id="dnd-toggle" type="checkbox" /></label>
+          <label class="toggle-row" for="notifications-toggle"><span><strong>消息提醒</strong><small>关闭后不弹气泡或提醒动作，可从“当前项目”查看状态</small></span><input id="notifications-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row" for="codex-start-toggle"><span><strong>随 Codex 启动</strong><small>Codex 应用打开时自动启动桌宠</small><small id="startup-error" role="alert" hidden></small></span><input id="codex-start-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row"><span><strong>旋转变身</strong><small>暂时停用，当前使用 Q 版形态</small></span><input type="checkbox" disabled aria-label="旋转变身已停用" /></label>
+          <label class="toggle-row" for="dance-toggle"><span><strong>待机时轻轻跳舞</strong><small>空闲三分钟后播放短舞蹈</small></span><input id="dance-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row" for="motion-toggle"><span><strong>减少动态效果</strong><small>静态显示角色，保留通知动作</small></span><input id="motion-toggle" type="checkbox" /></label>
+        </div>
       </section>
-      <section class="settings-section toggle-list">
-        <label class="toggle-row" for="codex-start-toggle"><span><strong>随 Codex 启动</strong><small>Codex 应用打开时自动启动桌宠</small><small id="startup-error" role="alert" hidden></small></span><input id="codex-start-toggle" type="checkbox" checked /></label>
-        <label class="toggle-row"><span><strong>旋转变身</strong><small>暂时停用，当前使用 Q 版形态</small></span><input type="checkbox" disabled aria-label="旋转变身已停用" /></label>
-        <label class="toggle-row" for="dance-toggle"><span><strong>待机时轻轻跳舞</strong><small>空闲三分钟后播放短舞蹈</small></span><input id="dance-toggle" type="checkbox" checked /></label>
-        <label class="toggle-row" for="motion-toggle"><span><strong>减少动态效果</strong><small>静态显示角色，保留通知动作</small></span><input id="motion-toggle" type="checkbox" /></label>
+      <section class="settings-section" aria-labelledby="try-heading">
+        <div class="section-heading"><div><h2 id="try-heading">试试看</h2><p>发送到本机桌宠，不会调用 Codex。</p></div></div>
+        <div class="test-actions"><button id="test-stage" class="primary-button">阶段完成气泡</button><button id="test-approval" class="secondary-button">询问气泡预览</button></div>
       </section>
-      <section class="settings-section">
-        <div class="section-heading"><div><h2>试试看</h2><p>发送到本机桌宠，不会调用 Codex。</p></div></div>
-        <div class="test-actions"><button id="test-stage" class="primary-button">阶段完成气泡</button><button id="test-approval" class="secondary-button">需要确认</button></div>
-      </section>
-      <section class="settings-section history-section">
-        <div class="section-heading"><div><h2>最近通知</h2><p>只保留本机最近 20 条。</p></div><span id="history-count" class="history-count">0 / 20</span></div>
+      <section class="settings-section history-section" aria-labelledby="history-heading">
+        <div class="section-heading"><div><h2 id="history-heading">最近通知</h2><p>只保留本机最近 20 条。</p></div><span id="history-count" class="history-count">0 / 20</span></div>
         <ol id="history-list" class="history-list"></ol>
       </section>
       <footer>通知仅通过本机回环接口传递，桌宠退出后 Codex 仍可照常工作。</footer>

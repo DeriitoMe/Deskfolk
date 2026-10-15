@@ -1,6 +1,6 @@
 {
   "name": "deskfolk",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "A tiny animated desktop companion with a real-time 3D character",
   "type": "module",
@@ -22,6 +22,7 @@
   "build": {
     "appId": "local.liquidglass.pet",
     "productName": "Deskfolk",
+    "artifactName": "Deskfolk-Setup-${version}.${ext}",
     "directories": {
       "output": "release"
     },
@@ -31,7 +32,12 @@
       "assets/icons/deskfolk.ico",
       "package.json"
     ],
-    "extraResources": [{"from":".cache/codex-launcher/DeskfolkCodexLauncher.exe","to":"launcher/DeskfolkCodexLauncher.exe"}],
+    "extraResources": [
+      {
+        "from": ".cache/codex-launcher/DeskfolkCodexLauncher.exe",
+        "to": "launcher/DeskfolkCodexLauncher.exe"
+      }
+    ],
     "win": {
       "icon": "assets/icons/deskfolk.ico",
       "target": [
