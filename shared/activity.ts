@@ -1,5 +1,5 @@
 import type { CompletionOutcome, PetActivity, PetEvent, PetEventType } from './types';
-import { hasNativeInputIdentity, isNativeQuestionReminder, isNativeRequestId, isQuestionReminder } from './reminders.ts';
+import { hasNativeInputIdentity, isNativeLifecycleSource, isNativeQuestionReminder, isNativeRequestId, isQuestionReminder } from './reminders.ts';
 
 export interface SessionActivity extends PetActivity {
   sessionId: string;
@@ -97,7 +97,7 @@ export function successfulCompletionIdentity(event:PetEvent):string {
 export function shouldPresentLifecycleEvent(event:PetEvent,stateChanged:boolean,now:number):boolean {
   if(event.type==='input_sync')return false;
   if(['needs_input','approval_needed'].includes(event.type))return isQuestionReminder(event)&&event.replayed!==true;
-  if(event.source!=='codex-log')return true;
+  if(!isNativeLifecycleSource(event.source))return true;
   if(['turn_ended','task_complete'].includes(event.type)&&event.outcome==='success')return isSuccessfulCompletion(event);
   // A new question call is meaningful even if this session was already asking.
   // The renderer dedupes the call ID so reconciliation cannot renew its deadline.
@@ -136,7 +136,7 @@ export function updateSessionActivities(previous: SessionActivities, event: PetE
   const key=event.sessionId;
   let current=sessions[key];
   if((event.type==='needs_input'||event.type==='input_resolved'||inputSync)&&current?.isSubagent)return sessions;
-  const nativeStart=event.source==='codex-log'&&event.type==='work_started';
+  const nativeStart=isNativeLifecycleSource(event.source)&&event.type==='work_started';
   const nativeContext=event.source==='codex-log'&&event.type==='work_progress';
   // Omitted metadata means unknown; an explicit undefined means unassigned.
   const projectIdIncluded=Object.prototype.hasOwnProperty.call(event,'projectId');
@@ -153,7 +153,7 @@ export function updateSessionActivities(previous: SessionActivities, event: PetE
       projectId:acceptProjectId?incomingProjectId:current.projectId,
       nativeProjectIdConfirmed:acceptProjectId&&(nativeStart||nativeContext)?true:current.nativeProjectIdConfirmed,
       nativeProjectPath:nativeContext?path??current.nativeProjectPath:current.nativeProjectPath,
-      isSubagent:event.source==='codex-log'?event.isSubagent??current.isSubagent:current.isSubagent??event.isSubagent};
+      isSubagent:isNativeLifecycleSource(event.source)?event.isSubagent??current.isSubagent:current.isSubagent??event.isSubagent};
     sessions[key]=current;
   }
   // A turn context establishes directory metadata, not tool execution or an
@@ -235,7 +235,7 @@ export function updateSessionActivities(previous: SessionActivities, event: PetE
     endedTurns:inputSync?(finished?[...new Set([...ended,event.turnId!])].slice(-64):ended.filter(id=>id!==event.turnId)):terminal&&event.turnId?[...new Set([...ended,event.turnId])].slice(-64):ended,
     projectPath:current?.turnId===event.turnId?current?.projectPath??projectIdentity(event.projectPath):projectIdentity(event.projectPath)??current?.projectPath,
     projectId:current&&current.turnId===event.turnId?current.projectId:projectIdIncluded?incomingProjectId:current?.projectId,
-    isSubagent:event.source==='codex-log'?event.isSubagent??current?.isSubagent:current?.isSubagent??event.isSubagent,
+    isSubagent:isNativeLifecycleSource(event.source)?event.isSubagent??current?.isSubagent:current?.isSubagent??event.isSubagent,
     nativeTurnId:nativeStart||inputSync||event.type==='needs_input'||event.type==='input_resolved'?event.turnId:current?.nativeTurnId,
     nativeStartedAt:nativeStart?event.createdAt:current?.nativeStartedAt,
     nativeProjectPath:nativeStart&&different?undefined:current?.nativeProjectPath,

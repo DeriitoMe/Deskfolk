@@ -112,3 +112,58 @@ body[data-view="projects"] {
   .projects-metric-label { font-size: 11px; }
   .projects-monitor-details { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* 2026-10-17 refresh: light title bar, status stripes, timeline events. */
+.projects-page { padding-top: 18px; }
+.projects-eyebrow { display: none; }
+.projects-title { font-size: 24px; }
+.projects-intro { margin-top: 4px; font-size: 12.5px; }
+.projects-header-actions { padding-top: 6px; }
+.projects-button { border-radius: 11px; transition: background .15s ease, border-color .15s ease; }
+.projects-button-primary { border-color: #6f8d5a; background: #6f8d5a; }
+.projects-metric,
+.projects-card,
+.projects-monitor {
+  border-color: #e3e9dc;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px #2f43380a, 0 4px 14px #2f433806;
+}
+.projects-metric { position: relative; padding: 16px 18px 15px; overflow: hidden; }
+.projects-metric::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d5ddcc;
+}
+.projects-metric[data-active="true"]::after { background: #86ab67; box-shadow: 0 0 0 4px #dcebcf; }
+.projects-metric-number { font-size: 28px; font-weight: 600; }
+.projects-section-title { display: flex; align-items: center; gap: 8px; }
+.projects-section-title::before { content: ""; width: 4px; height: 14px; border-radius: 2px; background: #9dbb83; }
+.projects-card {
+  --stripe: #d5ddcc;
+  position: relative;
+  padding: 15px 16px 12px 19px;
+  overflow: hidden;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.projects-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--stripe); }
+.projects-card:hover { transform: translateY(-1px); box-shadow: 0 2px 4px #2f43380d, 0 10px 22px #2f43380d; }
+.projects-card[data-state="working"] { --stripe: #86ab67; }
+.projects-card[data-state="asking"],
+.projects-card[data-state="approval"] { --stripe: #e0bf6a; }
+.projects-card[data-state="paused"] { --stripe: #9fb2c4; }
+.projects-card[data-state="failed"] { --stripe: #d79a95; }
+.projects-card[data-state="quota_exhausted"] { --stripe: #d6ad83; }
+.projects-card[data-state="completed"] { --stripe: #9cc4ae; }
+.projects-path { font-family: "Cascadia Mono", Consolas, "Microsoft YaHei UI", monospace; font-size: 10.5px; }
+.projects-state { border-radius: 999px; padding: 3px 9px; }
+.projects-events { position: relative; margin-top: 12px; padding: 4px 16px; border: 1px solid #e3e9dc; border-radius: 16px; background: #fff; }
+.projects-event { padding: 11px 0 11px 18px; position: relative; border-bottom-color: #eef2ea; }
+.projects-event:last-child { border-bottom: 0; }
+.projects-event::before { content: ""; position: absolute; left: 1px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #a9c48f; box-shadow: 0 0 0 3px #eef5e7; }
+.projects-event-empty { list-style: none; }
+.projects-footer { justify-content: center; gap: 14px; }

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { PetActivity, PetBootstrap, PetBridge, PetEvent, PetEventType, PetPreferences, PetQuestion,ProjectDashboardData } from "../shared/types";
+import type { PetActivity, PetBootstrap, PetBridge, PetEvent, PetEventType, PetPreferences, PetQuestion,ProjectDashboardData,ToolGesture } from "../shared/types";
 import type {CodexQuotaSnapshot} from '../shared/quota';
 
 const bridge: PetBridge = {
@@ -39,6 +39,11 @@ const bridge: PetBridge = {
     const listener = (_event: Electron.IpcRendererEvent, value: PetActivity) => callback(value);
     ipcRenderer.on("pet:activity", listener);
     return () => ipcRenderer.removeListener("pet:activity", listener);
+  },
+  onTool: (callback) => {
+    const listener = (_event: Electron.IpcRendererEvent, value: ToolGesture | null) => callback(value);
+    ipcRenderer.on("pet:tool", listener);
+    return () => ipcRenderer.removeListener("pet:tool", listener);
   },
 };
 

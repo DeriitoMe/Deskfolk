@@ -1,0 +1,63 @@
+/* Shared light window chrome for the settings and projects windows. */
+:root {
+  --chrome-bg: #f3f6ef;
+  --chrome-ink: #3f5638;
+  --chrome-muted: #8a9682;
+  --chrome-line: #e1e8d9;
+  --titlebar-height: 40px;
+}
+
+.window-titlebar {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  /* Leave the system caption buttons (titleBarOverlay) their own area. */
+  width: env(titlebar-area-width, calc(100% - 138px));
+  height: var(--titlebar-height);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  background: var(--chrome-bg);
+  color: var(--chrome-ink);
+  font: 600 12.5px/1 "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.window-titlebar img { width: 18px; height: 18px; image-rendering: auto; }
+.window-titlebar-page {
+  padding-left: 9px;
+  border-left: 1px solid #d5ddcc;
+  color: var(--chrome-muted);
+  font-weight: 400;
+}
+/* A full-width hairline appears once the page scrolls under the bar. */
+body.has-titlebar::before {
+  content: "";
+  position: fixed;
+  z-index: 49;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-height);
+  background: var(--chrome-bg);
+  box-shadow: 0 1px 0 transparent;
+  transition: box-shadow .18s ease;
+  pointer-events: none;
+}
+body.has-titlebar.titlebar-scrolled::before { box-shadow: 0 1px 0 var(--chrome-line), 0 6px 14px #2f433810; }
+body.has-titlebar { padding-top: var(--titlebar-height); }
+
+/* Thin rounded scrollbars in the same palette (only used when
+   scrollbar-color stays auto, so the views reset it). */
+html:has(body.has-titlebar), body.has-titlebar { scrollbar-color: auto; scrollbar-width: auto; }
+html:has(body.has-titlebar)::-webkit-scrollbar { width: 12px; }
+html:has(body.has-titlebar)::-webkit-scrollbar-track { background: var(--chrome-bg); }
+html:has(body.has-titlebar)::-webkit-scrollbar-thumb {
+  border: 3px solid var(--chrome-bg);
+  border-radius: 999px;
+  background: #cbd6c0;
+}
+html:has(body.has-titlebar)::-webkit-scrollbar-thumb:hover { background: #b2c2a4; }
+html:has(body.has-titlebar)::-webkit-scrollbar-button { display: none; width: 0; height: 0; }

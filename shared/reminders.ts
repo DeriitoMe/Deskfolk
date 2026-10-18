@@ -1,11 +1,18 @@
 import type { PetEvent } from './types';
 
+/**
+ * Sources that observe an agent's own lifecycle: Codex native JSONL records,
+ * and Claude Code's official hook events, which are that host's native API.
+ */
+export function isNativeLifecycleSource(source: PetEvent['source']): boolean {
+  return source === 'codex-log' || source === 'claude-code';
+}
 export function isNativeRequestId(value: unknown): value is string {
   return typeof value === 'string' && !!value.trim() && !/^legacy:/i.test(value);
 }
 /** Hooks and model-authored notices cannot prove that a native dialog exists. */
 export function hasNativeInputIdentity(event: PetEvent): boolean {
-  return event.source === 'codex-log' && !event.isSubagent && !event.questionId &&
+  return isNativeLifecycleSource(event.source) && !event.isSubagent && !event.questionId &&
     isNativeRequestId(event.sessionId) && isNativeRequestId(event.turnId) &&
     isNativeRequestId(event.nativeCallId);
 }
@@ -19,7 +26,7 @@ export function isQuestionReminder(event: PetEvent): boolean {
 }
 export function shouldShowBubble(event: PetEvent): boolean {
   const liveStart = event.type === 'work_started' &&
-    (event.source === 'codex-log' || event.source === 'demo') &&
+    (isNativeLifecycleSource(event.source) || event.source === 'demo') &&
     !event.replayed && !event.isSubagent;
   return liveStart || isQuestionReminder(event) || ['turn_ended','task_complete','stage_complete','interrupted'].includes(event.type);
 }

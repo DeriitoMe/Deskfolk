@@ -1,5 +1,6 @@
 import type { ProjectDashboardData } from '../shared/types';
 import './projects-view.css';
+import { mountTitleBar } from './window-chrome';
 
 type DashboardProject = ProjectDashboardData['projects'][number];
 
@@ -102,6 +103,7 @@ export async function setupProjectsView(): Promise<void> {
   document.querySelector('#pet-view')?.setAttribute('hidden', '');
   document.querySelector('#settings-view')?.setAttribute('hidden', '');
   document.title = '当前项目 · Deskfolk';
+  mountTitleBar('当前项目');
 
   const main = element('main', 'projects-page');
   const header = element('header', 'projects-header');

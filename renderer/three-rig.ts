@@ -23,19 +23,21 @@ import {TEARFUL_SECONDS} from '../shared/touch-response';
 import {tearfulReflection,tearfulWeight} from '../shared/tearful-motion';
 import tearfulBaseUrl from '../assets/characters/wakaba-mutsumi/tearful-20261009/runtime/tearful-eye-base.png?url';
 import boardFrameUrl from '../assets/characters/wakaba-mutsumi/quota-board-20261014/runtime/quota-board-frame.svg?url';
-import {quotaBoardMotion,QUOTA_BOARD_SECONDS,QUOTA_BOARD_BLEND_SECONDS,QUOTA_BOARD_FADE_SECONDS} from '../shared/quota-board-motion';
+import {quotaBoardMotion,quotaBoardGripHeight,QUOTA_BOARD_SECONDS,QUOTA_BOARD_BLEND_SECONDS,QUOTA_BOARD_FADE_SECONDS} from '../shared/quota-board-motion';
+import {ClaudeProps} from './claude-props';
 import {currentCodexQuota,unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
 export const TURN_SECONDS=10.2;
-export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'tearful'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap'|'feedback-failed'|'feedback-paused'|'feedback-quota'|'dizzy'|'quota-board';
+export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'tearful'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap'|'feedback-failed'|'feedback-paused'|'feedback-quota'|'dizzy'|'quota-board'|'claude-type'|'claude-write';
 const maps=import.meta.glob<string>('../assets/characters/wakaba-mutsumi/v41-3d/runtime/{hair-paint,hair_all_visible,back-hair-paint,back-hair-mask,side-hair-clean,question-eye,flame-atlas}.png',{eager:true,query:'?url',import:'default'});
 const urls=Object.fromEntries(Object.entries(maps).map(([p,u])=>[p.split('/').pop()!,u]));
 const clamp=T.MathUtils.clamp, mix=T.MathUtils.lerp,TAU=Math.PI*2;
 const smooth=(v:number)=>{v=clamp(v,0,1);return v*v*(3-2*v);};
-type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headOffsetY:number;headYaw:number;headRoll:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;tearful:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number;dizzy:number;board:number};
-const neutral=():Pose=>({rise:0,lean:0,pitch:0,yaw:0,head:0,headOffsetY:0,headYaw:0,headRoll:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,tearful:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0,dizzy:0,board:0});
+type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headOffsetY:number;headYaw:number;headRoll:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;tearful:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number;dizzy:number;board:number;type:number;write:number};
+const neutral=():Pose=>({rise:0,lean:0,pitch:0,yaw:0,head:0,headOffsetY:0,headYaw:0,headRoll:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,tearful:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0,dizzy:0,board:0,type:0,write:0});
 const blend=(a:Pose,b:Pose,u:number)=>Object.fromEntries(Object.keys(a).map(k=>[k,mix(a[k as keyof Pose],b[k as keyof Pose],u)])) as Pose;
 type Rest={position:T.Vector3;quaternion:T.Quaternion;scale:T.Vector3};
-type WaterLane={mouth:T.Vector3;start:T.Vector3;control:T.Vector3;target:T.Vector3;targetY:number;phase:number;speed:number};
+type WaterLane={mouth:T.Vector3;start:T.Vector3;control:T.Vector3;target:T.Vector3;targetY:number;phase:number;speed:number;fan:number};
+const WATER_DASHES=6;
 
 export class MutsumiRig {
  readonly canvas=document.createElement('canvas');readonly ready:Promise<void>;
@@ -52,18 +54,21 @@ export class MutsumiRig {
  private tearfulBase?:HTMLImageElement;
  private squeezeArt:HTMLImageElement[]=[];
  private watering=new T.Group();private can=new T.Group();private flowers=new T.Group();
- private aura=new T.Group();private drops:T.Mesh[]=[];private projected=new T.Vector3();
- private waterLanes:WaterLane[]=[];private waterSpray?:T.InstancedMesh;
+ private aura=new T.Group();private projected=new T.Vector3();
+ private waterLanes:WaterLane[]=[];private waterSpray?:T.InstancedMesh;private cucumberPlants:T.Group[]=[];
  private waterSegment=new T.Object3D();private waterPointA=new T.Vector3();private waterPointB=new T.Vector3();
  private waterDirection=new T.Vector3();private waterNormal=new T.Vector3();private waterUp=new T.Vector3(0,1,0);
  private canPalmL=new T.Vector3();private canPalmR=new T.Vector3();
+ private claudeProps=new ClaudeProps((color,opacity=1)=>this.basic(color,opacity));
  private feedback=new T.Group();private poppers:T.Object3D[]=[];private paper:T.Mesh[]=[];private stars:T.Mesh[]=[];private sweat:T.Mesh[]=[];
  private suspension=new DragPendulum();private suspensionPivot=new T.Vector3();
  private hairSway=new HairSway();private hairMaterial?:T.ShaderMaterial;
  private modelBounds=new T.Box3();private viewportSignature='';
  private quotaBoard=new T.Group();private quotaBoardMesh?:T.Mesh;private quotaCanvas=document.createElement('canvas');private quotaTexture?:T.CanvasTexture;private quotaFrame?:HTMLImageElement;
  private quota=unknownCodexQuota();private quotaLabel='';private boardViewport=false;private boardReleasing=false;
- private boardRelease={height:0,tilt:0,opacity:0};
+ private boardRelease={height:0,tilt:0,roll:0,opacity:0};
+ /** Working eyes: soft light streaks (chosen 2026-10-17); 'classic' keeps the glyph flow. */
+ codeFlowStyle:'classic'|'soft'='soft';
  action:RigAction='idle';reducedMotion=false;frameLimit:30|60=60;frames=0;frameIntervals:number[]=[];
  onTransientEnd?:()=>void;onViewportChange?:()=>void;
  constructor(){
@@ -135,7 +140,7 @@ export class MutsumiRig {
   this.auraTexture=await loader.loadAsync(urls['flame-atlas.png']);this.auraTexture.colorSpace=T.SRGBColorSpace;this.auraTexture.repeat.set(1/6,1/6);
   this.buildEyes();this.buildProps();await this.buildFeedback(loader);await this.grand?.ready;
   // Upload every prop and compile its shader before the first visible action.
-  this.apply(this.target('water',2),2);this.flowers.visible=this.aura.visible=true;
+  this.apply(this.target('water',2),2);this.flowers.visible=this.aura.visible=true;this.claudeProps.showAll();
   this.feedback.traverse(o=>{o.visible=true;});
   await this.renderer.compileAsync(this.scene,this.camera);this.renderer.render(this.scene,this.camera);
   this.apply(this.target('idle',0),0);
@@ -228,38 +233,84 @@ export class MutsumiRig {
  }
  private buildProps(){
   this.watering.name='WateringProps';this.can.name='WateringCan';this.flowers.name='HappyFlowers';this.aura.name='FullPowerAura';
-  this.scene.add(this.watering,this.flowers,this.aura);this.watering.add(this.can);
-  const pot=new T.Group();pot.name='CucumberPlanter';pot.position.set(-1.52,.2,.8);this.watering.add(pot);
-  this.mesh(new T.BoxGeometry(.75,.32,.42),'#96624a',pot,[0,0,0]);this.mesh(new T.BoxGeometry(.8,.07,.47),'#bd8869',pot,[0,.15,0]);this.mesh(new T.BoxGeometry(.69,.025,.34),'#604c35',pot,[0,.195,0]);
-  for(let i=0;i<3;i++){
-   const plant=new T.Group();plant.name='CucumberPlant_'+i;plant.position.set((i-1)*.21,.2,0);plant.scale.setScalar(1.14);pot.add(plant);
-   this.mesh(new T.CylinderGeometry(.019,.024,.38,8),'#58834d',plant,[0,.19,0]);
-   this.mesh(new T.SphereGeometry(1,12,8),'#6ca45e',plant,[-.045,.3,.01],[.1,.035,.06]).rotation.z=.45;
-   this.mesh(new T.SphereGeometry(1,12,8),'#8bbb6a',plant,[.055,.23,.04],[.1,.035,.06]).rotation.z=-.45;
-   this.mesh(new T.CapsuleGeometry(.045,.16,4,8),'#537c48',plant,[0,.16,.065]);
-  }
-  this.mesh(new T.CylinderGeometry(.16,.18,.28,24),'#65939a',this.can,[0,0,0]);
-  const handle=this.mesh(new T.TorusGeometry(.27,.027,8,32),'#476f7c',this.can,[0,.13,0]);handle.scale.y=.65;
-  const spout=this.mesh(new T.CylinderGeometry(.026,.055,.35,12),'#739fa6',this.can,[-.26,.04,0]);spout.rotation.z=-1.1;
+  this.scene.add(this.watering,this.flowers,this.aura,this.claudeProps.group);this.watering.add(this.can);
+  const pot=new T.Group();pot.name='CucumberPlanter';pot.position.set(-1.46,.2,.8);this.watering.add(pot);
+  // Terracotta planter: body, darker lip shadow, lighter rim, soil and pebbles.
+  this.mesh(new T.BoxGeometry(.74,.32,.42),'#c27454',pot,[0,0,0]);this.mesh(new T.BoxGeometry(.75,.035,.43),'#a65e43',pot,[0,.115,0]);
+  this.mesh(new T.BoxGeometry(.8,.07,.47),'#e09a72',pot,[0,.15,0]);this.mesh(new T.BoxGeometry(.8,.012,.47),'#f2bd96',pot,[0,.188,0]);
+  this.mesh(new T.BoxGeometry(.69,.03,.34),'#4f3626',pot,[0,.195,0]);
+  for(const [x,z,r] of [[-.24,.1,.022],[.19,.12,.018],[.05,.13,.015],[-.08,-.1,.02]])this.mesh(new T.SphereGeometry(r,8,6),'#8d7058',pot,[x,.214,z],[1,.6,1]);
+  // A bamboo cane gives the vines something to climb.
+  this.mesh(new T.CylinderGeometry(.012,.014,.78,6),'#d8bd84',pot,[.03,.58,-.06]);
+  this.mesh(new T.CylinderGeometry(.016,.016,.02,6),'#b99a5f',pot,[.03,.62,-.06]);
+  const curve=(points:number[][])=>new T.CatmullRomCurve3(points.map(([x,y,z])=>new T.Vector3(x,y,z)));
+  const tube=(c:T.Curve<T.Vector3>,r:number,color:string,parent:T.Object3D)=>{const m=new T.Mesh(new T.TubeGeometry(c,24,r,6,false),this.basic(color));parent.add(m);return m;};
+  const leaf=(parent:T.Object3D,pos:number[],size:number,angle:number,color:string)=>{
+   // Heart-shaped cucumber leaf: two lobes and a tip, with a darker midrib.
+   const g=new T.Group();g.position.set(pos[0],pos[1],pos[2]);g.rotation.set(-.25,0,angle);g.scale.setScalar(size);parent.add(g);
+   this.mesh(new T.SphereGeometry(1,14,10),color,g,[-.045,0,0],[.075,.085,.014]);this.mesh(new T.SphereGeometry(1,14,10),color,g,[.045,0,0],[.075,.085,.014]);
+   this.mesh(new T.SphereGeometry(1,12,8),color,g,[0,.055,0],[.06,.07,.014]);
+   this.mesh(new T.BoxGeometry(.008,.13,.004),'#4c7a39',g,[0,.02,.016]);return g;
+  };
+  const blossom=(parent:T.Object3D,pos:number[],size:number)=>{
+   const g=new T.Group();g.position.set(pos[0],pos[1],pos[2]);g.scale.setScalar(size);parent.add(g);
+   for(let k=0;k<5;k++){const a=k*TAU/5+.3;this.mesh(new T.SphereGeometry(1,10,6),'#f9d84c',g,[Math.cos(a)*.026,Math.sin(a)*.026,0],[.022,.016,.006]).rotation.z=a;}
+   this.mesh(new T.SphereGeometry(.012,8,6),'#e3a52a',g,[0,0,.006]);return g;
+  };
+  const fruit=(parent:T.Object3D,pos:number[],angle:number,length:number)=>{
+   // Striped, bumpy cucumber hanging from the vine with a blossom at its tip.
+   const g=new T.Group();g.position.set(pos[0],pos[1],pos[2]);g.rotation.z=angle;parent.add(g);
+   this.mesh(new T.CapsuleGeometry(.036,length,4,10),'#3d7535',g,[0,-length/2,0]);
+   for(const x of [-.016,.016])this.mesh(new T.CapsuleGeometry(.006,length*.85,2,6),'#6a9c4f',g,[x,-length/2,.03]);
+   for(let k=0;k<7;k++)this.mesh(new T.SphereGeometry(.007,6,4),'#c3dc9c',g,[((k*37)%5-2)*.011,-.025-k*length/7,.036]);
+   this.mesh(new T.CylinderGeometry(.008,.012,.035,6),'#5f8f45',g,[0,.02,0]);
+   blossom(g,[0,-length-.045,.01],.85);return g;
+  };
+  const plants:[number,number,number,number][]=[[-.22,.34,-.16,.95],[.02,.5,.05,1.08],[.22,.4,.18,1.0]];
+  plants.forEach(([x,height,lean,scale],i)=>{
+   const plant=new T.Group();plant.name='CucumberPlant_'+i;plant.position.set(x,.2,.02);plant.scale.setScalar(scale);plant.rotation.z=lean*.4;plant.userData.baseRoll=lean*.4;pot.add(plant);
+   const stem=curve([[0,0,0],[lean*.25,height*.35,.01],[-lean*.15,height*.7,.02],[lean*.3,height,.02]]);
+   tube(stem,.014,'#5c8c43',plant);
+   const top=stem.getPoint(1);
+   leaf(plant,[stem.getPoint(.35).x-.07,height*.35,.05],1.05,.65,'#6eaa54');
+   leaf(plant,[stem.getPoint(.62).x+.08,height*.62,.06],.95,-.6,'#86bf62');
+   leaf(plant,[top.x-.03,top.y+.03,.05],.7,.25,'#7bb45a');
+   // Curly tendril reaching toward the cane.
+   const spiral:number[][]=[];for(let k=0;k<=14;k++){const u=k/14,a=u*TAU*1.6;spiral.push([top.x+.02+u*.07+Math.cos(a)*.022*(1-u*.4),top.y-.04+u*.05+Math.sin(a)*.022*(1-u*.4),.04]);}
+   tube(curve(spiral),.0045,'#8fc063',plant);
+   if(i!==0)fruit(plant,[stem.getPoint(.55).x+(i===1?-.02:.03),height*.55,.07],i===1?.28:-.22,i===1?.17:.13);
+   else blossom(plant,[top.x+.01,top.y+.08,.07],1.1);
+   this.cucumberPlants.push(plant);
+  });
+  // Apricot enamel can: warm against the navy dress, with a glossy streak.
+  this.mesh(new T.CylinderGeometry(.17,.2,.3,28),'#eaa865',this.can,[0,0,0]);
+  this.mesh(new T.TorusGeometry(.198,.017,8,32),'#c47e45',this.can,[0,-.135,0]).rotation.x=Math.PI/2;
+  this.mesh(new T.TorusGeometry(.172,.015,8,32),'#c47e45',this.can,[0,.148,0]).rotation.x=Math.PI/2;
+  this.mesh(new T.SphereGeometry(.17,24,12,0,TAU,0,Math.PI/2),'#f3c084',this.can,[0,.148,0],[1,.42,1]);
+  this.mesh(new T.CylinderGeometry(.05,.055,.03,16),'#c47e45',this.can,[0,.2,0]);
+  this.mesh(new T.BoxGeometry(.028,.2,.01),'#fff0d2',this.can,[.07,.01,.188]).rotation.y=.35;
+  const handle=this.mesh(new T.TorusGeometry(.19,.026,8,32,Math.PI),'#c47e45',this.can,[.03,.16,0]);handle.scale.y=.85;
+  const spout=this.mesh(new T.CylinderGeometry(.026,.055,.35,12),'#e39c5a',this.can,[-.26,.04,0]);spout.rotation.z=-1.1;
   // The rose neck meets the spout's far end; its wide face points outward.
-  const rose=this.mesh(new T.CylinderGeometry(.09,.035,.055,16),'#aac8c7',this.can,[-.43,-.047,0]);rose.rotation.z=Math.PI-1.1;
-  this.can.position.set(-.38,1.05,1.02);this.can.rotation.z=.45;
+  const rose=this.mesh(new T.CylinderGeometry(.09,.035,.055,16),'#f5cd94',this.can,[-.43,-.047,0]);rose.rotation.z=Math.PI-1.1;
+  this.can.scale.setScalar(1.16);
+  this.can.position.set(-.38,1.05,1.02);this.can.rotation.z=-.12;
+  // Six showerhead streams leave the rose face. Upper streams fan out
+  // farther; lower ones land close to her side of the planter.
   const normalX=-Math.sin(1.1),normalY=-Math.cos(1.1);
-  for(let i=0;i<7;i++){
-   const lateral=(i-3)*.012,angle=i*2.399963229728653,targetY=[.46,.54,.415,.58,.445,.52,.405][i];
+  for(let i=0;i<6;i++){
+   const u=i/5,lateral=(u-.5)*.1,depth=Math.sin(i*2.399963229728653)*.03;
    this.waterLanes.push({
-    mouth:new T.Vector3(-.43+normalX*.0275+Math.cos(1.1)*lateral,-.047+normalY*.0275-Math.sin(1.1)*lateral,Math.sin(angle)*.022),
+    mouth:new T.Vector3(-.43+normalX*.03+Math.cos(1.1)*lateral,-.047+normalY*.03-Math.sin(1.1)*lateral,depth),
     start:new T.Vector3(),control:new T.Vector3(),
-    target:new T.Vector3(-1.52+(i-3)*.08,targetY,.8+Math.sin(angle)*.09),targetY,
-    phase:i*.071,speed:1.68+i*.01
+    target:new T.Vector3(-1.72+.5*u,.43,.8+depth*3),targetY:.43,
+    phase:i*.137,speed:1.05+(i%3)*.07,fan:(u-.5)*.5
    });
   }
-  // Forty-two short strands share one instanced draw; the droplets also share
-  // their geometry/material. Both layers remain translucent through crossings.
-  this.waterSpray=new T.InstancedMesh(new T.CylinderGeometry(.0075,.0075,1,5,1,true),this.basic('#9bcede',.22),42);
-  this.waterSpray.name='WaterSprayStrands';this.waterSpray.frustumCulled=false;this.waterSpray.instanceMatrix.setUsage(T.DynamicDrawUsage);this.watering.add(this.waterSpray);
-  const dropGeometry=new T.SphereGeometry(.0115,6,6),dropMaterial=this.basic('#a9dce7',.38);
-  for(let i=0;i<56;i++){const d=new T.Mesh(dropGeometry,dropMaterial);d.name='WaterDrop_'+i;this.watering.add(d);this.drops.push(d);}
+  // Thin, slightly transparent dashes; one instanced draw for every stream.
+  this.waterSpray=new T.InstancedMesh(new T.CylinderGeometry(.0065,.0065,1,6,1,true),this.basic('#6db9dc',.5),6*WATER_DASHES);
+  this.waterSpray.name='WaterSprayDashes';this.waterSpray.frustumCulled=false;this.waterSpray.instanceMatrix.setUsage(T.DynamicDrawUsage);
+  (this.waterSpray.material as T.Material).userData.flowOpacity=.5;this.watering.add(this.waterSpray);
   for(let i=0;i<5;i++){const flower=new T.Group();for(let p=0;p<5;p++)this.mesh(new T.SphereGeometry(.055,10,6),i%2?'#f2bfcb':'#ffe1a2',flower,[Math.cos(p*TAU/5)*.06,Math.sin(p*TAU/5)*.06,0],[1,.8,.35]);this.mesh(new T.SphereGeometry(.035,10,6),'#e8b45e',flower,[0,0,.025]);this.flowers.add(flower);}
   // Flame ribbons wrap around the actual model volume; rear tongues are occluded.
   for(let i=0;i<7;i++){
@@ -276,26 +327,24 @@ export class MutsumiRig {
   for(let i=0;i<this.waterLanes.length;i++){
    const lane=this.waterLanes[i];
    lane.start.copy(lane.mouth).applyMatrix4(this.can.matrixWorld);
-   // Every branch falls from the current outlet, including during can sway.
-   lane.target.y=Math.min(lane.targetY,lane.start.y-.075);
-   lane.control.copy(lane.start).addScaledVector(this.waterNormal,clamp(lane.start.distanceTo(lane.target)*.35,.07,.28));
-   lane.control.y=clamp(lane.control.y,lane.target.y+.015,lane.start.y-.025);
-   for(let j=0;j<6;j++){
-    const q=j===0?0:(t*(.91+i*.013)+(j-1)/5+lane.phase)%1;
+   lane.target.y=Math.min(lane.targetY,lane.start.y-.12);
+   // Leave along the (fanned) rose axis so the stream continues the spout,
+   // then curve down under gravity into the soil.
+   const c=Math.cos(lane.fan),s=Math.sin(lane.fan),dx=this.waterNormal.x,dy=this.waterNormal.y;
+   this.waterDirection.set(dx*c-dy*s,dx*s+dy*c,0).normalize();
+   lane.control.copy(lane.start).addScaledVector(this.waterDirection,Math.abs(lane.target.x-lane.start.x)*.5);
+   lane.control.z=mix(lane.start.z,lane.target.z,.5);
+   for(let j=0;j<WATER_DASHES;j++){
+    const q=(t*lane.speed+j/WATER_DASHES+lane.phase)%1;
     this.waterPoint(lane,q,this.waterPointA);
-    this.waterPoint(lane,Math.min(1,q+(j===0?.13:.065+j*.003)),this.waterPointB);
+    this.waterPoint(lane,Math.min(1,q+.085),this.waterPointB);
     this.waterDirection.subVectors(this.waterPointB,this.waterPointA);
-    const length=this.waterDirection.length(),radius=.95-q*.3;
+    // Dashes are born thin at the rose and thin out again as they land.
+    const length=this.waterDirection.length(),radius=.35+.65*smooth(q/.15)*(1-smooth((q-.8)/.2));
     this.waterSegment.position.copy(this.waterPointA).add(this.waterPointB).multiplyScalar(.5);
     this.waterSegment.quaternion.setFromUnitVectors(this.waterUp,this.waterDirection.normalize());
-    this.waterSegment.scale.set(radius,length,radius);this.waterSegment.updateMatrix();
-    this.waterSpray!.setMatrixAt(i*6+j,this.waterSegment.matrix);
-   }
-   for(let j=0;j<8;j++){
-    const q=(t*lane.speed+j/8+lane.phase)%1,drop=this.drops[i*8+j];
-    this.waterPoint(lane,q,drop.position);
-    const envelope=.55+.45*smooth(q/.08)*(1-smooth((q-.9)/.1));
-    drop.scale.set(envelope,envelope*(1.4+q*1.25),envelope);
+    this.waterSegment.scale.set(radius,length*radius,radius);this.waterSegment.updateMatrix();
+    this.waterSpray!.setMatrixAt(i*WATER_DASHES+j,this.waterSegment.matrix);
    }
   }
   this.waterSpray!.instanceMatrix.needsUpdate=true;
@@ -309,10 +358,21 @@ export class MutsumiRig {
   if(action==='water-happy'){p.happy=1-smooth((t-2.7)/.9);p.open=.5;p.rise+=Math.sin(t*3)*.015;p.armL=.08;p.armR=-.08;}
   if(action==='work'||action==='power-work'){p.work=1;p.gaze=action==='work'?1:0;p.followBody=action==='work'?1:0;p.spread=.045;p.armL=.12;p.armR=-.12;p.open=1;p.rise=wave*.005;}
   if(action==='power-work'){p.power=1;p.spread=.17;p.footL=-.2;p.footR=.2;p.rise=-.09+wave*.01;p.armL=.25;p.armR=-.25;p.reach=-.3;}
+  if(action==='claude-type'||action==='claude-write'){
+   // Claude Code tool gestures keep the ordinary working eyes.
+   const k=this.reducedMotion?.4:1;p.work=1;p.open=1;p.rise=wave*.005;p.spread=.045;
+   if(action==='claude-type'){
+    const tapL=Math.max(0,Math.sin(t*TAU*3.1))**2,tapR=Math.max(0,Math.sin(t*TAU*3.1+Math.PI*.9))**2;
+    p.type=1;p.armL=-.5+.06*tapL*k;p.armR=.43-.06*tapR*k;p.reach=-.7;p.head=.035;p.pitch=.012;p.yaw=.05;p.headYaw=.12;
+   }else{p.write=1;p.armL=-.52;p.armR=.5+Math.sin(t*14)*.02*k;p.reach=-.82;p.head=.07;p.headYaw=.05;p.pitch=.02;}
+  }
   if(action==='ask'){p.ask=1;p.headYaw=-.24;p.yaw=-.06;p.open=1;}
   if(action==='quota-board'){
-   const motion=quotaBoardMotion(t);p.board=motion.arm;p.armL=2.25*motion.arm;p.armR=-p.armL;p.reach=.04*motion.arm;
-   p.rise=0;p.open=1;p.head=-.012*motion.arm;
+   const motion=quotaBoardMotion(t),k=this.reducedMotion?.4:1;p.board=motion.arm;p.armL=2.25*motion.arm;p.armR=-p.armL;p.reach=.04*motion.arm;
+   // Knee dip before the lift, chin up toward the board, and a light sway
+   // that the head and body follow while the board rolls in her hands.
+   p.rise=-.028*motion.dip*k;p.open=1;p.head=-.012*motion.arm-.03*motion.lookUp;
+   p.headRoll=-.018*motion.sway*k;p.lean=.010*motion.sway*k;p.footL=-.035*motion.dip*k;p.footR=.035*motion.dip*k;
   }
   if(action==='touch'){
    const pressure=touchPressure(t,this.touchInitialPressure),motion=this.reducedMotion?.55:1;
@@ -406,22 +466,27 @@ export class MutsumiRig {
   root.position.add(this.suspensionPivot).sub(this.suspensionPivot.clone().applyQuaternion(root.quaternion));
   this.model!.updateMatrixWorld(true);
   this.watering.visible=p.water>.005;this.watering.scale.setScalar(1);
-  this.can.rotation.set(0,p.yaw,.35+Math.sin(t*2)*.035);
+  // Held level-ish, then tipped until the spout points ~20° below horizontal.
+  this.can.rotation.set(0,p.yaw,-.45+.33*p.flow+Math.sin(t*2)*.02);
   const palmL=this.control('CTRL_Hand.L').getWorldPosition(this.canPalmL),palmR=this.control('CTRL_Hand.R').getWorldPosition(this.canPalmR);
   this.can.position.copy(palmL.add(palmR).multiplyScalar(.5));this.can.position.y-=.14;this.can.position.z=Math.max(1.02,this.can.position.z+.025);
   this.can.updateMatrixWorld(true);
-  this.watering.traverse(o=>{if(o instanceof T.Mesh){const m=o.material as T.MeshBasicMaterial;m.transparent=true;m.opacity=(o.name.startsWith('WaterDrop_') ? .38*p.flow : o===this.waterSpray ? .22*p.flow : 1)*p.water;}});
+  this.watering.traverse(o=>{if(o instanceof T.Mesh){const m=o.material as T.MeshBasicMaterial,flow=m.userData.flowOpacity;m.transparent=true;m.opacity=(flow===undefined?1:flow*p.flow)*p.water;}});
+  // The vines nod a little where the water lands.
+  for(let i=0;i<this.cucumberPlants.length;i++){const plant=this.cucumberPlants[i];plant.rotation.z=plant.userData.baseRoll+Math.sin(t*3.1+i*1.7)*.035*p.flow;}
   if(p.water>.005&&p.flow>.001)this.updateWaterSpray(t);
+  this.claudeProps.update(p,this.control('CTRL_Hand.L').getWorldPosition(this.canPalmL),this.control('CTRL_Hand.R').getWorldPosition(this.canPalmR),t);
   this.flowers.visible=p.happy>.005&&p.popper<.005&&p.clap<.005;for(let i=0;i<5;i++){const f=this.flowers.children[i],a=t*1.1+i*TAU/5;f.position.set(Math.cos(a)*1.65,2.6+Math.sin(a)*.7,.6+Math.sin(a)*.3);f.rotation.z=t*1.8+i;f.scale.setScalar(p.happy*1.24);}
   this.aura.visible=p.power>.005;for(let i=0;i<7;i++){const a=i*TAU/7;const f=this.aura.children[i] as T.Mesh;f.position.set(Math.cos(a)*1.65,.06,Math.sin(a)*1.1);f.rotation.y=0;f.scale.set(1.5,1.7+Math.sin(t*5+i)*.25+Math.abs(Math.cos(a))*.6,1);(f.material as T.MeshBasicMaterial).opacity=p.power*(.18+.04*Math.sin(t*4+i));}
   const frame=Math.floor(t*30)%36;this.auraTexture?.offset.set((frame%6)/6,(5-Math.floor(frame/6))/6);
   this.applyFeedback(p,t);
   const boardMotion=quotaBoardMotion(t);
-  const boardOpacity=this.action==='quota-board'?boardMotion.opacity:this.boardReleasing?this.boardRelease.opacity*(1-smooth(t/QUOTA_BOARD_FADE_SECONDS)):0;
+  const boardOpacity=this.action==='quota-board'?boardMotion.opacity:this.boardReleasing?this.boardRelease.opacity*Math.min(1-smooth(t/QUOTA_BOARD_FADE_SECONDS),smooth((p.board-.42)/.38)):0;
   this.quotaBoard.visible=boardOpacity>.002;
   if(this.quotaBoard.visible){
-   this.quotaBoard.position.set(0,this.action==='quota-board'?boardMotion.height:this.boardRelease.height-.45*smooth(t/QUOTA_BOARD_BLEND_SECONDS),-.90);
-   this.quotaBoard.rotation.set(this.action==='quota-board'?boardMotion.tilt:this.boardRelease.tilt+.12*smooth(t/QUOTA_BOARD_BLEND_SECONDS),0,0);
+   // An interrupted board still leaves with the hands that hold it.
+   this.quotaBoard.position.set(0,this.action==='quota-board'?boardMotion.height:Math.min(this.boardRelease.height,quotaBoardGripHeight(p.board)),-.90);
+   this.quotaBoard.rotation.set(this.action==='quota-board'?boardMotion.tilt:this.boardRelease.tilt+.12*smooth(t/QUOTA_BOARD_BLEND_SECONDS),0,this.action==='quota-board'?boardMotion.roll*(this.reducedMotion?.4:1):this.boardRelease.roll);
    (this.quotaBoardMesh!.material as T.MeshBasicMaterial).opacity=boardOpacity;
    if(currentCodexQuota(this.quota).label!==this.quotaLabel)this.paintQuotaBoard();
   }
@@ -514,6 +579,7 @@ export class MutsumiRig {
   c.restore();
  }
  private drawCodeFlow(c:CanvasRenderingContext2D,t:number){
+  if(this.codeFlowStyle==='soft'){this.drawSoftFlow(c,t);return;}
   // Shared seeds and time keep both eyes synchronized. The multiplier speeds
   // up glyph columns and glow bands together while preserving the gold shape.
   t*=1.5;
@@ -540,6 +606,36 @@ export class MutsumiRig {
     c.fillText(['0','1','{','}','/',';','·'][Math.floor(r*7)],(col-1)*22,y);
     if(r>.83){c.fillStyle='#fffbe0bd';c.fillRect((col-1)*22-8,y+11,16,3);}
    }
+  }
+ }
+ /**
+  * Working eyes: rounded light streaks with comet tails fall in two
+  * columns, a slanted gleam sweeps through, and a warm glow breathes. No thin
+  * glyphs, so nothing turns into scratches at the ~8 px desktop eye size.
+  */
+ private drawSoftFlow(c:CanvasRenderingContext2D,t:number){
+  t*=1.5;
+  const hash=(n:number)=>{const x=Math.sin(n*127.1)*43758.5453;return x-Math.floor(x);};
+  const pulse=.5+.5*Math.sin(t*2.1);
+  const glow=c.createRadialGradient(0,12,4,0,12,84);
+  glow.addColorStop(0,`rgba(255,238,178,${.20+.12*pulse})`);glow.addColorStop(1,'rgba(255,238,178,0)');
+  c.fillStyle=glow;c.fillRect(-70,-120,140,240);
+  for(let col=0;col<2;col++){
+   const x=col?11:-11,speed=64+col*15;
+   for(let k=0;k<4;k++){
+    const travel=t*speed+k*58+col*29,pass=Math.floor(travel/236),y=-118+travel%236;
+    const length=18+hash(pass*13+k*7+col*31)*20,w=10;
+    const tail=c.createLinearGradient(0,y-length,0,y);
+    tail.addColorStop(0,'rgba(255,250,224,0)');tail.addColorStop(.65,'rgba(255,250,224,.5)');tail.addColorStop(1,'rgba(255,253,236,1)');
+    c.fillStyle=tail;c.beginPath();c.roundRect(x-w/2,y-length,w,length,w/2);c.fill();
+   }
+  }
+  const sweep=(t*1.05)%2.2,band=-150+sweep*150;
+  if(sweep<1.9){
+   c.save();c.rotate(-.42);
+   const gleam=c.createLinearGradient(0,band-16,0,band+16);
+   gleam.addColorStop(0,'rgba(255,251,230,0)');gleam.addColorStop(.5,'rgba(255,251,230,.5)');gleam.addColorStop(1,'rgba(255,251,230,0)');
+   c.fillStyle=gleam;c.fillRect(-90,band-16,180,32);c.restore();
   }
  }
  private resize(tall:boolean){
@@ -605,7 +701,7 @@ export class MutsumiRig {
  };
  setAction(action:RigAction,restart=false){if(action==='transform'&&!presentationPolicy.transformation)return;if(action===this.action&&!restart)return;if(action==='touch')this.touchInitialPressure=this.action==='touch'?-this.pose.headOffsetY/(TOUCH_HEAD_DROP*(this.reducedMotion?.55:1)):0;
   this.boardReleasing=action!=='quota-board'&&(this.action==='quota-board'||this.boardReleasing)&&this.pose.board>.005;
-  if(this.boardReleasing)this.boardRelease={height:this.quotaBoard.position.y,tilt:this.quotaBoard.rotation.x,opacity:(this.quotaBoardMesh!.material as T.MeshBasicMaterial).opacity};
+  if(this.boardReleasing)this.boardRelease={height:this.quotaBoard.position.y,tilt:this.quotaBoard.rotation.x,roll:this.quotaBoard.rotation.z,opacity:(this.quotaBoardMesh!.material as T.MeshBasicMaterial).opacity};
   this.from={...this.pose};this.releasing=this.action==='drag';this.routed=this.action==='nap'&&['work','power-work','water'].includes(action);this.action=action;this.start=performance.now();this.finished=false;this.canvas.dataset.action=action;if(!['idle','work'].includes(action))this.look.target(0,0);this.resize(action==='transform');
   this.onViewportChange?.();
  }

@@ -54,3 +54,29 @@ test('passing the genuine reset time expires data without falsely assuming a ful
   assert.equal(value.status, 'available', 'checking freshness does not mutate prior snapshot');
 });
 
+
+import {parseClaudeQuota, selectQuota, unknownClaudeQuota} from './quota.ts';
+
+test('Claude Code status line five-hour window becomes "Current session" used percent', () => {
+  const claude = parseClaudeQuota({rate_limits: {five_hour: {used_percentage: 23.5, resets_at: (now + 3600000) / 1000},
+    seven_day: {used_percentage: 90, resets_at: (now + 9e8) / 1000}}}, observed, now)!;
+  assert.equal(claude.label, 'Current session: 24%');
+  assert.equal(claude.status, 'available');
+  assert.equal(claude.source, 'claude-code-statusline');
+  assert.equal(parseClaudeQuota({rate_limits: {seven_day: {used_percentage: 10, resets_at: 1}}}, observed, now), null);
+  assert.equal(parseClaudeQuota({}, observed, now), null);
+  assert.equal(parseClaudeQuota({rate_limits: {five_hour: {used_percentage: 140, resets_at: 1}}}, observed, now), null);
+  const expired = currentCodexQuota(claude, now + 3600001);
+  assert.equal(expired.label, 'Current session: 待刷新');
+  assert.equal(unknownClaudeQuota().label, 'Current session: 暂不可用');
+});
+
+test('the board follows the most recent agent and never shows Codex data as Claude', () => {
+  const codex = parseCodexQuota({rateLimits: {primary: window}}, 'codex-app-server', observed, now)!;
+  const claude = parseClaudeQuota({rate_limits: {five_hour: {used_percentage: 40, resets_at: (now + 3600000) / 1000}}}, observed, now)!;
+  assert.equal(selectQuota(codex, claude, true, now).label, 'Current session: 40%');
+  assert.equal(selectQuota(codex, claude, false, now).label, codex.label);
+  assert.equal(selectQuota(codex, unknownClaudeQuota(), true, now).label, 'Current session: 暂不可用');
+  assert.equal(selectQuota(unknownCodexQuota(), claude, false, now).label, 'Current session: 40%');
+  assert.equal(selectQuota(codex, null, true, now).label, codex.label);
+});

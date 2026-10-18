@@ -17,13 +17,15 @@ import "./settings-view.css";
 import { MutsumiRig, TURN_SECONDS, type RigAction } from './three-rig';
 import { isQuestionReminder, shouldShowBubble } from '../shared/reminders';
 import { setupReview } from './v41-review';
+import { mountTitleBar } from './window-chrome';
 import {setupProjectsView} from './projects-view';
 import {OrbitGesture} from '../shared/orbit-gesture';
 import {RepeatedTouchResponse} from '../shared/touch-response';
 import {OutcomeFeedbackQueue,feedbackDuration,feedbackKind,remindersEnabled,type FeedbackKind} from '../shared/outcome-feedback';
 import { presentationPolicy } from '../shared/runtime-policy';
 import { CelebrationSequence, QuestionReminderWindow, CELEBRATION_SECONDS, QUESTION_REMINDER_MS, TOUCH_SECONDS,DIZZY_SECONDS, isSuccessfulCompletion, type CelebrationVariant } from '../shared/companion-feedback';
-import type { PetActivity, PetEvent, PetEventType, PetModel, PetPreferences } from "../shared/types";
+import type { AgentConnections, PetActivity, PetEvent, PetEventType, PetModel, PetPreferences, ToolGesture } from "../shared/types";
+import type { FollowAgent } from "../shared/agents";
 
 const petView = document.querySelector<HTMLElement>("#pet-view")!;
 const settingsView = document.querySelector<HTMLElement>("#settings-view")!;
@@ -78,6 +80,8 @@ let activityState: "idle" | "working" | "attention" = "idle";
 let quotaBoardUntil=0;
 let latestQuota:CodexQuotaSnapshot=unknownCodexQuota();
 let latestActivity: PetActivity = { phase: 'idle', updatedAt: new Date().toISOString() };
+/** Claude Code tool gesture; it outranks plain and multi-project work. */
+let latestTool: ToolGesture | null = null;
 const questionReminder = new QuestionReminderWindow();
 const celebrationSequence = new CelebrationSequence();
 const outcomeFeedback=new OutcomeFeedbackQueue();
@@ -362,7 +366,8 @@ function displayBubble(event: PetEvent): void {
   window.clearTimeout(bubbleFadeTimer);
   bubbleFadeTimer = 0;
   speechBubble.classList.remove('bubble-out');
-  document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=!isQuestionReminder(event);
+  // The button opens Codex; Claude Code questions are answered in its own window.
+  document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=!isQuestionReminder(event)||event.source==='claude-code';
   resetSleepTimer();
   window.clearTimeout(workTransitionTimer);
   currentEvent = event;
@@ -505,7 +510,7 @@ function syncFlatActivity(): void {
   const interaction=Date.now()<flatTouchUntil || (dragPointer!==null && dragDistance>4);
   const step=idleCadence.tick(now,activityState!=='idle'||latestActivity.phase==='asking'||celebration||feedback?'busy':interaction||dizzyUntil>now||tearful?'interaction':'idle');
   if(interaction)return;
-  if(quotaBoardUntil>now){setAction('quota-board');setStatus('查看五小时剩余额度');return;}
+  if(quotaBoardUntil>now){setAction('quota-board');setStatus(latestQuota.source==='claude-code-statusline'?'查看 Claude Code Current session':'查看五小时剩余额度');return;}
   if(questioning){clearRepeatedTouch();setAction('ask');setStatus('等你回复');return;}
   if(latestActivity.phase!=='idle'||workingCount>0){dizzyUntil=0;orbit.reset();}
   if(!feedback&&rig?.canvas.dataset.ready==='true'&&remindersEnabled(currentPreferences)){
@@ -532,9 +537,9 @@ function syncFlatActivity(): void {
   }
   if(tearful){setAction('tearful');setStatus('被按得有点委屈……');return;}
   if(dizzyUntil>now){setAction('dizzy');setStatus('被绕晕了……');return;}
-  const action=activityState==='working'?(fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action;
+  const action=activityState==='working'?(latestTool==='type'?'claude-type':latestTool==='write'?'claude-write':fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action;
   setAction(action);
-  const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复'};
+  const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复','claude-type':'正在跑命令','claude-write':'正在改文件'};
   setStatus(labels[action]);
   if(action==='power-work' && superWorkBubbleGate.pending && remindersEnabled(currentPreferences) &&
     (!currentEvent || currentEvent.type==='work_started')){
@@ -746,13 +751,25 @@ function syncSettingsControls(preferences: PetPreferences): void {
     ? "默认主体高约 195 物理像素，可调整到 70%–160%"
     : "默认约 220 像素高";
   scaleRange.value = String(Math.round(preferences.scale * 100));
+  syncRangeFill(scaleRange);
   document.querySelector<HTMLOutputElement>("#scale-value")!.value =
     Math.round(preferences.scale * 100) + "%";
-  document.querySelector<HTMLInputElement>("#dance-toggle")!.checked = preferences.idleDance;
   document.querySelector<HTMLInputElement>("#motion-toggle")!.checked = preferences.reducedMotion;
   document.querySelector<HTMLInputElement>('#codex-start-toggle')!.checked=preferences.startWithCodex;
+  document.querySelector<HTMLInputElement>('#claude-start-toggle')!.checked=preferences.startWithClaudeCode;
+  document.querySelectorAll<HTMLButtonElement>('[data-follow-choice]').forEach(button=>{
+    const selected=button.dataset.followChoice===preferences.followAgent;
+    button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
+  });
+  syncFollowRows();
   document.querySelector<HTMLInputElement>('#dnd-toggle')!.checked=preferences.doNotDisturb;
   document.querySelector<HTMLInputElement>('#notifications-toggle')!.checked=preferences.notificationsEnabled;
+}
+
+/** The slider track is green up to the current value. */
+function syncRangeFill(range: HTMLInputElement): void {
+  const min = Number(range.min), max = Number(range.max), value = Number(range.value);
+  range.style.setProperty('--fill', `${Math.max(0, Math.min(100, (value - min) / (max - min || 1) * 100))}%`);
 }
 
 function timeLabel(value: string | null): string {
@@ -791,15 +808,28 @@ function renderHistory(events: PetEvent[]): void {
   }
 }
 
-function updateConnectionStatus(
-  bridgeReady: boolean,
-  lastHookAt: string | null,
-  lastMcpAt: string | null,
-): void {
+let latestConnections: AgentConnections | undefined;
+function updateConnectionStatus(bridgeReady: boolean, agents?: AgentConnections): void {
   document.querySelector("#bridge-dot")!.classList.toggle("online", bridgeReady);
   document.querySelector("#bridge-status")!.textContent = bridgeReady ? "运行中" : "未启动";
-  document.querySelector("#mcp-status")!.textContent = timeLabel(lastMcpAt);
-  document.querySelector("#hook-status")!.textContent = timeLabel(lastHookAt);
+  latestConnections = agents ?? latestConnections;
+  const codex = latestConnections?.codex, claude = latestConnections?.claude;
+  const codexState: Record<string, string> = {watching: '正在监视', starting: '正在连接', unavailable: '未找到 Codex', disabled: '监视已停用'};
+  const recent = (value: string | null) => value ? timeLabel(value) : '等待首次事件';
+  document.querySelector("#codex-status")!.textContent = !codex ? '正在检查' :
+    codex.state === 'watching' ? `${codexState.watching} · ${recent(codex.lastEventAt)}` : codexState[codex.state];
+  document.querySelector("#claude-status")!.textContent = !claude ? '正在检查' :
+    claude.hooksInstalled ? `已接入 · ${recent(claude.lastEventAt)}` : '未接入（运行接入脚本）';
+  const hint = document.querySelector<HTMLElement>('#claude-start-hint');
+  if (hint) hint.textContent = claude && !claude.hooksInstalled ? '需要先运行 Claude Code 接入脚本' : 'Claude Code 开新会话时自动启动桌宠';
+  syncFollowRows();
+}
+/** Dim the agent row the pet is not following. */
+function syncFollowRows(): void {
+  const choice = currentPreferences?.followAgent ?? 'all';
+  document.querySelectorAll<HTMLElement>('.connection-row[data-agent]').forEach(row => {
+    row.classList.toggle('not-followed', choice !== 'all' && row.dataset.agent !== choice);
+  });
 }
 
 async function savePreference(patch: Partial<PetPreferences>): Promise<void> {
@@ -809,6 +839,7 @@ async function savePreference(patch: Partial<PetPreferences>): Promise<void> {
 
 function setupSettingsView(): void {
   document.body.dataset.view = "settings";
+  mountTitleBar("设置");
   petView.hidden = true;
   settingsView.hidden = false;
   document.querySelectorAll<HTMLButtonElement>("[data-model-choice]").forEach((button) => {
@@ -820,10 +851,8 @@ function setupSettingsView(): void {
     const scale = Number((event.currentTarget as HTMLInputElement).value) / 100;
     document.querySelector<HTMLOutputElement>("#scale-value")!.value =
       Math.round(scale * 100) + "%";
+    syncRangeFill(event.currentTarget as HTMLInputElement);
     void savePreference({ scale });
-  });
-  document.querySelector<HTMLInputElement>("#dance-toggle")!.addEventListener("change", (event) => {
-    void savePreference({ idleDance: (event.currentTarget as HTMLInputElement).checked });
   });
   document.querySelector<HTMLInputElement>("#motion-toggle")!.addEventListener("change", (event) => {
     void savePreference({ reducedMotion: (event.currentTarget as HTMLInputElement).checked });
@@ -839,6 +868,15 @@ function setupSettingsView(): void {
     toggle.disabled=true;error.hidden=true;
     try{await savePreference({startWithCodex:toggle.checked});}
     catch{toggle.checked=currentPreferences?.startWithCodex??true;error.textContent='启动设置未保存，请稍后重试。';error.hidden=false;}
+    finally{toggle.disabled=false;}
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-follow-choice]').forEach(button=>{
+    button.addEventListener('click',()=>{void savePreference({followAgent:button.dataset.followChoice as FollowAgent});});
+  });
+  document.querySelector<HTMLInputElement>('#claude-start-toggle')!.addEventListener('change',async event=>{
+    const toggle=event.currentTarget as HTMLInputElement;toggle.disabled=true;
+    try{await savePreference({startWithClaudeCode:toggle.checked});}
+    catch{toggle.checked=currentPreferences?.startWithClaudeCode??true;}
     finally{toggle.disabled=false;}
   });
   document.querySelector("#test-stage")!.addEventListener("click", () => {
@@ -863,7 +901,7 @@ async function start(): Promise<void> {
     } else {
       void window.petBridge.getBootstrap().then((state) => {
         renderHistory(state.history);
-        updateConnectionStatus(state.bridgeReady, state.lastHookEventAt, state.lastMcpEventAt);
+        updateConnectionStatus(state.bridgeReady, state.agents);
       });
     }
   });
@@ -871,6 +909,7 @@ async function start(): Promise<void> {
     receivedActivity = true;
     applyActivity(activity, initialized && !SETTINGS_VIEW);
   });
+  window.petBridge.onTool((gesture) => { latestTool = gesture; if (initialized && !SETTINGS_VIEW) syncFlatActivity(); });
   const bootstrap = await window.petBridge.getBootstrap();
   latestQuota=bootstrap.quota??unknownCodexQuota();
   applyPreferences(bootstrap.preferences);
@@ -880,7 +919,10 @@ async function start(): Promise<void> {
     if (!receivedActivity && latestActivity.phase === 'asking' && bootstrap.pendingReminder) showEvent(bootstrap.pendingReminder);
   }
   if (SETTINGS_VIEW) {
-    updateConnectionStatus(bootstrap.bridgeReady, bootstrap.lastHookEventAt, bootstrap.lastMcpEventAt);
+    updateConnectionStatus(bootstrap.bridgeReady, bootstrap.agents);
+    // Events of an agent the pet does not follow are not forwarded here, so
+    // refresh the connection summary on a slow timer as well.
+    window.setInterval(() => { void window.petBridge.getBootstrap().then(state => updateConnectionStatus(state.bridgeReady, state.agents)); }, 10_000);
     renderHistory(bootstrap.history);
   }
 

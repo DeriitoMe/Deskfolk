@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileS
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import type {
+  AgentConnections,
   EventSource,
   PetLayout,
   PetBootstrap,
@@ -35,7 +36,10 @@ import {shouldPresentAcceptedEvent} from './event-presentation';
 import {CurrentQuestionLedger} from './current-questions';
 import {projectDashboard} from '../shared/project-dashboard';
 import {CodexQuotaMonitor} from './codex-quota';
-import {unknownCodexQuota} from '../shared/quota';
+import {parseClaudeQuota,selectQuota,unknownClaudeQuota,unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
+import {ClaudeCodeAdapter} from './claude-code';
+import {ClaudeToolTracker,type ClaudeToolGesture} from './claude-tools';
+import {eventAgent,follows,normalizeFollowAgent,visibleSessions} from '../shared/agents';
 
 const APP_NAME = "Deskfolk";
 // Keep the existing data directory and bridge identifier during the branding update.
@@ -62,6 +66,8 @@ const DEFAULT_PREFERENCES: PetPreferences = {
   reducedMotion: false,
   bubbleSeconds: 8,
   startWithCodex: true,
+  startWithClaudeCode: true,
+  followAgent: 'all',
   doNotDisturb: false,
   notificationsEnabled: true,
 };
@@ -74,12 +80,14 @@ const preferencesPath = join(userDataPath, "preferences.json");
 const historyPath = join(userDataPath, "history.json");
 const bridgePath = join(userDataPath, "bridge.json");
 const activityPath = join(userDataPath, "activity.json");
+const claudeQuotaPath = join(userDataPath, "claude-quota.json");
 
 let mainWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
 let projectsWindow: BrowserWindow | null = null;
 const rendererEvents=new RendererEventQueue(event=>mainWindow?.webContents.send('pet:event',event));
-function currentActivity() { return dominantActivity(sessionActivities); }
+/** Aggregate of the followed agent(s); every session is still tracked. */
+function currentActivity() { return dominantActivity(visibleSessions(sessionActivities,preferences.followAgent)); }
 function currentProjects():ProjectDashboardData {
   return projectDashboard(sessionActivities,history,{preferences,bridgeReady:!!bridgeServer?.listening,
     monitor:lifecycle?.getHealth()??{state:process.env.PET_TEST_MODE==='1'?'disabled':'starting',lastPollAt:null,lastEventAt:null,observedSessions:0,discoveryPending:0},
@@ -98,9 +106,41 @@ const successfulCompletions=new Set<string>();
 const currentQuestions=new CurrentQuestionLedger();
 let lifecycle: CodexLifecycleObserver | undefined;
 let quotaMonitor: CodexQuotaMonitor | undefined;
+const claudeCode=new ClaudeCodeAdapter();
+/** Typing/writing gestures for Claude Code tools; separate from work state. */
+const claudeTools=new ClaudeToolTracker();
+let sentTool:ClaudeToolGesture|null=null;let toolTimer:ReturnType<typeof setTimeout>|undefined;
+function sendTool(force=false){
+  const now=Date.now(),gesture=follows(preferences.followAgent,'claude')?claudeTools.current(now,id=>sessionActivities[id]?.phase==='working'):null;
+  clearTimeout(toolTimer);toolTimer=undefined;
+  const next=claudeTools.nextChangeAt();
+  if(next!==undefined)toolTimer=setTimeout(()=>sendTool(),Math.max(50,next-now+10));
+  if(gesture===sentTool&&!force)return;
+  sentTool=gesture;mainWindow?.webContents.send('pet:tool',gesture);
+}
+/** Last Claude Code five-hour reading from its status line; null until seen. */
+let claudeQuota: CodexQuotaSnapshot | null = null;
+/** Which agent the user worked with most recently; decides the quota board. */
+let lastAgent: 'codex' | 'claude' | undefined;
+function quotaSnapshot(): CodexQuotaSnapshot {
+  const codex=quotaMonitor?.snapshot()??unknownCodexQuota();
+  const follow=preferences.followAgent;
+  const preferClaude=follow==='claude'||(follow==='all'&&(lastAgent==='claude'||(!lastAgent&&!!claudeQuota?.observedAt&&
+    (!codex.observedAt||Date.parse(claudeQuota.observedAt)>Date.parse(codex.observedAt)))));
+  return selectQuota(codex,preferClaude?claudeQuota??unknownClaudeQuota():claudeQuota,preferClaude);
+}
+function sendQuota(){mainWindow?.webContents.send('pet:quota',quotaSnapshot());}
+function noteAgent(agent:'codex'|'claude'){
+  if(lastAgent===agent)return;
+  lastAgent=agent;
+  if(agent==='claude'&&!claudeQuota)claudeQuota=unknownClaudeQuota();
+  sendQuota();
+}
 const knownSessions=new Set<string>();
 let isQuitting = false;
 let lastHookEventAt: string | null = null;
+/** Last valid Claude Code hook payload, shown as the connection status. */
+let lastClaudeEventAt: string | null = null;
 let lastMcpEventAt: string | null = null;
 let lastDedupSignature = "";
 let lastDedupAt = 0;
@@ -179,6 +219,8 @@ function normalizePreferences(input: Partial<PetPreferences>): PetPreferences {
       : preferences.reducedMotion,
     bubbleSeconds,
     startWithCodex:typeof input.startWithCodex==='boolean'?input.startWithCodex:preferences.startWithCodex,
+    startWithClaudeCode:typeof input.startWithClaudeCode==='boolean'?input.startWithClaudeCode:preferences.startWithClaudeCode,
+    followAgent:normalizeFollowAgent(input.followAgent,preferences.followAgent),
     doNotDisturb:typeof input.doNotDisturb==='boolean'?input.doNotDisturb:preferences.doNotDisturb,
     notificationsEnabled:typeof input.notificationsEnabled==='boolean'?input.notificationsEnabled:preferences.notificationsEnabled,
   };
@@ -258,6 +300,10 @@ function acceptEvent(event: PetEvent): void {
   lastDedupAt = now;
   if (event.source === "hook") lastHookEventAt = event.createdAt;
   if (event.source === "mcp") lastMcpEventAt = event.createdAt;
+  if (event.type === 'work_started' && !event.replayed && !event.isSubagent) {
+    if (event.source === 'claude-code') noteAgent('claude');
+    else if (event.source === 'codex-log') noteAgent('codex');
+  }
   const success=shouldCelebrateCompletion(sessionActivities,event);
   const ownPendingCompletion=isSuccessfulCompletion(event)&&!success;
   const before=currentActivity();
@@ -269,6 +315,13 @@ function acceptEvent(event: PetEvent): void {
   if(acceptedSession?.turnId===event.turnId&&
     (!isQuestionReminder(event)||shouldDeliverBufferedEvent(sessionActivities,event)))currentQuestions.accepted(event);
   sendProjects();
+  // An agent the user does not follow keeps its tracked state for an instant
+  // switch back, but produces no bubble, celebration or history entry.
+  if(!follows(preferences.followAgent,eventAgent(event.source))){
+    writeJsonAtomically(activityPath,sessionActivities);
+    if(stateChanged)mainWindow?.webContents.send('pet:activity',{...currentActivity(),replayed:event.replayed===true});
+    return;
+  }
   // A native ledger snapshot reconciles stored state; it is never a message.
   // Delayed/rejected questions also must not create a bubble or history entry.
   if(event.type==='input_sync'||(isQuestionReminder(event)&&!shouldDeliverBufferedEvent(sessionActivities,event))){
@@ -347,6 +400,32 @@ async function handleBridgeRequest(
     if (url.pathname === '/questions' || url.pathname.startsWith('/questions/')) {
       sendJson(response,410,{ok:false,error:'Pet answering has been removed. Use the native Codex question panel.'}); return;
     }
+    if (request.method === 'POST' && url.pathname === '/claude-code') {
+      // Official Claude Code hook payload, forwarded by plugins/deskfolk-claude-code.
+      const payload = JSON.parse(await readRequestBody(request)) as unknown;
+      if (payload && typeof payload === 'object' && typeof (payload as Record<string, unknown>).session_id === 'string') lastClaudeEventAt = new Date().toISOString();
+      const events = claudeCode.translate(payload).map(input => makeEvent({...input}, 'claude-code'))
+        .filter((event): event is PetEvent => !!event);
+      for (const event of events) acceptEvent(event);
+      claudeTools.observe(payload, Date.now());
+      // Re-evaluate even without a tool change: the session may now be asking.
+      sendTool();
+      sendJson(response, 202, { ok: true, accepted: events.length }); return;
+    }
+    if (request.method === 'POST' && url.pathname === '/claude-code/status') {
+      const payload = JSON.parse(await readRequestBody(request)) as unknown;
+      const parsed = parseClaudeQuota(payload, new Date().toISOString());
+      // Absence of the window (API key, before first reply) keeps the last
+      // genuine reading until its reset; it never becomes 0%.
+      if (parsed) {
+        claudeQuota = parsed;
+        writeJsonAtomically(claudeQuotaPath, parsed);
+        sendQuota();
+      } else if (!claudeQuota) {
+        claudeQuota = unknownClaudeQuota();
+      }
+      sendJson(response, 202, { ok: true, available: !!parsed }); return;
+    }
     if (request.method !== 'POST' || url.pathname !== '/notify') {
       sendJson(response, 404, { ok: false, error: 'Not found' }); return;
     }
@@ -402,6 +481,21 @@ function loadPreferences(): void {
   writeJsonAtomically(historyPath,history);
   lastHookEventAt = history.find((event) => event.source === "hook")?.createdAt ?? null;
   lastMcpEventAt = history.find((event) => event.source === "mcp")?.createdAt ?? null;
+  lastClaudeEventAt = history.find((event) => event.source === "claude-code")?.createdAt ?? null;
+}
+
+/** Deskfolk hooks present in the user's Claude Code settings (read-only check). */
+function claudeHooksInstalled(): boolean {
+  const file=join(process.env.CLAUDE_CONFIG_DIR||join(app.getPath('home'),'.claude'),'settings.json');
+  try { return readFileSync(file,'utf8').includes('deskfolk-claude-code'); } catch { return false; }
+}
+function agentConnections(): AgentConnections {
+  const health=lifecycle?.getHealth();
+  return {
+    codex:{state:health?.state??(process.env.PET_TEST_MODE==='1'?'disabled':'starting'),
+      lastEventAt:health?.lastEventAt??history.find(event=>event.source==='codex-log')?.createdAt??null},
+    claude:{hooksInstalled:claudeHooksInstalled(),lastEventAt:lastClaudeEventAt},
+  };
 }
 
 function rendererUrl(query = ""): string {
@@ -461,6 +555,9 @@ function showPet(): void {
   mainWindow.setAlwaysOnTop(true, "floating");
 }
 
+/** Mint title bar: the page draws the title, Windows keeps its caption buttons. */
+const LIGHT_TITLE_BAR = { titleBarStyle: 'hidden' as const, titleBarOverlay: { color: '#f3f6ef', symbolColor: '#4b6142', height: 40 } };
+
 function openSettings(): void {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.show();
@@ -477,6 +574,7 @@ function openSettings(): void {
     icon: APPLICATION_ICON,
     backgroundColor: "#f3f6ef",
     autoHideMenuBar: true,
+    ...LIGHT_TITLE_BAR,
     webPreferences: {
       preload: join(__dirname, "../preload/index.cjs"),
       contextIsolation: true,
@@ -495,7 +593,7 @@ function openCodex(): void { void activateCodex(); }
 
 function openProjects():void {
   if(projectsWindow&&!projectsWindow.isDestroyed()){projectsWindow.show();projectsWindow.focus();return;}
-  projectsWindow=new BrowserWindow({width:760,height:800,minWidth:620,minHeight:600,title:'Deskfolk · 当前项目',icon:APPLICATION_ICON,backgroundColor:'#f3f7ef',autoHideMenuBar:true,
+  projectsWindow=new BrowserWindow({width:760,height:800,minWidth:620,minHeight:600,title:'Deskfolk · 当前项目',icon:APPLICATION_ICON,backgroundColor:'#f3f6ef',autoHideMenuBar:true,...LIGHT_TITLE_BAR,
     webPreferences:{preload:join(__dirname,'../preload/index.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   void projectsWindow.loadURL(rendererUrl('?projects=1'));
   const timer=setInterval(sendProjects,1000);timer.unref();
@@ -627,11 +725,18 @@ function startCursorTracking(): void {
 
 function registerIpc(): void {
   const quotaSender=(event:Electron.IpcMainInvokeEvent)=>[mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender);
-  ipcMain.handle('pet:get-quota',event=>quotaSender(event)?quotaMonitor?.snapshot()??unknownCodexQuota():unknownCodexQuota());
-  ipcMain.handle('pet:refresh-quota',event=>quotaSender(event)?quotaMonitor?.refresh()??unknownCodexQuota():unknownCodexQuota());
+  ipcMain.handle('pet:get-quota',event=>quotaSender(event)?quotaSnapshot():unknownCodexQuota());
+  ipcMain.handle('pet:refresh-quota',async event=>{
+    if(!quotaSender(event))return unknownCodexQuota();
+    // Claude Code pushes its reading through the status line; only Codex can be polled.
+    if((preferences.followAgent==='all'?lastAgent:preferences.followAgent)!=='claude')await quotaMonitor?.refresh().catch(()=>undefined);
+    return quotaSnapshot();
+  });
   ipcMain.handle('pet:renderer-ready',event=>{
     if(!mainWindow||mainWindow.isDestroyed()||event.sender!==mainWindow.webContents)return {ok:false,delivered:0};
-    return {ok:true,delivered:rendererEvents.makeReady(event=>shouldDeliverBufferedEvent(sessionActivities,event))};
+    const delivered=rendererEvents.makeReady(event=>shouldDeliverBufferedEvent(sessionActivities,event));
+    sendTool(true);
+    return {ok:true,delivered};
   });
   ipcMain.on('pet:layout',(event,layout:PetLayout)=>{
     if(!mainWindow||mainWindow.isDestroyed()||event.sender!==mainWindow.webContents)return;
@@ -668,8 +773,9 @@ function registerIpc(): void {
     lastHookEventAt,
     lastMcpEventAt,
     activity: currentActivity(),
-    quota: quotaMonitor?.snapshot() ?? unknownCodexQuota(),
-    pendingReminder:history.find(event=>!event.read&&isQuestionReminder(event)&&shouldDeliverBufferedEvent(sessionActivities,event)),
+    quota: quotaSnapshot(),
+    agents: agentConnections(),
+    pendingReminder:history.find(event=>!event.read&&isQuestionReminder(event)&&follows(preferences.followAgent,eventAgent(event.source))&&shouldDeliverBufferedEvent(sessionActivities,event)),
   }));
   ipcMain.handle('pet:get-projects',event=>{
     if(![mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender))throw Error('Unknown window');
@@ -679,9 +785,14 @@ function registerIpc(): void {
     const save=preferenceSaveQueue.catch(()=>{}).then(async()=>{
       const next=normalizePreferences(patch);
       if(next.startWithCodex!==preferences.startWithCodex)await syncCodexStartup(next.startWithCodex);
+      const followChanged=next.followAgent!==preferences.followAgent;
       preferences = normalizePreferences(patch);
       writeJsonAtomically(preferencesPath, preferences);
       for(const w of [mainWindow,settingsWindow,projectsWindow])w?.webContents.send('pet:preferences',preferences);
+      if(followChanged){
+        mainWindow?.webContents.send('pet:activity',{...currentActivity(),replayed:true});
+        sendTool(true);sendQuota();
+      }
       sendProjects();
       return preferences;
     });
@@ -712,6 +823,8 @@ function registerIpc(): void {
   ipcMain.on("pet:open-settings", openSettings);
   ipcMain.handle('pet:open-codex', event => {
     if(![mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender)) return {ok:false};
+    const reminder=history.find(item=>!item.read&&isQuestionReminder(item));
+    if(reminder?.source==='claude-code')return {ok:false,error:'请回到 Claude Code 窗口处理。'};
     return activateCodex();
   });
   ipcMain.on("pet:set-mouse-ignored", (event, ignored: boolean) => {
@@ -752,9 +865,13 @@ if (!hasLock) {
   void app.whenReady().then(async () => {
     mkdirSync(userDataPath, { recursive: true });
     loadPreferences();
+    // The Claude Code SessionStart hook reads this to start the installed pet.
+    if(app.isPackaged&&!process.env.PET_TEST_MODE)writeJsonAtomically(join(userDataPath,'launch.json'),{exe:process.execPath});
     await syncCodexStartup(preferences.startWithCodex).catch((error:unknown)=>console.warn('Deskfolk could not register Codex startup. The setting can be retried.',(error as NodeJS.ErrnoException)?.code||'STARTUP_ERROR'));
     registerIpc();
-    quotaMonitor=new CodexQuotaMonitor(process.env.CODEX_HOME||join(app.getPath('home'),'.codex'),quota=>mainWindow?.webContents.send('pet:quota',quota));
+    const storedClaudeQuota=readJson<CodexQuotaSnapshot|null>(claudeQuotaPath,null);
+    if(storedClaudeQuota?.source==='claude-code-statusline'&&storedClaudeQuota.status==='available')claudeQuota=storedClaudeQuota;
+    quotaMonitor=new CodexQuotaMonitor(process.env.CODEX_HOME||join(app.getPath('home'),'.codex'),()=>sendQuota());
     quotaMonitor.start();
     await startBridge();
     createPetWindow();

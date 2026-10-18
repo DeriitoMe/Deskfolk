@@ -631,3 +631,50 @@ body[data-view="pet"] .bubble-reduced :is(.bubble-kicker,#bubble-message,.bubble
   animation:none !important;
  }
 }
+
+/* 2026-10-17 bubble polish: same white oval with a softer contour and light
+   depth; dots pop in one by one, the oval springs open from the dot side,
+   the copy rises in; on exit it shrinks back toward the dots while fading.
+   Text keeps ChillRoundF, weighted with a thin stroke instead of synthesis. */
+body[data-view="pet"] .speech-bubble::before {
+ transform-origin:70% 100%;border-color:#6a8d63;
+ background:radial-gradient(ellipse at 30% 18%,#ffffff 0 45%,transparent 70%),linear-gradient(#ffffff,#f5faf1);
+ box-shadow:0 calc(4px * var(--ui-scale,1)) calc(12px * var(--ui-scale,1)) #3c5a2e1f,inset 0 calc(-3px * var(--ui-scale,1)) 0 #dfeccf80;
+}
+body[data-view="pet"] .speech-bubble::after,
+body[data-view="pet"] .thought-dots::before,
+body[data-view="pet"] .thought-dots::after {border-color:#6a8d63;background:#fbfdf8;}
+body[data-view="pet"] #bubble-message {
+ color:#24533a;font-weight:400;font-synthesis:none;letter-spacing:.02em;
+ -webkit-text-stroke:calc(.55px * var(--ui-scale,1)) currentColor;paint-order:stroke fill;
+}
+body[data-view="pet"] .bubble-in .thought-dots::after {animation:bubble-dot-pop .22s cubic-bezier(.34,1.7,.6,1) 0s both;}
+body[data-view="pet"] .bubble-in .thought-dots::before {animation:bubble-dot-pop .22s cubic-bezier(.34,1.7,.6,1) .09s both;}
+body[data-view="pet"] .speech-bubble.bubble-in::after {animation:bubble-dot-pop .24s cubic-bezier(.34,1.7,.6,1) .18s both;}
+body[data-view="pet"] .speech-bubble.bubble-in::before {animation:bubble-body-pop .42s cubic-bezier(.3,1.42,.55,1) .27s both;}
+body[data-view="pet"] .bubble-in :is(.bubble-kicker,#bubble-message,.bubble-meta,.answer-button) {
+ animation:bubble-copy-rise .28s cubic-bezier(.2,.8,.3,1) .5s both;
+}
+body[data-view="pet"] .speech-bubble.bubble-out {
+ transform-origin:70% 100%;
+ animation:bubble-pop-out var(--bubble-fade-duration,220ms) cubic-bezier(.4,0,.8,.4) both !important;
+}
+@keyframes bubble-dot-pop {from {opacity:0;transform:scale(.2);} to {opacity:1;transform:scale(1);}}
+@keyframes bubble-body-pop {from {opacity:0;transform:scale(.55);} 60% {opacity:1;} to {opacity:1;transform:scale(1);}}
+@keyframes bubble-copy-rise {
+ from {opacity:0;visibility:hidden;transform:translateY(6px);} 1% {visibility:visible;}
+ to {opacity:1;visibility:visible;transform:translateY(0);}
+}
+@keyframes bubble-pop-out {to {opacity:0;transform:translateY(-3px) scale(.92);}}
+body[data-view="pet"] .speech-bubble.bubble-reduced::before,
+body[data-view="pet"] .speech-bubble.bubble-reduced::after,
+body[data-view="pet"] .bubble-reduced .thought-dots::before,
+body[data-view="pet"] .bubble-reduced .thought-dots::after,
+body[data-view="pet"] .bubble-reduced :is(.bubble-kicker,#bubble-message,.bubble-meta,.answer-button) {animation:none !important;}
+@media (prefers-reduced-motion:reduce) {
+ body[data-view="pet"] .speech-bubble::before,
+ body[data-view="pet"] .speech-bubble::after,
+ body[data-view="pet"] .thought-dots::before,
+ body[data-view="pet"] .thought-dots::after,
+ body[data-view="pet"] .speech-bubble :is(.bubble-kicker,#bubble-message,.bubble-meta,.answer-button) {animation:none !important;}
+}

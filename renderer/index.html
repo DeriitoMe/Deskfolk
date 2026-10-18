@@ -29,8 +29,16 @@
       </header>
       <section class="connection-card" aria-live="polite">
         <div class="connection-title"><span class="connection-dot" id="bridge-dot"></span><strong>本地通知桥</strong><span id="bridge-status" class="connection-value">正在检查</span></div>
-        <div class="connection-row"><span>Codex MCP</span><span id="mcp-status">等待首次通知</span></div>
-        <div class="connection-row"><span>自动状态 Hook</span><span id="hook-status">等待首次事件</span></div>
+        <div class="agent-follow">
+          <span class="agent-follow-label" id="follow-label">跟随</span>
+          <div class="segmented" role="group" aria-labelledby="follow-label">
+            <button type="button" data-follow-choice="all" aria-pressed="true">全部</button>
+            <button type="button" data-follow-choice="codex" aria-pressed="false">Codex</button>
+            <button type="button" data-follow-choice="claude" aria-pressed="false">Claude Code</button>
+          </div>
+        </div>
+        <div class="connection-row" data-agent="codex"><span class="agent-name">Codex</span><span id="codex-status">正在检查</span></div>
+        <div class="connection-row" data-agent="claude"><span class="agent-name">Claude Code</span><span id="claude-status">正在检查</span></div>
       </section>
       <section class="settings-section appearance-section" aria-labelledby="appearance-heading">
         <div class="section-heading"><div><h2 id="appearance-heading">外观</h2><p>选择若叶睦的桌面造型与大小。</p></div></div>
@@ -49,20 +57,20 @@
           <label class="toggle-row" for="dnd-toggle"><span><strong>勿扰模式</strong><small>暂时隐藏气泡与提醒动作，工作状态仍会同步</small></span><input id="dnd-toggle" type="checkbox" /></label>
           <label class="toggle-row" for="notifications-toggle"><span><strong>消息提醒</strong><small>关闭后不弹气泡或提醒动作，可从“当前项目”查看状态</small></span><input id="notifications-toggle" type="checkbox" checked /></label>
           <label class="toggle-row" for="codex-start-toggle"><span><strong>随 Codex 启动</strong><small>Codex 应用打开时自动启动桌宠</small><small id="startup-error" role="alert" hidden></small></span><input id="codex-start-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row" for="claude-start-toggle"><span><strong>随 Claude Code 启动</strong><small id="claude-start-hint">Claude Code 开新会话时自动启动桌宠</small></span><input id="claude-start-toggle" type="checkbox" checked /></label>
           <label class="toggle-row"><span><strong>旋转变身</strong><small>暂时停用，当前使用 Q 版形态</small></span><input type="checkbox" disabled aria-label="旋转变身已停用" /></label>
-          <label class="toggle-row" for="dance-toggle"><span><strong>待机时轻轻跳舞</strong><small>空闲三分钟后播放短舞蹈</small></span><input id="dance-toggle" type="checkbox" checked /></label>
           <label class="toggle-row" for="motion-toggle"><span><strong>减少动态效果</strong><small>静态显示角色，保留通知动作</small></span><input id="motion-toggle" type="checkbox" /></label>
         </div>
       </section>
       <section class="settings-section" aria-labelledby="try-heading">
-        <div class="section-heading"><div><h2 id="try-heading">试试看</h2><p>发送到本机桌宠，不会调用 Codex。</p></div></div>
+        <div class="section-heading"><div><h2 id="try-heading">试试看</h2><p>发送到本机桌宠，不会调用 Codex 或 Claude Code。</p></div></div>
         <div class="test-actions"><button id="test-stage" class="primary-button">阶段完成气泡</button><button id="test-approval" class="secondary-button">询问气泡预览</button></div>
       </section>
       <section class="settings-section history-section" aria-labelledby="history-heading">
         <div class="section-heading"><div><h2 id="history-heading">最近通知</h2><p>只保留本机最近 20 条。</p></div><span id="history-count" class="history-count">0 / 20</span></div>
         <ol id="history-list" class="history-list"></ol>
       </section>
-      <footer>通知仅通过本机回环接口传递，桌宠退出后 Codex 仍可照常工作。</footer>
+      <footer>通知仅通过本机回环接口传递，桌宠退出后 Codex 和 Claude Code 仍可照常工作。</footer>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

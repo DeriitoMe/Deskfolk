@@ -1033,6 +1033,16 @@
       "sha256": "d0a794339f9a8b1469c82a068f433ea269ad44439d819454e846aa271596a29b"
     },
     {
+      "file": "docs/claude-code-adapter-20261016.md",
+      "bytes": 1877,
+      "sha256": "63055e9b8c959dbba32e833a751901d686f4cfe0a4ccbc4b70dda67e7abd6f11"
+    },
+    {
+      "file": "docs/claude-code-monitor-20261017.md",
+      "bytes": 2549,
+      "sha256": "ed0d5d6170624622e31ab4ad93aed65c5273a0e87b7aa0744e8a580c40d6593e"
+    },
+    {
       "file": "docs/click-display-and-board-motion-20261014.md",
       "bytes": 5035,
       "sha256": "3a83fa019356c3230fd59a009cfc4c31c00021e518ac1da3a0baea5e2caa2581"
@@ -1343,6 +1353,26 @@
       "sha256": "50f4f2e671460dafcd8026938a7e213589506a5f97fde6433a4f3a2f834e7c66"
     },
     {
+      "file": "electron/claude-code.test.ts",
+      "bytes": 7334,
+      "sha256": "6dac4fee138d7c1fa857140c50bdaeea5ee4de21900fbfea8db2d37efc19ea18"
+    },
+    {
+      "file": "electron/claude-code.ts",
+      "bytes": 7448,
+      "sha256": "489335098cf1641917ec7f2f11810e165d9500d530e921d24b8a690aa6ef00ed"
+    },
+    {
+      "file": "electron/claude-tools.test.ts",
+      "bytes": 3789,
+      "sha256": "67c78f2daa67825ded8ef4b53764b300b2c9a8e703ed46cf6ca4c85253a3914d"
+    },
+    {
+      "file": "electron/claude-tools.ts",
+      "bytes": 4569,
+      "sha256": "de3b2aeb5cfe716acd1e856b8a76e42c45aeaac867b0d318d86ff94168edd371"
+    },
+    {
       "file": "electron/codex-lifecycle.test.ts",
       "bytes": 40871,
       "sha256": "1993b2283cfea225456dc5f22924bc57d2d50b0dee1e8b4458563e6dbaf09621"
@@ -1389,8 +1419,8 @@
     },
     {
       "file": "electron/current-questions.ts",
-      "bytes": 3013,
-      "sha256": "a994d2318242510aa67c924dd0e58b8bb0d9c8440fe0917fd2e3bc960d7f7693"
+      "bytes": 3048,
+      "sha256": "e2a8fdb9d3a65b6478ce447395702d855e83f828c5ae838bfe4a0ec2b6b93a4b"
     },
     {
       "file": "electron/event-presentation.test.ts",
@@ -1404,13 +1434,13 @@
     },
     {
       "file": "electron/main.ts",
-      "bytes": 36592,
-      "sha256": "e08b3b7c64b5d30dae2f6a6d7813138aa27712de3156b80542fa61aa373a85bf"
+      "bytes": 43474,
+      "sha256": "23d1814f17e0631dd8e6de5eba97bb416ba72d5f52ae7ea78e6c1a9301479996"
     },
     {
       "file": "electron/preload.ts",
-      "bytes": 3137,
-      "sha256": "f551cfd44429bc45da03c768a5e2a4508dfa8e944622f424587162e2be75b8cc"
+      "bytes": 3393,
+      "sha256": "2034ca606f3121df004cb0bceb38c2825beb262a4515239787983a2d7ec8a438"
     },
     {
       "file": "electron/renderer-events.test.ts",
@@ -1431,6 +1461,36 @@
       "file": "package.json",
       "bytes": 1696,
       "sha256": "be24ac8b693eeae9334fc607f379b3db08e478f619fd6b6df6e34d4a94c4f394"
+    },
+    {
+      "file": "plugins/deskfolk-claude-code/README.md",
+      "bytes": 2690,
+      "sha256": "54c05566e0bc9c96442cc022605256f2d4601ce50eb1380dbce7d77299f13265"
+    },
+    {
+      "file": "plugins/deskfolk-claude-code/bridge-client.mjs",
+      "bytes": 4378,
+      "sha256": "4e0586ca63f913143c64ee8ad5ed599a6a4e84d7008568e3c70f95a833af7382"
+    },
+    {
+      "file": "plugins/deskfolk-claude-code/hook.mjs",
+      "bytes": 642,
+      "sha256": "2e559019432867aa3d3306f8fed834a34afa8a8829ef3302e14ed4ecf8acc864"
+    },
+    {
+      "file": "plugins/deskfolk-claude-code/setup.mjs",
+      "bytes": 4587,
+      "sha256": "c32500793162a42f9a18180de7f4844a12ce9ac5047fd91dc05632c7bfd70c20"
+    },
+    {
+      "file": "plugins/deskfolk-claude-code/setup.test.mjs",
+      "bytes": 4476,
+      "sha256": "9a0da3c6fbb07a9a011ad5dc4d6d2821ca8e11bac36e695a970d8077a09d928f"
+    },
+    {
+      "file": "plugins/deskfolk-claude-code/statusline.mjs",
+      "bytes": 739,
+      "sha256": "ae2937b211d162c8c9a928074d8a9719bff911f928fdc2fd26a344a0122f5407"
     },
     {
       "file": "plugins/liquid-glass-pet/.codex-plugin/plugin.json",
@@ -1528,6 +1588,11 @@
       "sha256": "e2a6ecbb055f7c273329e54970ea1ccbcaaa3baad354001be61ea1b3fd4addfa"
     },
     {
+      "file": "renderer/claude-props.ts",
+      "bytes": 9816,
+      "sha256": "12e324068cfa07ece015653a3e24f817cef495c5a87a0baf52dbebf2173c6d24"
+    },
+    {
       "file": "renderer/fonts/ChillRoundF-Regular.ttf",
       "bytes": 6205268,
       "sha256": "7ccfc2cd0e971edeac7f65516df8db379f0f84d0d8ff79ee4dfe377956418d3b"
@@ -1539,13 +1604,13 @@
     },
     {
       "file": "renderer/index.html",
-      "bytes": 5494,
-      "sha256": "426365cc5a4c0c869b116613a6ed2c19b149bc47a26038f13e5f44e520a7a6b7"
+      "bytes": 6150,
+      "sha256": "45d0ff927341fa860615cf769193ef3647aaf61fd757ecf8b0833caed47b607a"
     },
     {
       "file": "renderer/main.ts",
-      "bytes": 43183,
-      "sha256": "5cc647d88c2e95a0c17aba21a25d43024ead116a1832cdc01e8b906194ff39a1"
+      "bytes": 46470,
+      "sha256": "c5209ae5e66d46cb1c67cee7c92ee1c1d0422301fcc0764d81a0778f3d72827d"
     },
     {
       "file": "renderer/mutsumi-rig.ts",
@@ -1554,13 +1619,13 @@
     },
     {
       "file": "renderer/projects-view.css",
-      "bytes": 6820,
-      "sha256": "a179fdc042ecc3bd46cf8b4517773c0f0702e465ae5932b8f71949f84a96081b"
+      "bytes": 9625,
+      "sha256": "a5fb9ac5b1046745ee972a6653aaa76e8d0c51c71de2909d63a063f9e29cd33b"
     },
     {
       "file": "renderer/projects-view.ts",
-      "bytes": 11881,
-      "sha256": "e5394649552316dd54fe8e68ab56f040a07b32a3ef5b60b2242423d4ffd091a6"
+      "bytes": 11963,
+      "sha256": "81a1e8499e74ffbaa982d8ab4bbb619a35065720720da287190baebe25babe79"
     },
     {
       "file": "renderer/public/fonts/ChillRoundF-OFL.txt",
@@ -1589,18 +1654,18 @@
     },
     {
       "file": "renderer/settings-view.css",
-      "bytes": 9667,
-      "sha256": "19fb07a0a17eb3cd5c3f4462af0d8d43e3132b3d8bba952af6749409103320d1"
+      "bytes": 14395,
+      "sha256": "e5c48b9f8c5a7438d0b082621a577545ce9e5b7dd91ec1a221d18d01bacda377"
     },
     {
       "file": "renderer/style.css",
-      "bytes": 27629,
-      "sha256": "b8c67c6abc5fe9aedc5929df2a08b4a85640980dc2c9963b7b6e45dbbcc1c835"
+      "bytes": 30730,
+      "sha256": "66c3abe12ae8b0526b7f3f65cf51670f77ca95c919df60eeb0d9a56bea643edd"
     },
     {
       "file": "renderer/three-rig.ts",
-      "bytes": 52742,
-      "sha256": "c9ded90b5b34c2a55804b128e4a6d9d924dfc838828023dd9a67e2cdbac69481"
+      "bytes": 60100,
+      "sha256": "b9c1cefa9a42133614f40319ced2c6ef5b15ce16dd056e1e1ec9fa6047b6c8e0"
     },
     {
       "file": "renderer/touch-voice.test.ts",
@@ -1634,13 +1699,23 @@
     },
     {
       "file": "renderer/v41-review.ts",
-      "bytes": 3046,
-      "sha256": "b1a0a9c9c7f576b61ed8f7948a8b3c796f3263a43bcd66e538580b0d0fcef79e"
+      "bytes": 3147,
+      "sha256": "c0a3156cdf392dcfb7d62c951f5350113164519e9a5fff77eeab62d7fe0cfaa3"
     },
     {
       "file": "renderer/vite-env.d.ts",
       "bytes": 38,
       "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "file": "renderer/window-chrome.css",
+      "bytes": 2110,
+      "sha256": "0bec42aea0d35878bccde1ab795bbc71ce2c9e74536ceefca01f9ee6403c6c7f"
+    },
+    {
+      "file": "renderer/window-chrome.ts",
+      "bytes": 1132,
+      "sha256": "85eeaf226f6ce0c219ff21595c84bc4d481c4543fd097bfe01313541a545aae4"
     },
     {
       "file": "review.vite.config.ts",
@@ -1869,8 +1944,18 @@
     },
     {
       "file": "shared/activity.ts",
-      "bytes": 15812,
-      "sha256": "27153427e51239b39612d6ca07a8fe0c6a0c21ae4968b39a136bd2e992389f3b"
+      "bytes": 15881,
+      "sha256": "6e36ba53fc8467d8466f5de048a229656402445ecdd608a3764da44bb84d20bb"
+    },
+    {
+      "file": "shared/agents.test.ts",
+      "bytes": 2024,
+      "sha256": "3c78c69de6478d05c483a5770d61344e01e2363044b793ff1e910ee901eeba1d"
+    },
+    {
+      "file": "shared/agents.ts",
+      "bytes": 1670,
+      "sha256": "8707b9dbc49930d22d7b39a324e0724d52088e4df00b5a688be914bf3d065f37"
     },
     {
       "file": "shared/companion-feedback.test.ts",
@@ -1944,8 +2029,8 @@
     },
     {
       "file": "shared/project-dashboard.test.ts",
-      "bytes": 5597,
-      "sha256": "a322c61821b6e555e4549006f11babc779d697778fc2300da2282f15661da483"
+      "bytes": 5641,
+      "sha256": "646ecf2b79d3510a38267155c1a8f0d2856eaa2e639c0cc68452a893aff92915"
     },
     {
       "file": "shared/project-dashboard.ts",
@@ -1963,19 +2048,24 @@
       "sha256": "e77ffbe60b562041347707e07da14e70f0fb13ffdb676de986553d992022dd26"
     },
     {
+      "file": "shared/quota-board-motion.test.ts",
+      "bytes": 1778,
+      "sha256": "4276baf7d0e356ddc8427a168827873452d88d16fa91216552e25bb905c3b62d"
+    },
+    {
       "file": "shared/quota-board-motion.ts",
-      "bytes": 895,
-      "sha256": "d87711f38935bcf8b82516e0858b8f733f3e8b263b8f42dc8ef845a95054d619"
+      "bytes": 1818,
+      "sha256": "ed971f4e24355a381f0b28e07b1dd8513299150f1fd7b674a171bb3fa973bf2a"
     },
     {
       "file": "shared/quota.test.ts",
-      "bytes": 3020,
-      "sha256": "397d73403004248762ee9b0ddaf8ae05939294215adf5bd02fa4f4b989e02af0"
+      "bytes": 4838,
+      "sha256": "0e70429201ab29be3f8c101109f4c41dac7a832bb6739543f03242de9d9df4a6"
     },
     {
       "file": "shared/quota.ts",
-      "bytes": 3261,
-      "sha256": "ab296ce61af3fe4eceafbe48794ce45ab0a8873662355bd0dcdeadef2ec512c3"
+      "bytes": 5722,
+      "sha256": "f51841dce037c38518d9a44a2a530118eb01dcba25f9d233a16c4b6a9fde9e8e"
     },
     {
       "file": "shared/reminders.test.ts",
@@ -1984,8 +2074,8 @@
     },
     {
       "file": "shared/reminders.ts",
-      "bytes": 1396,
-      "sha256": "d4310875692d02a5e88ecc509e5ae1b027c9ccd40d31c474b8c240858ff1f1aa"
+      "bytes": 1719,
+      "sha256": "e3d6bc1872d856ba91d51bb651e7cb0f8f3d5c5bac5852f387e0028f2d7e4792"
     },
     {
       "file": "shared/runtime-policy.ts",
@@ -2024,8 +2114,8 @@
     },
     {
       "file": "shared/types.ts",
-      "bytes": 4822,
-      "sha256": "38c6f93ea5b54c12f0f97f24aca91b0f31430bce86f1e2daa399a370d055dee2"
+      "bytes": 5571,
+      "sha256": "efeccf23b9159a1d957585c6a05d9fc49fceba2549333de7c2dc83cb0f032f67"
     },
     {
       "file": "shared/work-bubble.test.ts",
@@ -2043,8 +2133,8 @@
       "sha256": "cba41f3fed6083904716be8ae276a3887ed603e010d80afe14a7614b78894329"
     }
   ],
-  "fileCount": 408,
-  "bytes": 320737994,
+  "fileCount": 426,
+  "bytes": 320837280,
   "over100MiB": [],
   "excluded": [
     "local Electron profiles",

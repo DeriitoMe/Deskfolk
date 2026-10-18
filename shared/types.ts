@@ -1,4 +1,5 @@
 import type {CodexQuotaSnapshot} from './quota';
+import type {FollowAgent} from './agents';
 
 export type PetEventType =
   | "work_started"
@@ -14,11 +15,13 @@ export type PetEventType =
   | "input_sync"
   | "info";
 
-export type EventSource = "hook" | "mcp" | "demo" | "codex-log";
+export type EventSource = "hook" | "mcp" | "demo" | "codex-log" | "claude-code";
 export type PetModel = "flat-chibi" | "hires-soft";
 export type CompletionOutcome = "success" | "interrupted" | "failed" | "quota_exhausted";
 
 export type ActivityPhase = "idle" | "working" | "asking";
+/** Claude Code tool gesture: typing for commands, writing for file edits. */
+export type ToolGesture = "type" | "write";
 export interface PetActivity {
   phase: ActivityPhase;
   sessionId?: string;
@@ -80,6 +83,10 @@ export interface PetPreferences {
   reducedMotion: boolean;
   bubbleSeconds: number;
   startWithCodex: boolean;
+  /** Claude Code SessionStart hook may launch the pet when it is closed. */
+  startWithClaudeCode: boolean;
+  /** Which agent drives work state, bubbles and the quota board. */
+  followAgent: FollowAgent;
   doNotDisturb: boolean;
   notificationsEnabled: boolean;
 }
@@ -107,6 +114,12 @@ export interface ProjectDashboardData {
   preferences: PetPreferences;
 }
 
+/** Connection summary shown in the settings card. */
+export interface AgentConnections {
+  codex: { state: 'starting' | 'watching' | 'unavailable' | 'disabled'; lastEventAt: string | null };
+  claude: { hooksInstalled: boolean; lastEventAt: string | null };
+}
+
 export interface PetBootstrap {
   preferences: PetPreferences;
   history: PetEvent[];
@@ -116,6 +129,7 @@ export interface PetBootstrap {
   activity: PetActivity;
   pendingReminder?: PetEvent;
   quota?: CodexQuotaSnapshot;
+  agents?: AgentConnections;
 
 }
 
@@ -143,6 +157,7 @@ export interface PetBridge {
   onEvent(callback: (event: PetEvent) => void): () => void;
   onPreferences(callback: (preferences: PetPreferences) => void): () => void;
   onActivity(callback: (activity: PetActivity) => void): () => void;
+  onTool(callback: (gesture: ToolGesture | null) => void): () => void;
 }
 
 declare global {

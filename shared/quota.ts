@@ -1,5 +1,9 @@
-/** Only the genuine Codex five-hour account window is displayed. */
-export type CodexQuotaSource = 'codex-app-server' | 'codex-log';
+/**
+ * Only genuine five-hour account windows are displayed: Codex's 300-minute
+ * window, or Claude Code's `rate_limits.five_hour` (shown in Claude's own
+ * /usage as "Current session").
+ */
+export type CodexQuotaSource = 'codex-app-server' | 'codex-log' | 'claude-code-statusline';
 export interface CodexQuotaSnapshot {
   status: 'available' | 'unavailable' | 'expired' | 'refreshing';
   remainingPercent: number | null;
@@ -14,6 +18,9 @@ const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 const prefix = '5小时剩余额度: ';
+export const CLAUDE_QUOTA_PREFIX = 'Current session: ';
+const prefixFor = (source: CodexQuotaSource | null) =>
+  source === 'claude-code-statusline' ? CLAUDE_QUOTA_PREFIX : prefix;
 
 export function unknownCodexQuota(refreshing = false): CodexQuotaSnapshot {
   return {status: refreshing ? 'refreshing' : 'unavailable', remainingPercent: null,
@@ -24,7 +31,7 @@ export function unknownCodexQuota(refreshing = false): CodexQuotaSnapshot {
 /** A reset passing is evidence that the old percentage is stale, never 100%. */
 export function currentCodexQuota(value: CodexQuotaSnapshot, now = Date.now()): CodexQuotaSnapshot {
   if (value.resetsAt && Date.parse(value.resetsAt) <= now) {
-    return {...value, status: 'expired', remainingPercent: null, usedPercent: null, label: prefix + '待刷新'};
+    return {...value, status: 'expired', remainingPercent: null, usedPercent: null, label: prefixFor(value.source) + '待刷新'};
   }
   return {...value};
 }
@@ -68,3 +75,45 @@ export function parseCodexQuota(
   return null;
 }
 
+
+export function unknownClaudeQuota(): CodexQuotaSnapshot {
+  return {status: 'unavailable', remainingPercent: null, usedPercent: null, observedAt: null,
+    resetsAt: null, source: 'claude-code-statusline', label: CLAUDE_QUOTA_PREFIX + '暂不可用'};
+}
+
+/**
+ * Claude Code status line stdin: `rate_limits.five_hour.used_percentage`
+ * (0–100) and `resets_at` (epoch seconds). Like Claude's /usage panel, the
+ * board shows the used percentage. The window is absent for API-key users
+ * and before the first response; absence is "unavailable", never 0%.
+ */
+export function parseClaudeQuota(input: unknown, observedAt: string, now = Date.now()): CodexQuotaSnapshot | null {
+  if (!record(input) || !Number.isFinite(Date.parse(observedAt))) return null;
+  const limits = record(input.rate_limits) ? input.rate_limits : input;
+  const window = limits.five_hour;
+  if (!record(window)) return null;
+  const used = window.used_percentage, resets = window.resets_at;
+  if (!finite(used) || used < 0 || used > 100 || !finite(resets) || resets <= 0) return null;
+  const resetDate = new Date(resets * 1000);
+  if (!Number.isFinite(resetDate.getTime())) return null;
+  const shown = Math.round(used);
+  return currentCodexQuota({status: 'available', remainingPercent: Math.round((100 - used) * 10) / 10,
+    usedPercent: used, observedAt, resetsAt: resetDate.toISOString(), source: 'claude-code-statusline',
+    label: `${CLAUDE_QUOTA_PREFIX}${shown}%`}, now);
+}
+
+/**
+ * One board, two agents: show the agent the user worked with most recently.
+ * A live reading beats a stale/unknown one; Claude's "unavailable" label is
+ * used once Claude Code has been seen, so the board never shows a Codex
+ * window as if it were Claude's.
+ */
+export function selectQuota(codex: CodexQuotaSnapshot, claude: CodexQuotaSnapshot | null,
+  preferClaude: boolean, now = Date.now()): CodexQuotaSnapshot {
+  const a = currentCodexQuota(codex, now);
+  if (!claude) return a;
+  const b = currentCodexQuota(claude, now);
+  if (preferClaude) return b;
+  if (a.status === 'available') return a;
+  return b.status === 'available' ? b : a;
+}

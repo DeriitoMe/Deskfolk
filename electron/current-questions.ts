@@ -1,5 +1,5 @@
 import type { PetEvent } from '../shared/types';
-import { hasNativeInputIdentity, isNativeQuestionReminder, isNativeRequestId } from '../shared/reminders.ts';
+import { hasNativeInputIdentity, isNativeLifecycleSource, isNativeQuestionReminder, isNativeRequestId } from '../shared/reminders.ts';
 
 interface CurrentTurnQuestions {
   turnId: string;
@@ -21,7 +21,7 @@ export class CurrentQuestionLedger {
 
   /** Called after the state reducer and reminder checks accept an event. */
   accepted(event: PetEvent): void {
-    if (event.source !== 'codex-log' || event.isSubagent ||
+    if (!isNativeLifecycleSource(event.source) || event.isSubagent ||
         !isNativeRequestId(event.sessionId) || !isNativeRequestId(event.turnId)) return;
     if (event.type === 'work_started') {
       if (this.sessions.get(event.sessionId)?.turnId !== event.turnId) {
