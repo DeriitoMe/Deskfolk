@@ -107,3 +107,15 @@ test('sessions have independent current question evidence', () => {
   assert.deepEqual(ledger.filterSnapshot(snapshot(['question'], true, { sessionId: 'other' })).nativePendingInputIds, []);
   assert.deepEqual(ledger.filterSnapshot(snapshot(['question'], true)).nativePendingInputIds, ['question']);
 });
+
+test('Harness restores answerable continued questions from its terminal native projection', () => {
+  const ledger = new CurrentQuestionLedger();
+  const extra = {source:'deepseek-harness' as const, sessionId:'deepseek-harness:session', replayed:true};
+  ledger.accepted(event({...extra,type:'work_started'}));
+  assert.deepEqual(ledger.filterSnapshot(snapshot(['continued'],true,extra)).nativePendingInputIds,['continued']);
+  ledger.accepted(event({...extra,replayed:false,type:'input_resolved',nativeCallId:'continued'}));
+  assert.deepEqual(ledger.filterSnapshot(snapshot([],true,extra)).nativePendingInputIds,[]);
+  // A disconnected local lease is not a native answer. A later current
+  // projection may restore that still-answerable call with the same identity.
+  assert.deepEqual(ledger.filterSnapshot(snapshot(['continued'],true,extra)).nativePendingInputIds,['continued']);
+});

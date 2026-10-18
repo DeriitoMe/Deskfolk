@@ -610,3 +610,64 @@ test('native snapshots reject older turns and unconfirmed producers and recover 
  assert.equal(restored['session-1'].phase,'working');assert.equal(restored['session-1'].projectId,'preserved');
  assert.equal(restored['session-1'].turnId,'turn-1');
 });
+
+const harnessEvent=(type:PetEventType,turnId='turn-1',extra:Partial<PetEvent>={}):PetEvent=>({
+ ...event(type,turnId,'deepseek-harness:session-1'),source:'deepseek-harness',projectPath:'D:/Harness',...extra,
+});
+
+test('Harness native work, requests and completion keep distinct host/session identities',()=>{
+ let sessions=updateSessionActivities({}, {...event('work_started'),source:'codex-log',projectPath:'D:/Codex'});
+ const start=harnessEvent('work_started');
+ sessions=updateSessionActivities(sessions,start);
+ assert.equal(sessions[start.sessionId!].nativeTurnId,start.turnId);
+ assert.equal(dominantActivity(sessions).workingProjectCount,2);
+ const question=harnessEvent('needs_input');
+ sessions=updateSessionActivities(sessions,question);
+ assert.equal(sessions[start.sessionId!].phase,'asking');
+ assert.equal(shouldDeliverBufferedEvent(sessions,question),true);
+ sessions=updateSessionActivities(sessions,harnessEvent('input_resolved'));
+ sessions=updateSessionActivities(sessions,question);
+ assert.equal(sessions[start.sessionId!].phase,'working','delayed answered question cannot revive a prompt');
+ assert.equal(shouldDeliverBufferedEvent(sessions,question),false);
+ const completed=harnessEvent('turn_ended','turn-1',{outcome:'success'});
+ assert.equal(shouldCelebrateCompletion(sessions,completed),true);
+ sessions=updateSessionActivities(sessions,completed);
+ assert.equal(sessions[start.sessionId!].phase,'idle');
+ assert.equal(sessions['session-1'].phase,'working','the Codex task still runs');
+});
+
+test('Harness replay snapshots reconcile pending input after restart without replaying notices',()=>{
+ const start=harnessEvent('work_started','active',{replayed:true});
+ let sessions=updateSessionActivities({},start);
+ const pending=harnessEvent('input_sync','active',{replayed:true,nativePendingInputIds:['q1','q2'],nativeTurnTerminal:false});
+ sessions=updateSessionActivities(sessions,pending);
+ assert.equal(sessions[start.sessionId!].phase,'asking');
+ assert.deepEqual(sessions[start.sessionId!].pendingInputIds,['q1','q2']);
+ assert.equal(shouldPresentLifecycleEvent(start,true,Date.parse(start.createdAt)),false,'a freshly delivered restart snapshot stays silent');
+ assert.equal(shouldPresentLifecycleEvent(pending,true,Date.parse(pending.createdAt)),false);
+ assert.equal(shouldDeliverPetEvent(pending,dominantActivity(sessions)),false);
+ sessions=sanitizeStoredActivities(sessions);
+ assert.equal(sessions[start.sessionId!].phase,'asking','stored native IDs survive migration');
+ sessions=updateSessionActivities(sessions,{...pending,nativePendingInputIds:[],nativeTurnTerminal:true,outcome:'success'});
+ assert.equal(sessions[start.sessionId!].phase,'idle');
+ const late=harnessEvent('needs_input','active',{nativeCallId:'q1'});
+ sessions=updateSessionActivities(sessions,late);
+ assert.equal(sessions[start.sessionId!].phase,'idle');
+ assert.equal(shouldDeliverBufferedEvent(sessions,late),false);
+});
+
+test('Harness old-turn snapshots and completions cannot stop a newer native turn',()=>{
+ const old=harnessEvent('work_started','old');
+ let sessions=updateSessionActivities({},old);
+ sessions=updateSessionActivities(sessions,harnessEvent('work_started','new',{createdAt:'2026-09-25T12:00:01.000Z'}));
+ const newer=sessions;
+ sessions=updateSessionActivities(sessions,harnessEvent('input_sync','old',{nativePendingInputIds:['old-call'],nativeTurnTerminal:false}));
+ assert.deepEqual(sessions,newer);
+ sessions=updateSessionActivities(sessions,harnessEvent('turn_ended','old',{outcome:'success'}));
+ assert.equal(sessions[old.sessionId!].turnId,'new');
+ assert.equal(sessions[old.sessionId!].phase,'working');
+ for(const patch of [{nativePendingInputIds:undefined},{nativeTurnTerminal:undefined},{isSubagent:true}]){
+  const invalid=harnessEvent('input_sync','new',{nativePendingInputIds:[],nativeTurnTerminal:false,...patch});
+  assert.deepEqual(updateSessionActivities(sessions,invalid),sessions);
+ }
+});

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {isQuestionReminder,shouldShowBubble} from './reminders.ts';
+import {isNativeLifecycleSource,isQuestionReminder,shouldShowBubble} from './reminders.ts';
 import type {PetEvent} from './types';
 const event=(type:PetEvent['type'],extra:Partial<PetEvent>={}):PetEvent=>({id:'x',source:'hook',type,createdAt:new Date().toISOString(),read:false,...extra});
 test('automatic permission events and generic info never create interaction bubbles',()=>{
@@ -36,4 +36,18 @@ test('only a complete native question identity can produce a real interaction bu
  assert.equal(isQuestionReminder(event('needs_input',{source:'demo'})),true);
  assert.equal(isQuestionReminder(event('approval_needed',{source:'demo'})),true);
  assert.equal(shouldShowBubble({...native,type:'input_sync'}),false);
+});
+
+test('Harness plugin lifecycle and native requests use the same identity rules as other native hosts',()=>{
+ assert.equal(isNativeLifecycleSource('deepseek-harness'),true);
+ const start=event('work_started',{source:'deepseek-harness',sessionId:'deepseek-harness:session',turnId:'turn'});
+ assert.equal(shouldShowBubble(start),true);
+ assert.equal(shouldShowBubble({...start,replayed:true}),false);
+ assert.equal(shouldShowBubble({...start,isSubagent:true}),false);
+ const question={...start,type:'needs_input' as const,nativeQuestion:true,nativeCallId:'call'};
+ assert.equal(isQuestionReminder(question),true);
+ for(const patch of [{nativeQuestion:false},{nativeCallId:undefined},{turnId:undefined},{isSubagent:true},{questionId:'legacy'}]){
+  assert.equal(isQuestionReminder({...question,...patch}),false);
+ }
+ assert.equal(isQuestionReminder({...question,type:'approval_needed',nativeApproval:true}),false);
 });

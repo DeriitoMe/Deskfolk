@@ -1,9 +1,9 @@
 /**
- * Only genuine five-hour account windows are displayed: Codex's 300-minute
+ * Available readings use genuine five-hour account windows: Codex's 300-minute
  * window, or Claude Code's `rate_limits.five_hour` (shown in Claude's own
- * /usage as "Current session").
+ * /usage as "Current session"). DeepSeek Harness has no verified quota feed.
  */
-export type CodexQuotaSource = 'codex-app-server' | 'codex-log' | 'claude-code-statusline';
+export type CodexQuotaSource = 'codex-app-server' | 'codex-log' | 'claude-code-statusline' | 'deepseek-harness';
 export interface CodexQuotaSnapshot {
   status: 'available' | 'unavailable' | 'expired' | 'refreshing';
   remainingPercent: number | null;
@@ -19,13 +19,22 @@ const record = (value: unknown): value is Record<string, unknown> =>
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 const prefix = '5小时剩余额度: ';
 export const CLAUDE_QUOTA_PREFIX = 'Current session: ';
+export const DEEPSEEK_QUOTA_PREFIX = 'DeepSeek 额度: ';
 const prefixFor = (source: CodexQuotaSource | null) =>
-  source === 'claude-code-statusline' ? CLAUDE_QUOTA_PREFIX : prefix;
+  source === 'deepseek-harness' ? DEEPSEEK_QUOTA_PREFIX :
+    source === 'claude-code-statusline' ? CLAUDE_QUOTA_PREFIX : prefix;
 
 export function unknownCodexQuota(refreshing = false): CodexQuotaSnapshot {
   return {status: refreshing ? 'refreshing' : 'unavailable', remainingPercent: null,
     usedPercent: null, observedAt: null, resetsAt: null, source: null,
     label: prefix + (refreshing ? '读取中' : '暂不可用')};
+}
+
+/** Harness lifecycle/tool events do not establish an account quota window. */
+export function unknownDeepSeekQuota(): CodexQuotaSnapshot {
+  return {status: 'unavailable', remainingPercent: null, usedPercent: null,
+    observedAt: null, resetsAt: null, source: 'deepseek-harness',
+    label: DEEPSEEK_QUOTA_PREFIX + '暂不可用'};
 }
 
 /** A reset passing is evidence that the old percentage is stale, never 100%. */
@@ -38,7 +47,7 @@ export function currentCodexQuota(value: CodexQuotaSnapshot, now = Date.now()): 
 
 /** Accept native snake_case records and official app-server camelCase snapshots. */
 export function parseCodexQuota(
-  input: unknown, source: CodexQuotaSource, observedAt: string, now = Date.now(),
+  input: unknown, source: 'codex-app-server' | 'codex-log', observedAt: string, now = Date.now(),
 ): CodexQuotaSnapshot | null {
   if (!record(input) || !Number.isFinite(Date.parse(observedAt))) return null;
   let value: Record<string, unknown> = input;

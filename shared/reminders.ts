@@ -2,10 +2,10 @@ import type { PetEvent } from './types';
 
 /**
  * Sources that observe an agent's own lifecycle: Codex native JSONL records,
- * and Claude Code's official hook events, which are that host's native API.
+ * Claude Code's official hooks, and DeepSeek Harness's native plugin events.
  */
 export function isNativeLifecycleSource(source: PetEvent['source']): boolean {
-  return source === 'codex-log' || source === 'claude-code';
+  return source === 'codex-log' || source === 'claude-code' || source === 'deepseek-harness';
 }
 export function isNativeRequestId(value: unknown): value is string {
   return typeof value === 'string' && !!value.trim() && !/^legacy:/i.test(value);

@@ -144,7 +144,7 @@ export async function setupProjectsView(): Promise<void> {
   const monitorHeading = element('div', 'projects-section-heading');
   const monitorState = element('span', 'projects-monitor-state', '正在读取');
   monitorState.dataset.state = 'starting';
-  monitorHeading.append(element('h2', 'projects-section-title', '监控情况'), monitorState);
+  monitorHeading.append(element('h2', 'projects-section-title', 'Codex 日志监控'), monitorState);
   const monitorDetails = element('dl', 'projects-monitor-details');
   const monitorRows = new Map<string, HTMLElement>();
   for (const label of ['本地通知', '最后检查', '最近有效事件', '已发现会话', '等待扫描']) {
@@ -184,6 +184,7 @@ export async function setupProjectsView(): Promise<void> {
     if (Number.isFinite(incomingTime)) lastSnapshotTime = incomingTime;
     const firstSnapshot = !hasSnapshot;
     hasSnapshot = true;
+    openCodex.hidden = !['all','codex'].includes(data.preferences.followAgent);
     main.setAttribute('aria-busy', 'false');
     if (firstSnapshot) setText(status, '');
     setText(working.number, String(data.workingProjectCount));
@@ -204,7 +205,7 @@ export async function setupProjectsView(): Promise<void> {
         const empty = element('div', 'projects-empty');
         empty.append(
           element('strong', '', '还没有可显示的项目'),
-          element('p', '', '打开 Codex 或继续一个任务后，这里会更新。'),
+          element('p', '', '在已接入的 Agent 中开始或继续任务后，这里会更新。'),
         );
         fragment.append(empty);
       }
@@ -218,7 +219,7 @@ export async function setupProjectsView(): Promise<void> {
     setText(monitorRows.get('最近有效事件')!, formatTime(data.monitor.lastEventAt, true));
     setText(monitorRows.get('已发现会话')!, String(data.monitor.observedSessions));
     setText(monitorRows.get('等待扫描')!, String(data.monitor.discoveryPending));
-    setText(approvalNote, '这里提醒 Codex 中实际待回答的问题；工具权限请在 Codex 原生面板中确认。');
+    setText(approvalNote, '问题与权限请求请回到对应 Agent 的原生窗口处理。');
 
     const nextEventSignature = JSON.stringify(data.recentEvents);
     if (nextEventSignature !== eventSignature) {

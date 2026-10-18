@@ -11,7 +11,7 @@ import tearfulFirstVoiceUrl from './assets/audio/mutsumi-tearful-first.wav?url';
 import tearfulSecondVoiceUrl from './assets/audio/mutsumi-tearful-second.wav?url';
 import { TouchVoice } from './touch-voice';
 import {QUOTA_BOARD_SECONDS} from '../shared/quota-board-motion';
-import {unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
+import {unknownCodexQuota,unknownDeepSeekQuota,type CodexQuotaSnapshot} from '../shared/quota';
 import "./style.css";
 import "./settings-view.css";
 import { MutsumiRig, TURN_SECONDS, type RigAction } from './three-rig';
@@ -80,7 +80,7 @@ let activityState: "idle" | "working" | "attention" = "idle";
 let quotaBoardUntil=0;
 let latestQuota:CodexQuotaSnapshot=unknownCodexQuota();
 let latestActivity: PetActivity = { phase: 'idle', updatedAt: new Date().toISOString() };
-/** Claude Code tool gesture; it outranks plain and multi-project work. */
+/** Native tool gesture; it outranks plain and multi-project work. */
 let latestTool: ToolGesture | null = null;
 const questionReminder = new QuestionReminderWindow();
 const celebrationSequence = new CelebrationSequence();
@@ -366,8 +366,8 @@ function displayBubble(event: PetEvent): void {
   window.clearTimeout(bubbleFadeTimer);
   bubbleFadeTimer = 0;
   speechBubble.classList.remove('bubble-out');
-  // The button opens Codex; Claude Code questions are answered in its own window.
-  document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=!isQuestionReminder(event)||event.source==='claude-code';
+  // Each host owns its native dialog; this button only opens Codex.
+  document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=!isQuestionReminder(event)||!['codex-log','demo'].includes(event.source);
   resetSleepTimer();
   window.clearTimeout(workTransitionTimer);
   currentEvent = event;
@@ -510,7 +510,7 @@ function syncFlatActivity(): void {
   const interaction=Date.now()<flatTouchUntil || (dragPointer!==null && dragDistance>4);
   const step=idleCadence.tick(now,activityState!=='idle'||latestActivity.phase==='asking'||celebration||feedback?'busy':interaction||dizzyUntil>now||tearful?'interaction':'idle');
   if(interaction)return;
-  if(quotaBoardUntil>now){setAction('quota-board');setStatus(latestQuota.source==='claude-code-statusline'?'查看 Claude Code Current session':'查看五小时剩余额度');return;}
+  if(quotaBoardUntil>now){setAction('quota-board');setStatus(latestQuota.source==='deepseek-harness'?'DeepSeek Harness 额度暂不可用':latestQuota.source==='claude-code-statusline'?'查看 Claude Code Current session':'查看五小时剩余额度');return;}
   if(questioning){clearRepeatedTouch();setAction('ask');setStatus('等你回复');return;}
   if(latestActivity.phase!=='idle'||workingCount>0){dizzyUntil=0;orbit.reset();}
   if(!feedback&&rig?.canvas.dataset.ready==='true'&&remindersEnabled(currentPreferences)){
@@ -813,13 +813,16 @@ function updateConnectionStatus(bridgeReady: boolean, agents?: AgentConnections)
   document.querySelector("#bridge-dot")!.classList.toggle("online", bridgeReady);
   document.querySelector("#bridge-status")!.textContent = bridgeReady ? "运行中" : "未启动";
   latestConnections = agents ?? latestConnections;
-  const codex = latestConnections?.codex, claude = latestConnections?.claude;
+  const codex = latestConnections?.codex, claude = latestConnections?.claude, deepseek = latestConnections?.deepseek;
   const codexState: Record<string, string> = {watching: '正在监视', starting: '正在连接', unavailable: '未找到 Codex', disabled: '监视已停用'};
   const recent = (value: string | null) => value ? timeLabel(value) : '等待首次事件';
   document.querySelector("#codex-status")!.textContent = !codex ? '正在检查' :
     codex.state === 'watching' ? `${codexState.watching} · ${recent(codex.lastEventAt)}` : codexState[codex.state];
   document.querySelector("#claude-status")!.textContent = !claude ? '正在检查' :
     claude.hooksInstalled ? `已接入 · ${recent(claude.lastEventAt)}` : '未接入（运行接入脚本）';
+  document.querySelector("#deepseek-status")!.textContent = !deepseek ? '正在检查' :
+    deepseek.pluginInstalled ? `已接入 · ${recent(deepseek.lastEventAt)}` :
+      deepseek.lastEventAt ? `已接收事件 · ${recent(deepseek.lastEventAt)}` : '未接入（安装 Harness 插件）';
   const hint = document.querySelector<HTMLElement>('#claude-start-hint');
   if (hint) hint.textContent = claude && !claude.hooksInstalled ? '需要先运行 Claude Code 接入脚本' : 'Claude Code 开新会话时自动启动桌宠';
   syncFollowRows();
@@ -911,7 +914,7 @@ async function start(): Promise<void> {
   });
   window.petBridge.onTool((gesture) => { latestTool = gesture; if (initialized && !SETTINGS_VIEW) syncFlatActivity(); });
   const bootstrap = await window.petBridge.getBootstrap();
-  latestQuota=bootstrap.quota??unknownCodexQuota();
+  latestQuota=bootstrap.quota??(bootstrap.preferences.followAgent==='deepseek'?unknownDeepSeekQuota():unknownCodexQuota());
   applyPreferences(bootstrap.preferences);
   if (!SETTINGS_VIEW) {
     if (!receivedActivity) applyActivity(bootstrap.activity);

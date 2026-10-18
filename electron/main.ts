@@ -22,6 +22,7 @@ import type {
   PetEventType,
   PetPreferences,
   PetModel,
+  ToolGesture,
   CompletionOutcome,
   ProjectDashboardData,
 } from "../shared/types";
@@ -36,10 +37,12 @@ import {shouldPresentAcceptedEvent} from './event-presentation';
 import {CurrentQuestionLedger} from './current-questions';
 import {projectDashboard} from '../shared/project-dashboard';
 import {CodexQuotaMonitor} from './codex-quota';
-import {parseClaudeQuota,selectQuota,unknownClaudeQuota,unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
+import {parseClaudeQuota,selectQuota,unknownClaudeQuota,unknownCodexQuota,unknownDeepSeekQuota,type CodexQuotaSnapshot} from '../shared/quota';
 import {ClaudeCodeAdapter} from './claude-code';
-import {ClaudeToolTracker,type ClaudeToolGesture} from './claude-tools';
-import {eventAgent,follows,normalizeFollowAgent,visibleSessions} from '../shared/agents';
+import {ClaudeToolTracker} from './claude-tools';
+import {DeepSeekHarnessAdapter,parseDeepSeekHarnessEnvelope} from './deepseek-harness';
+import {DeepSeekToolTracker} from './deepseek-tools';
+import {eventAgent,sessionAgent,follows,normalizeFollowAgent,visibleSessions,type AgentName} from '../shared/agents';
 
 const APP_NAME = "Deskfolk";
 // Keep the existing data directory and bridge identifier during the branding update.
@@ -109,11 +112,18 @@ let quotaMonitor: CodexQuotaMonitor | undefined;
 const claudeCode=new ClaudeCodeAdapter();
 /** Typing/writing gestures for Claude Code tools; separate from work state. */
 const claudeTools=new ClaudeToolTracker();
-let sentTool:ClaudeToolGesture|null=null;let toolTimer:ReturnType<typeof setTimeout>|undefined;
+const deepSeekHarness=new DeepSeekHarnessAdapter();
+const deepSeekTools=new DeepSeekToolTracker();
+let deepSeekLeaseTimer:ReturnType<typeof setInterval>|undefined;
+let sentTool:ToolGesture|null=null;let toolTimer:ReturnType<typeof setTimeout>|undefined;
 function sendTool(force=false){
-  const now=Date.now(),gesture=follows(preferences.followAgent,'claude')?claudeTools.current(now,id=>sessionActivities[id]?.phase==='working'):null;
+  const now=Date.now(),isWorking=(id:string)=>sessionActivities[id]?.phase==='working';
+  const claude=follows(preferences.followAgent,'claude')?claudeTools.current(now,isWorking):null;
+  const deepseek=follows(preferences.followAgent,'deepseek')?deepSeekTools.current(now,isWorking):null;
+  const gesture=lastAgent==='deepseek'?deepseek??claude:claude??deepseek;
   clearTimeout(toolTimer);toolTimer=undefined;
-  const next=claudeTools.nextChangeAt();
+  const deadlines=[claudeTools.nextChangeAt(),deepSeekTools.nextChangeAt()].filter((value):value is number=>value!==undefined);
+  const next=deadlines.length?Math.min(...deadlines):undefined;
   if(next!==undefined)toolTimer=setTimeout(()=>sendTool(),Math.max(50,next-now+10));
   if(gesture===sentTool&&!force)return;
   sentTool=gesture;mainWindow?.webContents.send('pet:tool',gesture);
@@ -121,16 +131,19 @@ function sendTool(force=false){
 /** Last Claude Code five-hour reading from its status line; null until seen. */
 let claudeQuota: CodexQuotaSnapshot | null = null;
 /** Which agent the user worked with most recently; decides the quota board. */
-let lastAgent: 'codex' | 'claude' | undefined;
+let lastAgent: AgentName | undefined;
 function quotaSnapshot(): CodexQuotaSnapshot {
   const codex=quotaMonitor?.snapshot()??unknownCodexQuota();
   const follow=preferences.followAgent;
+  const active=currentActivity();
+  const recent=lastAgent??(active.phase!=='idle'&&active.sessionId?sessionAgent(active.sessionId):undefined);
+  if(follow==='deepseek'||(follow==='all'&&recent==='deepseek'))return unknownDeepSeekQuota();
   const preferClaude=follow==='claude'||(follow==='all'&&(lastAgent==='claude'||(!lastAgent&&!!claudeQuota?.observedAt&&
     (!codex.observedAt||Date.parse(claudeQuota.observedAt)>Date.parse(codex.observedAt)))));
   return selectQuota(codex,preferClaude?claudeQuota??unknownClaudeQuota():claudeQuota,preferClaude);
 }
 function sendQuota(){mainWindow?.webContents.send('pet:quota',quotaSnapshot());}
-function noteAgent(agent:'codex'|'claude'){
+function noteAgent(agent:AgentName){
   if(lastAgent===agent)return;
   lastAgent=agent;
   if(agent==='claude'&&!claudeQuota)claudeQuota=unknownClaudeQuota();
@@ -141,6 +154,7 @@ let isQuitting = false;
 let lastHookEventAt: string | null = null;
 /** Last valid Claude Code hook payload, shown as the connection status. */
 let lastClaudeEventAt: string | null = null;
+let lastDeepSeekEventAt: string | null = null;
 let lastMcpEventAt: string | null = null;
 let lastDedupSignature = "";
 let lastDedupAt = 0;
@@ -234,7 +248,7 @@ function safeCompare(left: string, right: string): boolean {
 
 function makeEvent(input: Record<string, unknown>, source: EventSource): PetEvent | null {
   const type = input.type;
-  if (typeof type !== "string" || !ALLOWED_TYPES.has(type as PetEventType)) return null;
+  if (typeof type !== "string" || (!ALLOWED_TYPES.has(type as PetEventType) && !(source==='deepseek-harness'&&type==='input_sync'))) return null;
   const outcomes:CompletionOutcome[]=['success','interrupted','failed','quota_exhausted'];
   const error=input.error as {codex_error_info?:unknown}|undefined;
   const outcome:CompletionOutcome|undefined=error?(error.codex_error_info==='usage_limit_exceeded'?'quota_exhausted':'failed'):
@@ -261,6 +275,9 @@ function makeEvent(input: Record<string, unknown>, source: EventSource): PetEven
     nativeQuestion: input.nativeQuestion === true,
     nativeApproval: input.nativeApproval === true,
     nativeCallId: sanitizeText(input.nativeCallId??legacyCallId, 120),
+    nativePendingInputIds:source==='deepseek-harness'&&Array.isArray(input.nativePendingInputIds)
+      ?input.nativePendingInputIds.map(id=>sanitizeText(id,120)).filter((id):id is string=>!!id):undefined,
+    nativeTurnTerminal:source==='deepseek-harness'&&typeof input.nativeTurnTerminal==='boolean'?input.nativeTurnTerminal:undefined,
     outcome,
     replayed: input.replayed === true,
     createdAt: new Date().toISOString(),
@@ -273,7 +290,7 @@ function eventSignature(event: PetEvent): string {
 }
 
 function acceptEvent(event: PetEvent): void {
-  lifecycle?.track(event.sessionId);
+  if(event.source!=='deepseek-harness'&&event.source!=='claude-code')lifecycle?.track(event.sessionId);
   // A prompt hook may use an auxiliary session ID that has no native rollout.
   // Track it for discovery, and let actual task_started evidence activate work.
   if(isUnconfirmedHookWork(sessionActivities,event))return;
@@ -302,6 +319,7 @@ function acceptEvent(event: PetEvent): void {
   if (event.source === "mcp") lastMcpEventAt = event.createdAt;
   if (event.type === 'work_started' && !event.replayed && !event.isSubagent) {
     if (event.source === 'claude-code') noteAgent('claude');
+    else if (event.source === 'deepseek-harness') noteAgent('deepseek');
     else if (event.source === 'codex-log') noteAgent('codex');
   }
   const success=shouldCelebrateCompletion(sessionActivities,event);
@@ -400,6 +418,18 @@ async function handleBridgeRequest(
     if (url.pathname === '/questions' || url.pathname.startsWith('/questions/')) {
       sendJson(response,410,{ok:false,error:'Pet answering has been removed. Use the native Codex question panel.'}); return;
     }
+    if (request.method === 'POST' && url.pathname === '/deepseek-harness') {
+      const payload=JSON.parse(await readRequestBody(request)) as unknown;
+      const envelope=parseDeepSeekHarnessEnvelope(payload);
+      if(!envelope){sendJson(response,400,{ok:false,error:'Unsupported Harness envelope'});return;}
+      const events=deepSeekHarness.translate(envelope).map(input=>makeEvent({...input},'deepseek-harness'))
+        .filter((event):event is PetEvent=>!!event);
+      lastDeepSeekEventAt=new Date().toISOString();
+      for(const event of events)acceptEvent(event);
+      deepSeekTools.observe(envelope,Date.now());
+      sendTool();sendQuota();
+      sendJson(response,202,{ok:true,accepted:events.length});return;
+    }
     if (request.method === 'POST' && url.pathname === '/claude-code') {
       // Official Claude Code hook payload, forwarded by plugins/deskfolk-claude-code.
       const payload = JSON.parse(await readRequestBody(request)) as unknown;
@@ -482,6 +512,7 @@ function loadPreferences(): void {
   lastHookEventAt = history.find((event) => event.source === "hook")?.createdAt ?? null;
   lastMcpEventAt = history.find((event) => event.source === "mcp")?.createdAt ?? null;
   lastClaudeEventAt = history.find((event) => event.source === "claude-code")?.createdAt ?? null;
+  lastDeepSeekEventAt = history.find((event) => event.source === 'deepseek-harness')?.createdAt ?? null;
 }
 
 /** Deskfolk hooks present in the user's Claude Code settings (read-only check). */
@@ -495,6 +526,7 @@ function agentConnections(): AgentConnections {
     codex:{state:health?.state??(process.env.PET_TEST_MODE==='1'?'disabled':'starting'),
       lastEventAt:health?.lastEventAt??history.find(event=>event.source==='codex-log')?.createdAt??null},
     claude:{hooksInstalled:claudeHooksInstalled(),lastEventAt:lastClaudeEventAt},
+    deepseek:{pluginInstalled:!!lastDeepSeekEventAt,lastEventAt:lastDeepSeekEventAt},
   };
 }
 
@@ -729,7 +761,7 @@ function registerIpc(): void {
   ipcMain.handle('pet:refresh-quota',async event=>{
     if(!quotaSender(event))return unknownCodexQuota();
     // Claude Code pushes its reading through the status line; only Codex can be polled.
-    if((preferences.followAgent==='all'?lastAgent:preferences.followAgent)!=='claude')await quotaMonitor?.refresh().catch(()=>undefined);
+    if(!['claude','deepseek'].includes((preferences.followAgent==='all'?lastAgent:preferences.followAgent)??''))await quotaMonitor?.refresh().catch(()=>undefined);
     return quotaSnapshot();
   });
   ipcMain.handle('pet:renderer-ready',event=>{
@@ -825,6 +857,7 @@ function registerIpc(): void {
     if(![mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender)) return {ok:false};
     const reminder=history.find(item=>!item.read&&isQuestionReminder(item));
     if(reminder?.source==='claude-code')return {ok:false,error:'请回到 Claude Code 窗口处理。'};
+    if(reminder?.source==='deepseek-harness')return {ok:false,error:'请回到 DeepSeek Harness 窗口处理。'};
     return activateCodex();
   });
   ipcMain.on("pet:set-mouse-ignored", (event, ignored: boolean) => {
@@ -874,6 +907,13 @@ if (!hasLock) {
     quotaMonitor=new CodexQuotaMonitor(process.env.CODEX_HOME||join(app.getPath('home'),'.codex'),()=>sendQuota());
     quotaMonitor.start();
     await startBridge();
+    deepSeekLeaseTimer=setInterval(()=>{
+      for(const input of deepSeekHarness.expire(Date.now())){
+        const event=makeEvent({...input},'deepseek-harness');if(event)acceptEvent(event);
+      }
+      sendTool();
+    },5_000);
+    deepSeekLeaseTimer.unref();
     createPetWindow();
     if(!process.env.PET_TEST_MODE){
       lifecycle=new CodexLifecycleObserver(join(process.env.CODEX_HOME||join(app.getPath('home'),'.codex'),'sessions'),acceptEvent);
@@ -892,6 +932,8 @@ if (!hasLock) {
     isQuitting = true;
     lifecycle?.stop();
     quotaMonitor?.stop();
+    clearInterval(deepSeekLeaseTimer);
+    clearTimeout(toolTimer);
     clearTimeout(layoutPositionTimer);
     savePosition();
     if (bridgeServer?.listening) bridgeServer.close();

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {currentCodexQuota, parseCodexQuota, unknownCodexQuota} from './quota.ts';
+import {currentCodexQuota, parseCodexQuota, unknownCodexQuota, unknownDeepSeekQuota} from './quota.ts';
 
 const now = Date.parse('2026-10-14T03:00:00Z');
 const observed = new Date(now).toISOString();
@@ -79,4 +79,14 @@ test('the board follows the most recent agent and never shows Codex data as Clau
   assert.equal(selectQuota(codex, unknownClaudeQuota(), true, now).label, 'Current session: 暂不可用');
   assert.equal(selectQuota(unknownCodexQuota(), claude, false, now).label, 'Current session: 40%');
   assert.equal(selectQuota(codex, null, true, now).label, codex.label);
+});
+
+test('Harness explicitly has no verified quota reading or assumed five-hour window', () => {
+ const quota=unknownDeepSeekQuota();
+ assert.equal(quota.source,'deepseek-harness');
+ assert.equal(quota.status,'unavailable');
+ assert.equal(quota.label,'DeepSeek 额度: 暂不可用');
+ assert.equal(quota.remainingPercent,null);assert.equal(quota.usedPercent,null);
+ assert.equal(quota.observedAt,null);assert.equal(quota.resetsAt,null);
+ assert.deepEqual(currentCodexQuota(quota,now+9e9),quota,'time passing cannot invent a reset or allowance');
 });

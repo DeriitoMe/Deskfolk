@@ -15,12 +15,12 @@ export type PetEventType =
   | "input_sync"
   | "info";
 
-export type EventSource = "hook" | "mcp" | "demo" | "codex-log" | "claude-code";
+export type EventSource = "hook" | "mcp" | "demo" | "codex-log" | "claude-code" | "deepseek-harness";
 export type PetModel = "flat-chibi" | "hires-soft";
 export type CompletionOutcome = "success" | "interrupted" | "failed" | "quota_exhausted";
 
 export type ActivityPhase = "idle" | "working" | "asking";
-/** Claude Code tool gesture: typing for commands, writing for file edits. */
+/** Native agent tool gesture: typing for commands, writing for file edits. */
 export type ToolGesture = "type" | "write";
 export interface PetActivity {
   phase: ActivityPhase;
@@ -118,6 +118,7 @@ export interface ProjectDashboardData {
 export interface AgentConnections {
   codex: { state: 'starting' | 'watching' | 'unavailable' | 'disabled'; lastEventAt: string | null };
   claude: { hooksInstalled: boolean; lastEventAt: string | null };
+  deepseek: { pluginInstalled: boolean; lastEventAt: string | null };
 }
 
 export interface PetBootstrap {

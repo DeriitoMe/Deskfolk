@@ -40,6 +40,12 @@ The application and desktop shortcut are named **Deskfolk**. Existing installati
 
 Settings include notifications, do-not-disturb mode, and startup behavior. The quota board displays an unavailable or refresh-needed state when a reliable five-hour allowance cannot be read.
 
+## Agent integrations
+
+This development branch adds native DeepSeek Harness support alongside Codex and Claude Code. Choose **All**, **Codex**, **Claude Code**, or **DeepSeek** in settings. The adapter observes actual work, tool execution, native questions, approvals and completion; it also restores current state after reconnection.
+
+See the [Harness installation guide](plugins/deskfolk-deepseek-harness/README.md) and [implementation and verification notes](docs/deepseek-harness-adapter-20261019.md). The Windows build includes the external Harness plugin in `resources/plugins/deskfolk-deepseek-harness/`. Install it into the Harness profile you use. The published v1.0.0 download predates these adapters.
+
 ## Develop
 
 Requirements: Windows, Node.js 20.19 or newer, and the Windows .NET Framework 4.x compiler included with Windows. The test suite uses Node's built-in TypeScript support; use Node.js 24 for the documented test commands.

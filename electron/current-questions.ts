@@ -48,7 +48,7 @@ export class CurrentQuestionLedger {
 
   /** Active native turns can restore pending questions; ended turns need current evidence. */
   filterSnapshot(event: PetEvent): PetEvent {
-    if (event.type !== 'input_sync' || event.source !== 'codex-log' || event.isSubagent ||
+    if (event.type !== 'input_sync' || !['codex-log','deepseek-harness'].includes(event.source) || event.isSubagent ||
         !isNativeRequestId(event.sessionId) || !isNativeRequestId(event.turnId) ||
         !Array.isArray(event.nativePendingInputIds) || typeof event.nativeTurnTerminal !== 'boolean') {
       return event;
@@ -58,6 +58,13 @@ export class CurrentQuestionLedger {
     // current process's evidence for the newer turn while doing so.
     if (current.turnId !== event.turnId) return event;
     const nativeIds = [...new Set(event.nativePendingInputIds.filter(isNativeRequestId))];
+    // Harness sends a current, ordered projection of answerable calls. Local
+    // lease cleanup can temporarily hide one without resolving it in Harness.
+    if(event.source==='deepseek-harness'){
+      current.pending=new Set(nativeIds);
+      for(const id of nativeIds)current.resolved.delete(id);
+      return {...event,nativePendingInputIds:nativeIds};
+    }
     const pending = nativeIds.filter(id => !current.resolved.has(id) &&
       (!event.nativeTurnTerminal || current.pending.has(id)));
     for (const id of current.pending) {

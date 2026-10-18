@@ -95,6 +95,7 @@ export function successfulCompletionIdentity(event:PetEvent):string {
 }
 /** Reconciliation can change one project while the aggregate stays identical. */
 export function shouldPresentLifecycleEvent(event:PetEvent,stateChanged:boolean,now:number):boolean {
+  if(event.source==='deepseek-harness'&&event.replayed===true)return false;
   if(event.type==='input_sync')return false;
   if(['needs_input','approval_needed'].includes(event.type))return isQuestionReminder(event)&&event.replayed!==true;
   if(!isNativeLifecycleSource(event.source))return true;
@@ -126,7 +127,7 @@ export function updateSessionActivities(previous: SessionActivities, event: PetE
   if(event.type==='needs_input'&&!isNativeQuestionReminder(event))return sessions;
   if(event.type==='input_resolved'&&!hasNativeInputIdentity(event))return sessions;
   const inputSync=event.type==='input_sync';
-  if(inputSync&&(event.source!=='codex-log'||event.isSubagent||!isNativeRequestId(event.sessionId)||
+  if(inputSync&&(!['codex-log','deepseek-harness'].includes(event.source)||event.isSubagent||!isNativeRequestId(event.sessionId)||
     !isNativeRequestId(event.turnId)||!Array.isArray(event.nativePendingInputIds)||
     typeof event.nativeTurnTerminal!=='boolean'))return sessions;
   // Anonymous tool notifications cannot establish a task identity. V41 could

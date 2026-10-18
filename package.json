@@ -36,6 +36,11 @@
       {
         "from": ".cache/codex-launcher/DeskfolkCodexLauncher.exe",
         "to": "launcher/DeskfolkCodexLauncher.exe"
+      },
+      {
+        "from": "plugins/deskfolk-deepseek-harness",
+        "to": "plugins/deskfolk-deepseek-harness",
+        "filter": ["package.json", "plugin.mjs", "bridge-client.mjs", "cordis.patch.yml", "setup.mjs", "README.md"]
       }
     ],
     "win": {

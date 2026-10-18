@@ -1,0 +1,24 @@
+{
+  "name": "deskfolk-deepseek-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Observe DeepSeek Harness events and send local activity to Deskfolk",
+  "type": "module",
+  "main": "plugin.mjs",
+  "files": [
+    "plugin.mjs",
+    "bridge-client.mjs",
+    "cordis.patch.yml",
+    "setup.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
