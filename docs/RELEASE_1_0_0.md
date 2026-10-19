@@ -1,53 +1,35 @@
 # Deskfolk v1.0.0
 
-Deskfolk's first 1.0 release brings the latest desktop companion interactions, expressive animation, sound effects, and lifecycle fixes into one Windows build.
+住在 Windows 桌面上的若叶睦，陪你等 AI 编程助手干活。
 
-## Download
+## 下载
 
-Download the Windows x64 installer from this release's **Assets**. Exit a running copy of Deskfolk before installing. The app and shortcut are named **Deskfolk**; existing compatible preferences, history, and saved placement are retained. Check the accompanying SHA256 checksums against the downloaded files. The installer is unsigned.
+下载下方 **Assets** 里的 `Deskfolk-Setup-1.0.0.exe`（Windows x64）。安装前先退出正在运行的 Deskfolk，原来的设置、通知记录和桌面位置都会保留。安装包没有数字签名，可以用 `SHA256SUMS.txt` 核对。
 
-## Character and interaction
+## 支持的 Agent
 
-- Real-time 3D chibi Wakaba Mutsumi, gentle mouse following through the eyes, head, and body, and a head-only pixel desktop/tray icon.
-- Faster headpats with a short press-and-rebound motion that responds to repeated clicks.
-- A teary reaction after ten consecutive taps, with continuously moving water highlights and two strictly alternating reaction sounds.
-- A dizzy reaction after three same-direction mouse circles while the pet is idle.
-- Dragging with a crown suspension point, gravity and damping, a bounded swing of about 70 degrees, hair inertia, and the existing relaxed/struggling cycle.
-- More visible nap Zs, finer translucent watering streams, larger watering props, improved side-hair shading, and geometry covering two hair gaps visible during watering.
-- Two alternating celebration animations for confirmed successful task completions.
+- **Codex**：不用设置，自动跟随本机 Codex 的工作状态。
+- **Claude Code**：在源码目录运行 `node plugins/deskfolk-claude-code/setup.mjs`。
+- **DeepSeek Harness**：插件已随安装包附带，位于安装目录的 `resources/plugins/deskfolk-deepseek-harness/`，需要 Harness 0.2.1-rc.2 或更高版本。安装方法见[插件说明](https://github.com/DeriitoMe/Deskfolk/blob/v1.0.0/plugins/deskfolk-deepseek-harness/README.md)。
+- 设置里的“跟随”可以选择 全部 / DeepSeek / Codex / Claude Code。
 
-## Bubbles and sound
+## 她会做什么
 
-- White oval bubbles, larger connecting dots, dark-green bold text, and sequential entrance animation followed by a soft fade-out.
-- Bubble placement follows the pet's head within the stable display area.
-- Updated Chinese messages and matching short character sound effects, including an independent super-work cue.
-- Headpat and both teary reaction sounds play at 75% volume. A teary voice is allowed to finish without overlapping headpat sounds.
+- **工作状态**：开始工作时眼睛亮起代码流光；跑命令时敲键盘，改文件时拿笔记本写字；两个以上项目同时进行时全力工作。
+- **提醒**：Agent 提问或请求权限时冒出“等你回复”的气泡；确认任务成功后拍手庆祝。中断、失败和额度用完不会误报成完成。
+- **互动**：摸头、连点十下会委屈、拖起来会晃、绕圈会头晕；没事时打盹、给黄瓜浇水。
+- **额度木牌**：右键她，显示 Codex 或 Claude Code 的五小时剩余额度。DeepSeek Harness 没有提供额度数据，木牌显示“暂不可用”。
 
-## Work and event handling
+## 已知限制
 
-- Synchronized code-like light animation in both eyes during work, running at the updated 1.5× animation rate.
-- Super-work behavior for at least two distinct active projects, with subtle hair movement and an independent message/sound cue.
-- More reliable native task start, completion, interruption, project identity, event ordering, and renderer startup delivery.
-- Open browser projects and surviving background processes do not establish task activity on their own.
-- Confirmed native questions have their own pending lifecycle. The visible question reaction lasts about eight seconds; answering is tracked separately.
-- Historical questions from ended sessions are kept out of current pending reminders on restart.
-- Success celebrations are queued per confirmed completion; interruption, failure, and quota exhaustion do not trigger success celebrations.
+- 目前只有 Windows x64 安装包，角色只有若叶睦。
+- 安装包没有数字签名。
+- 在 DeepSeek Harness 中，用 `run_code` 编排的工具调用本身没有专门动作，其中实际运行的命令仍会触发敲键盘。
 
-## Quota board and desktop behavior
+## English
 
-- Right-click the pet to raise a wooden board showing the remaining five-hour account allowance when reliable data is available.
-- The complete board interaction lasts about 3.8 seconds. Arm recovery overlaps the board fade for a continuous exit.
-- Stable public canvas and native layout eliminate the previously reproduced blank frames, offsets, and clipping during click, board, and drag transitions.
-- Refreshed settings and project views, saved placement, and optional companion auto-start enabled by default.
+A Windows desktop companion featuring a chibi Wakaba Mutsumi. She shows what your AI coding agents are doing: working, running commands, editing files, waiting for your answer and celebrating completed tasks. Supported agents are Codex (automatic), Claude Code (run `node plugins/deskfolk-claude-code/setup.mjs` from the source) and DeepSeek Harness 0.2.1-rc.2 or newer (plugin included in the installer). Download `Deskfolk-Setup-1.0.0.exe` below. The installer is unsigned; verify it with `SHA256SUMS.txt`.
 
-## Supported scope and limitations
+---
 
-- Windows x64 is the packaged platform; Wakaba Mutsumi is the current playable character.
-- Supported native event sources are documented in the maintainer handoff. A selectable whale character and additional Agent adapters are not included in this release.
-- Real input reminders use confirmed native question events. Compatibility/demo permission events are not a general live authorization interface.
-- Pause and manual stop may share the same native interruption event. Missing terminal events are not replaced with a guessed inactivity timeout.
-- The five-hour board is triggered by right-click. Automatic 75% / 50% / 25% threshold reminders are not implemented.
-- Missing or expired quota data is shown as unavailable or needing refresh; weekly limits and model-specific buckets are not substituted for the five-hour allowance.
-- The chibi form is active. Historical transformation code and artwork are retained for future work.
-
-See the repository's maintainer handoff for architecture, supported event rules, and verification guidance. Published checksums identify this release's exact downloadable artifacts; historical local test reports identify the earlier builds they actually tested.
+本版本在 2026-10-18 加入 Claude Code 支持、2026-10-19 加入 DeepSeek Harness 支持时重新打包过，`v1.0.0` 标签和安装包已随之更新。
