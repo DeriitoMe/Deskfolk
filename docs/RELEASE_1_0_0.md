@@ -9,7 +9,7 @@
 ## 支持的 Agent
 
 - **Codex**：不用设置，自动跟随本机 Codex 的工作状态。
-- **Claude Code**：插件已随安装包附带，位于安装目录的 `resources/plugins/deskfolk-claude-code/`，需要 Node.js。在 PowerShell 运行一次 `node "$env:LOCALAPPDATA\Programs\Deskfolk\resources\plugins\deskfolk-claude-code\setup.mjs"`（装在其他目录时换成实际路径），重新打开 Claude Code 后生效。详见[插件说明](https://github.com/DeriitoMe/Deskfolk/blob/v1.0.0/plugins/deskfolk-claude-code/README.md)。
+- **Claude Code**：在源码目录运行 `node plugins/deskfolk-claude-code/setup.mjs`。
 - **DeepSeek Harness**：插件已随安装包附带，位于安装目录的 `resources/plugins/deskfolk-deepseek-harness/`，需要 Harness 0.2.1-rc.2 或更高版本。安装方法见[插件说明](https://github.com/DeriitoMe/Deskfolk/blob/v1.0.0/plugins/deskfolk-deepseek-harness/README.md)。
 - 设置里的“跟随”可以选择 全部 / DeepSeek / Codex / Claude Code。
 
@@ -28,7 +28,7 @@
 
 ## English
 
-A Windows desktop companion featuring a chibi Wakaba Mutsumi. She shows what your AI coding agents are doing: working, running commands, editing files, waiting for your answer and celebrating completed tasks. Supported agents are Codex (automatic), Claude Code (plugin included in the installer; with Node.js installed, run `node "$env:LOCALAPPDATA\Programs\Deskfolk\resources\plugins\deskfolk-claude-code\setup.mjs"` once in PowerShell) and DeepSeek Harness 0.2.1-rc.2 or newer (plugin included in the installer). Download `Deskfolk-Setup-1.0.0.exe` below. The installer is unsigned; verify it with `SHA256SUMS.txt`.
+A Windows desktop companion featuring a chibi Wakaba Mutsumi. She shows what your AI coding agents are doing: working, running commands, editing files, waiting for your answer and celebrating completed tasks. Supported agents are Codex (automatic), Claude Code (run `node plugins/deskfolk-claude-code/setup.mjs` from the source) and DeepSeek Harness 0.2.1-rc.2 or newer (plugin included in the installer). Download `Deskfolk-Setup-1.0.0.exe` below. The installer is unsigned; verify it with `SHA256SUMS.txt`.
 
 ---
 
