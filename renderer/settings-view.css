@@ -484,7 +484,7 @@ body[data-view="settings"] .agent-follow-label {
 body[data-view="settings"] .segmented {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 3px;
   padding: 3px;
   border: 1px solid #e0e6d9;
@@ -518,9 +518,6 @@ body[data-view="settings"] .segmented button.selected {
 body[data-view="settings"] .segmented button:focus-visible {
   outline: 2px solid #8faa77;
   outline-offset: 1px;
-}
-@media (max-width: 420px) {
-  body[data-view="settings"] .segmented { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 body[data-view="settings"] .connection-row .agent-name {
   color: #47603e;

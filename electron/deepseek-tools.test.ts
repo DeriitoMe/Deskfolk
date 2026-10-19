@@ -12,10 +12,10 @@ const setup = () => { const tracker = new DeepSeekToolTracker(); tracker.observe
 const working = () => true;
 
 test('only exact actual Harness execution tools receive tool gestures', () => {
-  for (const name of ['bash', 'terminal_open', 'terminal_send']) assert.equal(deepSeekToolGesture(name), 'type');
+  for (const name of ['bash', 'pwsh', 'terminal_open', 'terminal_send']) assert.equal(deepSeekToolGesture(name), 'type');
   for (const name of ['edit', 'write']) assert.equal(deepSeekToolGesture(name), 'write');
   for (const name of ['read', 'read_image', 'terminal_read', 'terminal_list', 'terminal_close', 'terminal_signal',
-    'run_code', 'Bash', 'Write', 'constructor', '__proto__', undefined, 3]) assert.equal(deepSeekToolGesture(name), undefined);
+    'run_code', 'Bash', 'Pwsh', 'powershell', 'Write', 'constructor', '__proto__', undefined, 3]) assert.equal(deepSeekToolGesture(name), undefined);
 });
 
 test('actual running commands continue typing; fast file edits retain a short visible hold', () => {

@@ -829,9 +829,9 @@ function updateConnectionStatus(bridgeReady: boolean, agents?: AgentConnections)
 }
 /** Dim the agent row the pet is not following. */
 function syncFollowRows(): void {
-  const choice = currentPreferences?.followAgent ?? 'all';
+  const choice = currentPreferences?.followAgent;
   document.querySelectorAll<HTMLElement>('.connection-row[data-agent]').forEach(row => {
-    row.classList.toggle('not-followed', choice !== 'all' && row.dataset.agent !== choice);
+    row.classList.toggle('not-followed', !!choice && row.dataset.agent !== choice);
   });
 }
 

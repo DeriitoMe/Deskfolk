@@ -3,9 +3,10 @@ import { DEEPSEEK_SESSION_PREFIX, DEEPSEEK_HARNESS_LEASE_MS, parseDeepSeekHarnes
 
 export const DEEPSEEK_TOOL_MIN_HOLD_MS = 2400;
 export const DEEPSEEK_TOOL_STALE_MS = 10 * 60_000;
-/** Native Harness tool identities, including long-lived terminal execution. */
+/** Native Harness tool identities, including long-lived terminal execution.
+ * The base bundle mounts `pwsh` instead of `bash` on Windows. */
 const GESTURES: Readonly<Record<string, ToolGesture>> = {
-  bash: 'type', terminal_open: 'type', terminal_send: 'type', edit: 'write', write: 'write',
+  bash: 'type', pwsh: 'type', terminal_open: 'type', terminal_send: 'type', edit: 'write', write: 'write',
 };
 export function deepSeekToolGesture(name: unknown): ToolGesture | undefined {
   return typeof name === 'string' && Object.hasOwn(GESTURES, name) ? GESTURES[name] : undefined;

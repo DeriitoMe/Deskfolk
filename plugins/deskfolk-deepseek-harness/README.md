@@ -28,7 +28,7 @@ node plugins/deskfolk-deepseek-harness/setup.mjs --profile web
 node plugins/deskfolk-deepseek-harness/setup.mjs --profile desktop
 ```
 
-重新启动所选 Harness 应用和 Deskfolk。Deskfolk 的跟随设置可选“全部”或“DeepSeek Harness”。具体桌面版要求见[官方 Desktop 文档](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/apps/desktop/README.md#bundled-command-runtime)。
+重新启动所选 Harness 应用和 Deskfolk。在 Deskfolk 设置中把跟随切换为“DeepSeek”。具体桌面版要求见[官方 Desktop 文档](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/apps/desktop/README.md#bundled-command-runtime)。
 
 脚本读取所选 profile 的 `package.json` 来确认目标，然后调用 Harness 官方的 `dsh plugin --profile <name> add file:<插件目录>`。由 Harness 管理依赖、写锁、兼容检查及组合包列表；用户现有的 `cordis.patch.yml` 保留。没有执行安装脚本时，项目代码不会修改任何 Harness 配置。
 

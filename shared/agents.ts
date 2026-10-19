@@ -6,9 +6,11 @@ import type { SessionActivities } from './activity';
  * background; this only decides what is presented (work state, bubbles,
  * celebrations, tool gestures, quota board), so switching back is immediate.
  */
-export type FollowAgent = 'all' | AgentName;
+export type FollowAgent = AgentName;
 export type AgentName = 'codex' | 'claude' | 'deepseek';
-export const FOLLOW_AGENTS: FollowAgent[] = ['all', 'codex', 'claude', 'deepseek'];
+/** Settings order. The former 'all' choice is retired and migrates to the default. */
+export const FOLLOW_AGENTS: FollowAgent[] = ['deepseek', 'codex', 'claude'];
+export const DEFAULT_FOLLOW_AGENT: FollowAgent = 'codex';
 /** Adapter namespaces keep sessions from different hosts distinct. */
 export const CLAUDE_SESSION_PREFIX = 'claude-code:';
 export const DEEPSEEK_SESSION_PREFIX = 'deepseek-harness:';
@@ -23,13 +25,12 @@ export function sessionAgent(sessionId: string): AgentName {
     sessionId.startsWith(CLAUDE_SESSION_PREFIX) ? 'claude' : 'codex';
 }
 export function follows(choice: FollowAgent, agent: AgentName | undefined): boolean {
-  return !agent || choice === 'all' || choice === agent;
+  return !agent || choice === agent;
 }
-export function normalizeFollowAgent(value: unknown, fallback: FollowAgent = 'all'): FollowAgent {
+export function normalizeFollowAgent(value: unknown, fallback: FollowAgent = DEFAULT_FOLLOW_AGENT): FollowAgent {
   return FOLLOW_AGENTS.includes(value as FollowAgent) ? value as FollowAgent : fallback;
 }
 /** Sessions whose agent is currently followed; the stored map is untouched. */
 export function visibleSessions(sessions: SessionActivities, choice: FollowAgent): SessionActivities {
-  if (choice === 'all') return sessions;
   return Object.fromEntries(Object.entries(sessions).filter(([key]) => sessionAgent(key) === choice));
 }
