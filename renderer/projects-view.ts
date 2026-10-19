@@ -184,7 +184,7 @@ export async function setupProjectsView(): Promise<void> {
     if (Number.isFinite(incomingTime)) lastSnapshotTime = incomingTime;
     const firstSnapshot = !hasSnapshot;
     hasSnapshot = true;
-    openCodex.hidden = data.preferences.followAgent !== 'codex';
+    openCodex.hidden = !['all','codex'].includes(data.preferences.followAgent);
     main.setAttribute('aria-busy', 'false');
     if (firstSnapshot) setText(status, '');
     setText(working.number, String(data.workingProjectCount));

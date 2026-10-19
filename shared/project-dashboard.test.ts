@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {projectDashboard} from './project-dashboard.ts';
 import type {PetEvent,PetPreferences} from './types';
 import type {SessionActivities} from './activity.ts';
-const preferences:PetPreferences={model:'flat-chibi',scale:1,idleDance:true,reducedMotion:false,bubbleSeconds:8,startWithCodex:false,startWithClaudeCode:false,followAgent:'codex',doNotDisturb:false,notificationsEnabled:true};
+const preferences:PetPreferences={model:'flat-chibi',scale:1,idleDance:true,reducedMotion:false,bubbleSeconds:8,startWithCodex:false,startWithClaudeCode:false,followAgent:'all',doNotDisturb:false,notificationsEnabled:true};
 const options={preferences,bridgeReady:true,monitor:{state:'watching' as const,lastPollAt:null,lastEventAt:null,observedSessions:4,discoveryPending:0}};
 const time='2026-10-06T00:00:00Z';
 const worker=(id:string,projectId?:string)=>({sessionId:id,phase:'working' as const,turnId:id,nativeTurnId:id,projectPath:'D:/Fixture/Shared',projectId,updatedAt:time});

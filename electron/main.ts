@@ -42,7 +42,7 @@ import {ClaudeCodeAdapter} from './claude-code';
 import {ClaudeToolTracker} from './claude-tools';
 import {DeepSeekHarnessAdapter,parseDeepSeekHarnessEnvelope} from './deepseek-harness';
 import {DeepSeekToolTracker} from './deepseek-tools';
-import {DEFAULT_FOLLOW_AGENT,eventAgent,follows,normalizeFollowAgent,visibleSessions,type AgentName} from '../shared/agents';
+import {eventAgent,sessionAgent,follows,normalizeFollowAgent,visibleSessions,type AgentName} from '../shared/agents';
 
 const APP_NAME = "Deskfolk";
 // Keep the existing data directory and bridge identifier during the branding update.
@@ -70,7 +70,7 @@ const DEFAULT_PREFERENCES: PetPreferences = {
   bubbleSeconds: 8,
   startWithCodex: true,
   startWithClaudeCode: true,
-  followAgent: DEFAULT_FOLLOW_AGENT,
+  followAgent: 'all',
   doNotDisturb: false,
   notificationsEnabled: true,
 };
@@ -118,8 +118,9 @@ let deepSeekLeaseTimer:ReturnType<typeof setInterval>|undefined;
 let sentTool:ToolGesture|null=null;let toolTimer:ReturnType<typeof setTimeout>|undefined;
 function sendTool(force=false){
   const now=Date.now(),isWorking=(id:string)=>sessionActivities[id]?.phase==='working';
-  const follow=preferences.followAgent;
-  const gesture=follow==='claude'?claudeTools.current(now,isWorking):follow==='deepseek'?deepSeekTools.current(now,isWorking):null;
+  const claude=follows(preferences.followAgent,'claude')?claudeTools.current(now,isWorking):null;
+  const deepseek=follows(preferences.followAgent,'deepseek')?deepSeekTools.current(now,isWorking):null;
+  const gesture=lastAgent==='deepseek'?deepseek??claude:claude??deepseek;
   clearTimeout(toolTimer);toolTimer=undefined;
   const deadlines=[claudeTools.nextChangeAt(),deepSeekTools.nextChangeAt()].filter((value):value is number=>value!==undefined);
   const next=deadlines.length?Math.min(...deadlines):undefined;
@@ -129,13 +130,17 @@ function sendTool(force=false){
 }
 /** Last Claude Code five-hour reading from its status line; null until seen. */
 let claudeQuota: CodexQuotaSnapshot | null = null;
-/** Which agent started work most recently; only primes the Claude quota placeholder. */
+/** Which agent the user worked with most recently; decides the quota board. */
 let lastAgent: AgentName | undefined;
 function quotaSnapshot(): CodexQuotaSnapshot {
   const codex=quotaMonitor?.snapshot()??unknownCodexQuota();
   const follow=preferences.followAgent;
-  if(follow==='deepseek')return unknownDeepSeekQuota();
-  return selectQuota(codex,follow==='claude'?claudeQuota??unknownClaudeQuota():claudeQuota,follow==='claude');
+  const active=currentActivity();
+  const recent=lastAgent??(active.phase!=='idle'&&active.sessionId?sessionAgent(active.sessionId):undefined);
+  if(follow==='deepseek'||(follow==='all'&&recent==='deepseek'))return unknownDeepSeekQuota();
+  const preferClaude=follow==='claude'||(follow==='all'&&(lastAgent==='claude'||(!lastAgent&&!!claudeQuota?.observedAt&&
+    (!codex.observedAt||Date.parse(claudeQuota.observedAt)>Date.parse(codex.observedAt)))));
+  return selectQuota(codex,preferClaude?claudeQuota??unknownClaudeQuota():claudeQuota,preferClaude);
 }
 function sendQuota(){mainWindow?.webContents.send('pet:quota',quotaSnapshot());}
 function noteAgent(agent:AgentName){
@@ -746,7 +751,7 @@ function registerIpc(): void {
   ipcMain.handle('pet:refresh-quota',async event=>{
     if(!quotaSender(event))return unknownCodexQuota();
     // Claude Code pushes its reading through the status line; only Codex can be polled.
-    if(preferences.followAgent==='codex')await quotaMonitor?.refresh().catch(()=>undefined);
+    if(!['claude','deepseek'].includes((preferences.followAgent==='all'?lastAgent:preferences.followAgent)??''))await quotaMonitor?.refresh().catch(()=>undefined);
     return quotaSnapshot();
   });
   ipcMain.handle('pet:renderer-ready',event=>{

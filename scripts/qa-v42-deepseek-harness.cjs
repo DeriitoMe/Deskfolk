@@ -9,7 +9,7 @@ const root = join(__dirname, '..'), data = join(root, '.cache', 'deepseek-qa-' +
 mkdirSync(data, { recursive: true });
 process.env.PET_USER_DATA = data; process.env.PET_TEST_MODE = '1';
 process.env.CODEX_HOME=join(data,'fixture-codex');process.env.CLAUDE_CONFIG_DIR=join(data,'fixture-claude');
-writeFileSync(join(data, 'preferences.json'), JSON.stringify({ followAgent:'deepseek', startWithCodex:false }));
+writeFileSync(join(data, 'preferences.json'), JSON.stringify({ followAgent:'all', startWithCodex:false }));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [];
 const restartFixture=process.argv.includes('--restart-fixture');
@@ -70,7 +70,7 @@ if(restartFixture){
     active.length=0;await append('user/message',{source:{kind:'user-question-reply'},content:'PRIVATE_ANSWER'});
     assert.equal((await bootstrap()).activity.phase,'idle');
     const report={passed:true,checks:['cold pet startup quarantines cached state','live terminal Harness projection restores continued question',
-      'followed DeepSeek quota selected on adoption','no replayed celebration or history entry','native late reply returns to idle',...checks]};
+      'all-agent quota selects DeepSeek on adoption','no replayed celebration or history entry','native late reply returns to idle',...checks]};
     writeFileSync(join(data,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({...report,artifacts:data}));app.quit();return;
   }
   observer.heartbeat();await flush();
@@ -121,9 +121,9 @@ if(restartFixture){
   const settings=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('settings=1'));
   assert(settings);
   const options=await settings.webContents.executeJavaScript('Array.from(document.querySelectorAll("[data-follow-choice]")).map(e=>e.dataset.followChoice)');
-  assert.deepEqual(options,['deepseek','codex','claude']);
+  assert.deepEqual(options,['all','deepseek','codex','claude']);
   writeFileSync(join(data,'settings.png'),(await settings.capturePage()).toPNG());
-  settings.destroy();checks.push('three follow choices and DeepSeek connection visible in settings');
+  settings.destroy();checks.push('four follow choices and DeepSeek connection visible in settings');
   assert.doesNotMatch(readFileSync(join(data,'history.json'),'utf8'),/PRIVATE_/);
   const report={passed:true,checks};
   writeFileSync(join(data,'report.json'),JSON.stringify(report,null,2));
