@@ -23,8 +23,14 @@
 | Agent | 接入方式 |
 | --- | --- |
 | Codex | 不用设置，Deskfolk 会自动读取本机 Codex 的工作记录 |
-| Claude Code | 在源码目录运行 `node plugins/deskfolk-claude-code/setup.mjs`（[说明](plugins/deskfolk-claude-code/README.md)） |
+| Claude Code | 安装包已附带插件，需要 Node.js，运行一次下面的接入命令（[说明](plugins/deskfolk-claude-code/README.md)） |
 | DeepSeek Harness | 安装包已附带插件，需要 Harness 0.2.1-rc.2 或更高版本（[说明](plugins/deskfolk-deepseek-harness/README.md)） |
+
+接入 Claude Code：安装 Deskfolk 后在 PowerShell 运行下面的命令，然后重新打开 Claude Code。装在其他目录时把路径换成实际安装目录下的 `resources\plugins\deskfolk-claude-code\setup.mjs`；使用源码时在项目根目录运行 `node plugins/deskfolk-claude-code/setup.mjs`。
+
+```powershell
+node "$env:LOCALAPPDATA\Programs\Deskfolk\resources\plugins\deskfolk-claude-code\setup.mjs"
+```
 
 在设置的“跟随”里可以选择 **全部 / DeepSeek / Codex / Claude Code**，只看你关心的那一个。
 
@@ -73,7 +79,7 @@ npm run dist:win   # 生成安装包到 release/
 Deskfolk is a small Windows desktop companion featuring a chibi Wakaba Mutsumi. She keeps you company while AI coding agents work, and lets you know when a task starts, when the agent needs your answer, and when the task is done.
 
 - **Agent status at a glance**: working, running commands, editing files, waiting for you and celebrating completed tasks. She switches to full-power work when two or more projects run at once.
-- **Supported agents**: Codex (automatic), Claude Code (`node plugins/deskfolk-claude-code/setup.mjs`) and DeepSeek Harness 0.2.1-rc.2 or newer (plugin included in the installer). In settings, follow All, DeepSeek, Codex or Claude Code.
+- **Supported agents**: Codex (automatic), Claude Code (plugin included in the installer; with Node.js installed, run `node "$env:LOCALAPPDATA\Programs\Deskfolk\resources\plugins\deskfolk-claude-code\setup.mjs"` once in PowerShell) and DeepSeek Harness 0.2.1-rc.2 or newer (plugin included in the installer). In settings, follow All, DeepSeek, Codex or Claude Code.
 - **Interaction**: headpats, dragging, a dizzy reaction and a five-hour quota board on right-click.
 - **Install**: download `Deskfolk-Setup-1.0.0.exe` from [Releases](https://github.com/DeriitoMe/Deskfolk/releases/tag/v1.0.0). The installer is unsigned; verify it with `SHA256SUMS.txt`.
 - **Privacy**: everything stays on your computer. Agent status reaches the pet through a loopback-only local bridge, without prompts, code, answers or credentials.

@@ -4,7 +4,15 @@
 
 ## 安装
 
-前提：已安装 Claude Code 和 Node.js，Deskfolk 为包含 Claude Code 适配器的版本。
+前提：已安装 Claude Code 和 Node.js（命令行里能运行 `node`），Deskfolk 为包含 Claude Code 适配器的版本。
+
+Windows 安装包已附带本插件，位于 Deskfolk 安装目录的 `resources\plugins\deskfolk-claude-code\`。默认安装目录是 `%LOCALAPPDATA%\Programs\Deskfolk`，从旧版升级的可能是 `%LOCALAPPDATA%\Programs\Liquid Glass Pet`；不确定时右键 Deskfolk 快捷方式，选“打开文件所在的位置”。在 PowerShell 中运行（装在其他目录时换成实际路径）：
+
+```powershell
+node "$env:LOCALAPPDATA\Programs\Deskfolk\resources\plugins\deskfolk-claude-code\setup.mjs"
+```
+
+也可以先进入该插件目录再运行 `node setup.mjs`。使用源码时，在项目根目录运行：
 
 ```powershell
 node plugins/deskfolk-claude-code/setup.mjs
@@ -12,13 +20,13 @@ node plugins/deskfolk-claude-code/setup.mjs
 
 脚本把 hook 与状态栏写入 `%USERPROFILE%\.claude\settings.json`，原文件先备份为 `settings.json.deskfolk-backup-<时间>`。已有的其他 hook 保留；已有其他状态栏时默认不覆盖（加 `--replace-statusline` 才替换）。重新打开 Claude Code 后生效。
 
-移除：
+移除：运行同一个 `setup.mjs` 并加 `--uninstall`，例如
 
 ```powershell
-node plugins/deskfolk-claude-code/setup.mjs --uninstall
+node "$env:LOCALAPPDATA\Programs\Deskfolk\resources\plugins\deskfolk-claude-code\setup.mjs" --uninstall
 ```
 
-脚本记录的是本目录的绝对路径；移动 Deskfolk 目录后需重新运行一次。
+脚本记录的是本目录的绝对路径，路径含空格或中文也可以。覆盖安装到同一目录不需要重新运行；改装到其他目录或移动源码目录后需重新运行一次。卸载 Deskfolk 前先运行 `--uninstall`，否则 Claude Code 设置里会留下指向已删除脚本的 hook 和状态栏。
 
 ## 对应关系
 

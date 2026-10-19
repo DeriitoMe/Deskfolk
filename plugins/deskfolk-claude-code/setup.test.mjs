@@ -70,3 +70,52 @@ test('SessionStart can start the pet, honoring settings and a cooldown', async (
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('the files the installer ships work from an install path with spaces, CJK and a junction', async () => {
+  const { copyFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { spawnSync } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+  const shipped = pkg.build.extraResources.find(entry => entry.to === 'plugins/deskfolk-claude-code');
+  assert.ok(shipped, 'package.json ships the Claude Code plugin');
+  const root = mkdtempSync(join(tmpdir(), 'deskfolk 桌宠-'));
+  const programs = join(root, 'Programs');
+  const plugin = join(programs, 'Liquid Glass Pet', 'resources', 'plugins', 'deskfolk-claude-code');
+  const env = { ...process.env, PET_USER_DATA: join(root, 'pet data') };
+  const run = (command, args, options) => spawnSync(command, args, { env, encoding: 'utf8', timeout: 15_000, ...options });
+  try {
+    mkdirSync(plugin, { recursive: true });
+    for (const name of shipped.filter) copyFileSync(fileURLToPath(new URL(name, import.meta.url)), join(plugin, name));
+    const real = realpathSync(plugin).replace(/\\/g, '/');
+
+    // As the README says: run setup.mjs from the installed plugin folder.
+    const settingsFile = join(root, 'settings.json');
+    const setup = run('node', ['setup.mjs', '--settings', settingsFile], { cwd: plugin });
+    assert.equal(setup.status, 0, setup.stderr);
+    const settings = JSON.parse(readFileSync(settingsFile, 'utf8'));
+    const hooks = Object.values(settings.hooks).flat().flatMap(group => group.hooks);
+    assert.equal(hooks.length, HOOK_EVENTS.length);
+    for (const hook of hooks) assert.deepEqual([hook.command, hook.args], ['node', [`${real}/hook.mjs`]]);
+    assert.equal(settings.statusLine.command, `node "${real}/statusline.mjs"`);
+
+    // Claude Code spawns hooks without a shell (args) and the status line through one.
+    const hook = run(hooks[0].command, hooks[0].args, { input: JSON.stringify({ hook_event_name: 'Stop', session_id: 's' }) });
+    assert.deepEqual([hook.status, hook.stdout, hook.stderr], [0, '', '']);
+    const status = run(settings.statusLine.command, [], { shell: true,
+      input: JSON.stringify({ model: { display_name: 'Opus' }, rate_limits: { five_hour: { used_percentage: 12 } } }) });
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout.trim(), 'Opus · Current session: 12%');
+
+    // Through a junction (e.g. a relocated AppData) setup still writes the real path.
+    const linked = join(root, 'Linked Programs');
+    symlinkSync(programs, linked, 'junction');
+    const viaLink = join(root, 'via-link.json');
+    const linkedSetup = run('node', [join(linked, 'Liquid Glass Pet', 'resources', 'plugins', 'deskfolk-claude-code', 'setup.mjs'), '--settings', viaLink]);
+    assert.equal(linkedSetup.status, 0, linkedSetup.stderr);
+    assert.equal(JSON.parse(readFileSync(viaLink, 'utf8')).statusLine.command, settings.statusLine.command);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

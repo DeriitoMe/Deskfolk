@@ -41,6 +41,11 @@
         "from": "plugins/deskfolk-deepseek-harness",
         "to": "plugins/deskfolk-deepseek-harness",
         "filter": ["package.json", "plugin.mjs", "bridge-client.mjs", "cordis.patch.yml", "setup.mjs", "README.md"]
+      },
+      {
+        "from": "plugins/deskfolk-claude-code",
+        "to": "plugins/deskfolk-claude-code",
+        "filter": ["setup.mjs", "hook.mjs", "statusline.mjs", "bridge-client.mjs", "README.md"]
       }
     ],
     "win": {

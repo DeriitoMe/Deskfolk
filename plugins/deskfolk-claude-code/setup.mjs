@@ -6,7 +6,7 @@
 //   node setup.mjs --uninstall          remove only Deskfolk entries
 //   node setup.mjs --replace-statusline also replace a non-Deskfolk status line
 //   node setup.mjs --settings <path>    use another settings file (tests)
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -70,7 +70,11 @@ export function applySettings(settings, { uninstall = false, replaceStatusline =
   return { settings: next, notes };
 }
 
-if (process.argv[1] && slash(process.argv[1]) === slash(fileURLToPath(import.meta.url))) {
+// Node resolves the entry module through junctions and symlinks (e.g. a moved
+// AppData folder) but leaves argv[1] as typed, so compare real paths.
+const isMain = () => { try { return realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); } catch { return false; } };
+
+if (isMain()) {
   const args = process.argv.slice(2);
   const index = args.indexOf('--settings');
   const file = index >= 0 ? args[index + 1] : join(homedir(), '.claude', 'settings.json');
