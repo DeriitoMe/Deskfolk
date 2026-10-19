@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
+import { fileURLToPath } from 'node:url'
 import { createSetupPlan, inspectSetupTarget, runSetup, createInvocation, quoteCmdArgument } from './setup.mjs'
 
 const quiet = { log() {} }
@@ -115,4 +117,30 @@ test('Windows .cmd launcher preserves spaces, Unicode, and shell metacharacters 
   const plan = createSetupPlan(['--profile-dir', f.profileDirectory, '--dsh-command', launcher], { pluginDirectory: f.pluginDirectory })
   runSetup(plan, { io: quiet, env: { ...process.env, DESKFOLK_SETUP_CAPTURE: capture } })
   assert.deepEqual(JSON.parse(readFileSync(capture, 'utf8')), plan.args)
+})
+
+test('the files the installer ships run from an install path with spaces, CJK and a junction', t => {
+  const f = fixture(t)
+  const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))
+  const shipped = pkg.build.extraResources.find(entry => entry.to === 'plugins/deskfolk-deepseek-harness')
+  assert.ok(shipped, 'package.json ships the DeepSeek Harness plugin')
+  const programs = path.join(f.root, 'Programs 桌宠')
+  const relative = path.join('Liquid Glass Pet', 'resources', 'plugins', 'deskfolk-deepseek-harness')
+  const plugin = path.join(programs, relative)
+  mkdirSync(plugin, { recursive: true })
+  for (const name of shipped.filter) copyFileSync(fileURLToPath(new URL(name, import.meta.url)), path.join(plugin, name))
+  const linked = path.join(f.root, 'Linked Programs')
+  symlinkSync(programs, linked, 'junction')
+  const expected = ['plugin', '--profile', 'web', 'add', `file:${realpathSync(plugin)}`]
+  const dryRun = (args, options) => {
+    const result = spawnSync(process.execPath, [...args, '--profile-dir', f.profileDirectory, '--dry-run'], { encoding: 'utf8', timeout: 15_000, ...options })
+    assert.equal(result.status, 0, result.stderr)
+    const line = result.stdout.split(/\r?\n/u).find(text => text.startsWith('Arguments: '))
+    assert.ok(line, 'setup ran instead of silently exiting')
+    return JSON.parse(line.slice('Arguments: '.length))
+  }
+  // As the README says: run setup.mjs from the installed plugin folder, or by full path.
+  assert.deepEqual(dryRun(['setup.mjs'], { cwd: plugin }), expected)
+  // Through a junction (e.g. a relocated AppData) setup still runs and passes the real path.
+  assert.deepEqual(dryRun([path.join(linked, relative, 'setup.mjs')]), expected)
 })

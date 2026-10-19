@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -181,8 +181,12 @@ export function runSetup(plan, options = {}) {
   return 0
 }
 
-const isMain = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url
-if (isMain) {
+// Node resolves the entry module through junctions and symlinks (e.g. a moved
+// AppData folder) but leaves argv[1] as typed, so compare real paths.
+function isMain() {
+  try { return pathToFileURL(realpathSync(process.argv[1])).href === import.meta.url } catch { return false }
+}
+if (isMain()) {
   try {
     const plan = createSetupPlan(process.argv.slice(2))
     if (plan.help) console.log(help)
