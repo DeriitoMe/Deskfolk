@@ -1,10 +1,13 @@
-/** V40: interaction cancels the pastime and starts a fresh 30-second idle interval. */
+/** V40: interaction cancels the pastime and starts a fresh 30-second idle interval.
+ * Three pastimes take turns: a nap, watering, then the guitar. */
 export const IDLE_SEQUENCE = [
   { action: 'idle', milliseconds: 30_000 },
   { action: 'nap', milliseconds: 15_000 },
   { action: 'idle', milliseconds: 30_000 },
   { action: 'water', milliseconds: 15_000 },
   { action: 'water-happy', milliseconds: 3_600 },
+  { action: 'idle', milliseconds: 30_000 },
+  { action: 'guitar', milliseconds: 15_000 },
 ] as const;
 export type IdleMode = 'idle' | 'busy' | 'interaction';
 export class IdleCadence {

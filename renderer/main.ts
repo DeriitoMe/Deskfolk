@@ -617,7 +617,7 @@ function syncFlatActivity(): void {
   if(reading){setAction('read-paper');setStatus('在看晨报');return;}
   const action=activityState==='working'?(latestTool==='type'?'claude-type':latestTool==='write'?'claude-write':fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action;
   setAction(action);
-  const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复','claude-type':'正在跑命令','claude-write':'正在改文件'};
+  const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',guitar:'抱着吉他发呆',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复','claude-type':'正在跑命令','claude-write':'正在改文件'};
   setStatus(labels[action]);
   if(action==='power-work' && superWorkBubbleGate.pending && remindersEnabled(currentPreferences) &&
     (!currentEvent || currentEvent.type==='work_started')){
@@ -747,7 +747,7 @@ function setupPetView(): void {
       (!actualHit&&!onTouchTarget(event.clientX, event.clientY))) return;
     pointerStartedOnArt=actualHit;
     quotaBoardUntil=0;
-    cancelledPastime=!!rig && ['nap','water','water-happy'].includes(rig.action);
+    cancelledPastime=!!rig && ['nap','water','water-happy','guitar'].includes(rig.action);
     dizzyUntil=0;feedback=null;orbit.reset();
     idleCadence.reset(performance.now());
     if(cancelledPastime){flatTouchUntil=0;window.clearTimeout(flatTouchTimer);rig?.cancelToIdle();setAction('idle');}

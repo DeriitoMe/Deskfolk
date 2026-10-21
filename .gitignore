@@ -81,6 +81,8 @@ scripts/*
 !scripts/build-morning-paper.py
 !scripts/qa-read-paper.cjs
 !scripts/qa-morning-brief.cjs
+!scripts/build-mutsumi-guitar.py
+!scripts/qa-guitar.cjs
 
 # Reviewed portable editable sources in this snapshot.
 !/PUBLIC_SOURCE_MANIFEST.json
