@@ -1,5 +1,6 @@
 import type {CodexQuotaSnapshot} from './quota';
 import type {FollowAgent} from './agents';
+import type {BriefNote} from './morning-brief';
 
 export type PetEventType =
   | "work_started"
@@ -152,6 +153,11 @@ export interface PetBridge {
   sendTest(type: PetEventType): Promise<void>;
   openSettings(): void;
   openCodex(): Promise<{ok:boolean;error?:string}>;
+  /** The Skills Morning Brief note for this reading (null if refused). */
+  getMorningBrief(): Promise<BriefNote | null>;
+  openMorningBrief(): Promise<{ok:boolean;error?:string}>;
+  /** Tray request to read the brief now. */
+  onReadBrief(callback: () => void): () => void;
   onTransform(callback: () => void): () => void;
   setMouseIgnored(ignored: boolean): void;
   moveWindow(dx: number, dy: number): void;

@@ -11,6 +11,8 @@ import tearfulFirstVoiceUrl from './assets/audio/mutsumi-tearful-first.wav?url';
 import tearfulSecondVoiceUrl from './assets/audio/mutsumi-tearful-second.wav?url';
 import { TouchVoice } from './touch-voice';
 import {QUOTA_BOARD_SECONDS} from '../shared/quota-board-motion';
+import {READING_PAGE_SECONDS} from '../shared/reading-motion';
+import type {BriefNote} from '../shared/morning-brief';
 import {unknownCodexQuota,unknownDeepSeekQuota,type CodexQuotaSnapshot} from '../shared/quota';
 import "./style.css";
 import "./settings-view.css";
@@ -78,6 +80,10 @@ let flatTouchUntil = 0;
 let lastDanceAt = 0;
 let activityState: "idle" | "working" | "attention" = "idle";
 let quotaBoardUntil=0;
+/** Reading the Skills Morning Brief: one page, with a note bubble after the first line. */
+const READING_MS=READING_PAGE_SECONDS*1000+300,BRIEF_NOTE_DELAY_MS=2200,AUTO_BRIEF_DELAY_MS=15_000,AUTO_BRIEF_RETRY_MS=5_000,AUTO_BRIEF_GIVE_UP_MS=30*60_000;
+const BRIEF_PREFIX='morning-brief:';
+let readingUntil=0,readingTimer=0,briefNoteTimer=0,autoBriefTimer=0,autoBriefPending=true;
 let latestQuota:CodexQuotaSnapshot=unknownCodexQuota();
 let latestActivity: PetActivity = { phase: 'idle', updatedAt: new Date().toISOString() };
 /** Native tool gesture; it outranks plain and multi-project work. */
@@ -336,7 +342,7 @@ function hideBubble(): void {
   window.clearTimeout(bubbleTimer);
   window.clearTimeout(bubbleVoiceTimer);
   bubbleVoice.stop();
-  if (currentEvent && !currentEvent.id.startsWith(SUPER_WORK_BUBBLE_PREFIX)) void window.petBridge.markRead(currentEvent.id);
+  if (currentEvent && !currentEvent.id.startsWith(SUPER_WORK_BUBBLE_PREFIX) && !currentEvent.id.startsWith(BRIEF_PREFIX)) void window.petBridge.markRead(currentEvent.id);
   currentEvent = null;
   if (speechBubble.hidden) return;
   const reducedMotion = Boolean(currentPreferences?.reducedMotion ||
@@ -368,6 +374,7 @@ function displayBubble(event: PetEvent): void {
   speechBubble.classList.remove('bubble-out');
   // Each host owns its native dialog; this button only opens Codex.
   document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=!isQuestionReminder(event)||!['codex-log','demo'].includes(event.source);
+  document.querySelector<HTMLButtonElement>('#brief-button')!.hidden=true;
   resetSleepTimer();
   window.clearTimeout(workTransitionTimer);
   currentEvent = event;
@@ -440,6 +447,74 @@ function displayBubble(event: PetEvent): void {
   resetIdleDance();
 }
 
+/** What Mutsumi took from the Morning Brief, with a way into the brief. */
+function displayBriefBubble(note: BriefNote): void {
+  if (!remindersEnabled(currentPreferences)) return;
+  window.clearTimeout(bubbleFadeTimer);
+  bubbleFadeTimer = 0;
+  speechBubble.classList.remove('bubble-out');
+  document.querySelector<HTMLButtonElement>('#answer-button')!.hidden = true;
+  document.querySelector<HTMLButtonElement>('#brief-button')!.hidden = note.kind === 'missing';
+  window.clearTimeout(bubbleVoiceTimer);
+  bubbleVoice.stop();
+  const event: PetEvent = {id: BRIEF_PREFIX + note.id, source: 'demo', type: 'info', createdAt: new Date().toISOString(), read: true};
+  currentEvent = event;
+  speechBubble.dataset.kind = 'brief';
+  kickerNode.hidden = true;
+  messageNode.textContent = note.message;
+  metaNode.textContent = note.meta;
+  speechBubble.hidden = false;
+  speechBubble.classList.toggle('bubble-reduced', Boolean(currentPreferences?.reducedMotion ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches));
+  speechBubble.classList.remove('bubble-in');
+  void speechBubble.offsetWidth;
+  speechBubble.classList.add('bubble-in');
+  window.clearTimeout(bubbleTimer);
+  bubbleTimer = window.setTimeout(() => { if (currentEvent?.id === event.id) hideBubble(); },
+    Math.max(10, currentPreferences?.bubbleSeconds ?? 8) * 1000);
+}
+
+/** After the first line she looks up with a note, unless a more urgent bubble is showing. */
+async function showBriefNote(): Promise<void> {
+  if (readingUntil <= performance.now() || !remindersEnabled(currentPreferences)) return;
+  if (questionReminder.active(performance.now()) || celebration || feedback) return;
+  if (currentEvent && !speechBubble.hidden && !currentEvent.id.startsWith(BRIEF_PREFIX)) return;
+  const note = await window.petBridge.getMorningBrief().catch(() => null);
+  if (note && readingUntil > performance.now()) displayBriefBubble(note);
+}
+
+/** Read one page of the brief. Questions, outcomes and celebrations still come first. */
+function startReading(): boolean {
+  const now = performance.now();
+  if (questionReminder.active(now) || celebration || feedback) return false;
+  window.clearTimeout(readingTimer); window.clearTimeout(briefNoteTimer);
+  if (!rig) {
+    // The high-resolution still has no reading pose; the note alone is enough.
+    readingUntil = now + BRIEF_NOTE_DELAY_MS + 50;
+    void showBriefNote();
+    return true;
+  }
+  quotaBoardUntil = 0;
+  readingUntil = now + READING_MS;
+  readingTimer = window.setTimeout(() => { readingUntil = 0; syncFlatActivity(); }, READING_MS);
+  briefNoteTimer = window.setTimeout(() => void showBriefNote(), BRIEF_NOTE_DELAY_MS);
+  syncFlatActivity();
+  return true;
+}
+
+/** About fifteen seconds after start-up, read once as soon as she is free. */
+function scheduleAutoBrief(delay: number, startedAt = performance.now()): void {
+  window.clearTimeout(autoBriefTimer);
+  autoBriefTimer = window.setTimeout(() => {
+    if (!autoBriefPending) return;
+    const now = performance.now();
+    const free = rig?.canvas.dataset.ready === 'true' && activityState === 'idle' && latestActivity.phase === 'idle' &&
+      dragPointer === null && Date.now() >= flatTouchUntil && quotaBoardUntil <= now && dizzyUntil <= now && !repeatedTouch.active(now);
+    if (free && startReading()) { autoBriefPending = false; return; }
+    if (now - startedAt < AUTO_BRIEF_GIVE_UP_MS) scheduleAutoBrief(AUTO_BRIEF_RETRY_MS, startedAt);
+  }, delay);
+}
+
 function applyPreferences(preferences: PetPreferences): void {
   const previousModel = currentPreferences?.model;
   const previousReducedMotion = currentPreferences?.reducedMotion;
@@ -508,7 +583,8 @@ function syncFlatActivity(): void {
   activityState = questioning ? 'attention' : latestActivity.phase === 'working' || workingCount > 0 ? 'working' : 'idle';
   fullPower = activityState === 'working' && (latestActivity.fullPower === true || workingCount >= 2);
   const interaction=Date.now()<flatTouchUntil || (dragPointer!==null && dragDistance>4);
-  const step=idleCadence.tick(now,activityState!=='idle'||latestActivity.phase==='asking'||celebration||feedback?'busy':interaction||dizzyUntil>now||tearful?'interaction':'idle');
+  const reading=readingUntil>now;
+  const step=idleCadence.tick(now,activityState!=='idle'||latestActivity.phase==='asking'||celebration||feedback||reading?'busy':interaction||dizzyUntil>now||tearful?'interaction':'idle');
   if(interaction)return;
   if(quotaBoardUntil>now){setAction('quota-board');setStatus(latestQuota.source==='deepseek-harness'?'DeepSeek Harness 额度暂不可用':latestQuota.source==='claude-code-statusline'?'查看 Claude Code Current session':'查看五小时剩余额度');return;}
   if(questioning){clearRepeatedTouch();setAction('ask');setStatus('等你回复');return;}
@@ -537,6 +613,8 @@ function syncFlatActivity(): void {
   }
   if(tearful){setAction('tearful');setStatus('被按得有点委屈……');return;}
   if(dizzyUntil>now){setAction('dizzy');setStatus('被绕晕了……');return;}
+  // A requested reading also pauses ongoing work for its one page.
+  if(reading){setAction('read-paper');setStatus('在看晨报');return;}
   const action=activityState==='working'?(latestTool==='type'?'claude-type':latestTool==='write'?'claude-write':fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action;
   setAction(action);
   const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复','claude-type':'正在跑命令','claude-write':'正在改文件'};
@@ -597,6 +675,13 @@ function setupPetView(): void {
   window.petBridge.onQuota(quota=>{latestQuota=quota;rig?.setQuota(quota);});
   new MutationObserver(updateLayout).observe(speechBubble,{attributes:true,attributeFilter:["hidden"]});
   new MutationObserver(updateLayout).observe(document.querySelector("#answer-button")!,{attributes:true,attributeFilter:["hidden"]});
+  new MutationObserver(updateLayout).observe(document.querySelector("#brief-button")!,{attributes:true,attributeFilter:["hidden"]});
+  window.petBridge.onReadBrief(()=>{startReading();});
+  document.querySelector('#brief-button')?.addEventListener('click', async () => {
+    const result=await window.petBridge.openMorningBrief().catch(()=>({ok:false,error:'晨报没能打开......'}));
+    if(result.ok)hideBubble();else messageNode.textContent=result.error||'晨报没能打开......';
+  });
+  scheduleAutoBrief(AUTO_BRIEF_DELAY_MS);
   new ResizeObserver(updateLayout).observe(speechBubble);
   window.petBridge.onViewport(v=>{petRoot.style.setProperty("--safe-left",v.left+"px");petRoot.style.setProperty("--safe-width",v.width+"px");});
   window.petBridge.onCursor(point=>{

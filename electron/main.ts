@@ -5,6 +5,7 @@ import {
   Menu,
   nativeImage,
   screen,
+  shell,
   Tray,
 } from "electron";
 import { createServer, type IncomingMessage, type Server } from "node:http";
@@ -43,6 +44,7 @@ import {ClaudeToolTracker} from './claude-tools';
 import {DeepSeekHarnessAdapter,parseDeepSeekHarnessEnvelope} from './deepseek-harness';
 import {DeepSeekToolTracker} from './deepseek-tools';
 import {eventAgent,sessionAgent,follows,normalizeFollowAgent,visibleSessions,type AgentName} from '../shared/agents';
+import {MorningBriefLink} from './morning-brief';
 
 const APP_NAME = "Deskfolk";
 // Keep the existing data directory and bridge identifier during the branding update.
@@ -84,6 +86,7 @@ const historyPath = join(userDataPath, "history.json");
 const bridgePath = join(userDataPath, "bridge.json");
 const activityPath = join(userDataPath, "activity.json");
 const claudeQuotaPath = join(userDataPath, "claude-quota.json");
+const morningBriefPath = join(userDataPath, "morning-brief.json");
 
 let mainWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
@@ -180,6 +183,11 @@ function readJson<T>(filePath: string, fallback: T): T {
     return fallback;
   }
 }
+
+/** Skills Morning Brief: what Mutsumi read last, and the way into the brief. */
+const morningBrief=new MorningBriefLink({statePath:morningBriefPath,
+  readState:()=>readJson<{seen?:string[]}>(morningBriefPath,{}),writeState:state=>writeJsonAtomically(morningBriefPath,state),
+  openExternal:url=>shell.openExternal(url)});
 
 function writeJsonAtomically(filePath: string, value: unknown): void {
   mkdirSync(userDataPath, { recursive: true });
@@ -648,6 +656,7 @@ async function createTray(): Promise<void> {
       { label: "当前项目", click: openProjects },
       { label: "设置", click: openSettings },
       { label: '打开 Codex', click: openCodex },
+      { label: '看晨报', click: () => { showPet(); mainWindow?.webContents.send('pet:read-brief'); } },
       { label: presentationPolicy.transformation ? '转身 · 华丽形态预览' : '旋转变身（暂时停用）', enabled:presentationPolicy.transformation, click: () => {if(presentationPolicy.transformation)mainWindow?.webContents.send('pet:transform');} },
       { type: "separator" },
       {label:'勿扰模式',type:'checkbox',checked:preferences.doNotDisturb,click:item=>{
@@ -849,6 +858,14 @@ function registerIpc(): void {
     if(reminder?.source==='claude-code')return {ok:false,error:'请回到 Claude Code 窗口处理。'};
     if(reminder?.source==='deepseek-harness')return {ok:false,error:'请回到 DeepSeek Harness 窗口处理。'};
     return activateCodex();
+  });
+  ipcMain.handle('pet:morning-brief', event => {
+    if(event.sender!==mainWindow?.webContents) return null;
+    return morningBrief.nextNote();
+  });
+  ipcMain.handle('pet:open-morning-brief', event => {
+    if(event.sender!==mainWindow?.webContents) return {ok:false};
+    return morningBrief.open();
   });
   ipcMain.on("pet:set-mouse-ignored", (event, ignored: boolean) => {
     if (!mainWindow || mainWindow.isDestroyed() || typeof ignored !== "boolean") return;

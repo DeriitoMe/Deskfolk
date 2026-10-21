@@ -78,6 +78,9 @@ scripts/*
 !scripts/assemble-celebration-*
 !scripts/export-celebration-effects-krita.py
 !scripts/verify-celebration-art.py
+!scripts/build-morning-paper.py
+!scripts/qa-read-paper.cjs
+!scripts/qa-morning-brief.cjs
 
 # Reviewed portable editable sources in this snapshot.
 !/PUBLIC_SOURCE_MANIFEST.json
