@@ -3,10 +3,11 @@
     python -I scripts/prepare-guitar-solo-audio.py <source.wav>
 
 Writes renderer/assets/audio/mutsumi-guitar-solo.wav: mono, 48 kHz, 24-bit,
-gain set so its RMS matches the speech bubbles (about -23 dBFS), a 20 ms
-fade-in and 300 ms fade-out. Prints the onset times (s) found with a
-spectral-flux detector; they drive the picking hand in
-shared/guitar-solo-onsets.ts.
+RMS about -33 dBFS (roughly -34 LUFS as played at 0.75): about 10 dB under
+the speech bubbles, since an 8 s run of bright guitar reads much louder than
+a one-second voice line at the same level. 20 ms fade-in, 300 ms fade-out.
+Prints the onset times (s) found with a spectral-flux detector; they drive
+the picking hand (SOLO_ONSETS in shared/guitar-solo.ts).
 """
 import json
 import sys
@@ -17,7 +18,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'renderer/assets/audio/mutsumi-guitar-solo.wav'
-TARGET_RMS_DB, RATE = -23.0, 48000
+TARGET_RMS_DB, RATE = -33.0, 48000
 
 
 def read(path):
