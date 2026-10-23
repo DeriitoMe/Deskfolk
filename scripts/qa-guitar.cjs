@@ -1,4 +1,4 @@
-// Clipping check for the guitar pastime. Each sample is rendered twice: once
+// Clipping check for the guitar pastime and its easter-egg solo. Each sample is rendered twice: once
 // normally and once with the guitar forced on top. Any differing pixel means
 // something sits in front of the guitar. Only the hands may: both mittens,
 // and the picking arm's sleeve, whose forearm rests over the top of the body
@@ -40,6 +40,9 @@ app.whenReady().then(async()=>{
   };
   const rows=[];
   for(let t=0;t<15.01;t+=.05)rows.push(check('guitar '+t.toFixed(2),()=>r.renderAt('guitar',t)));
+  // The easter egg: whole solo slot at 50 Hz so every pick and fret change is covered.
+  for(let t=4.9;t<15.01;t+=.02)rows.push(check('solo '+t.toFixed(2),()=>r.renderAt('guitar-solo',t)));
+  for(let t=.05;t<1.4;t+=.1)rows.push(check('solo→idle '+t.toFixed(2),()=>r.renderTransitionAt('guitar-solo','idle',t)));
   for(let t=.05;t<1.4;t+=.1){
    rows.push(check('idle→guitar '+t.toFixed(2),()=>r.renderTransitionAt('idle','guitar',t)));
    rows.push(check('guitar→idle '+t.toFixed(2),()=>r.renderTransitionAt('guitar','idle',t)));

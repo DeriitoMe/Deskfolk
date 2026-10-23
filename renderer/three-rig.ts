@@ -31,15 +31,16 @@ import {CONFETTI_PIECES,POPPER_SHOTS,confettiFlight,confettiPiece,type ConfettiP
 import {celebrateMotion} from '../shared/celebrate-motion';
 import {GuitarProp} from './guitar-prop';
 import {guitarMotion} from '../shared/guitar-motion';
+import {guitarSoloMotion} from '../shared/guitar-solo';
 import {currentCodexQuota,unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
 export const TURN_SECONDS=10.2;
-export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'tearful'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap'|'feedback-failed'|'feedback-paused'|'feedback-quota'|'dizzy'|'quota-board'|'claude-type'|'claude-write'|'read-paper'|'guitar';
+export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'tearful'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap'|'feedback-failed'|'feedback-paused'|'feedback-quota'|'dizzy'|'quota-board'|'claude-type'|'claude-write'|'read-paper'|'guitar'|'guitar-solo';
 const maps=import.meta.glob<string>('../assets/characters/wakaba-mutsumi/v41-3d/runtime/{hair-paint,hair_all_visible,back-hair-paint,back-hair-mask,side-hair-clean,question-eye,flame-atlas}.png',{eager:true,query:'?url',import:'default'});
 const urls=Object.fromEntries(Object.entries(maps).map(([p,u])=>[p.split('/').pop()!,u]));
 const clamp=T.MathUtils.clamp, mix=T.MathUtils.lerp,TAU=Math.PI*2;
 const smooth=(v:number)=>{v=clamp(v,0,1);return v*v*(3-2*v);};
-type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headOffsetY:number;headYaw:number;headRoll:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;tearful:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number;dizzy:number;board:number;type:number;write:number;paper:number;scanX:number;scanY:number;snap:number;popL:number;popR:number;jump:number;swish:number;guitar:number};
-const neutral=():Pose=>({paper:0,scanX:0,scanY:0,snap:0,popL:0,popR:0,jump:0,swish:0,guitar:0,rise:0,lean:0,pitch:0,yaw:0,head:0,headOffsetY:0,headYaw:0,headRoll:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,tearful:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0,dizzy:0,board:0,type:0,write:0});
+type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headOffsetY:number;headYaw:number;headRoll:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;tearful:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number;dizzy:number;board:number;type:number;write:number;paper:number;scanX:number;scanY:number;snap:number;popL:number;popR:number;jump:number;swish:number;guitar:number;strum:number;fretting:number};
+const neutral=():Pose=>({paper:0,scanX:0,scanY:0,snap:0,popL:0,popR:0,jump:0,swish:0,guitar:0,strum:0,fretting:0,rise:0,lean:0,pitch:0,yaw:0,head:0,headOffsetY:0,headYaw:0,headRoll:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,tearful:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0,dizzy:0,board:0,type:0,write:0});
 const blend=(a:Pose,b:Pose,u:number)=>Object.fromEntries(Object.keys(a).map(k=>[k,mix(a[k as keyof Pose],b[k as keyof Pose],u)])) as Pose;
 type Rest={position:T.Vector3;quaternion:T.Quaternion;scale:T.Vector3};
 type WaterLane={mouth:T.Vector3;start:T.Vector3;control:T.Vector3;target:T.Vector3;targetY:number;phase:number;speed:number;fan:number};
@@ -407,16 +408,20 @@ export class MutsumiRig {
    }else{p.write=1;p.armL=-.52;p.armR=.5+Math.sin(t*14)*.02*k;p.reach=-.82;p.head=.07;p.headYaw=.05;p.pitch=.02;}
   }
   if(action==='ask'){p.ask=1;p.headYaw=-.24;p.yaw=-.06;p.open=1;}
-  if(action==='guitar'){
+  if(action==='guitar'||action==='guitar-solo'){
    // Idle pastime: the guitar across her front, the picking forearm over the
    // body and the fretting hand under the neck. One shared slow breath; twice
    // the fretting arm tips the neck up or down a few degrees while she looks
    // the guitar over, the head tilting along. Eyes wander over the guitar.
-   const g=guitarMotion(t,this.reducedMotion);
+   // The easter egg lifts the neck into a playing angle and plays a short
+   // lead: picks and fret changes are wrist turns, so the guitar stays still.
+   const solo=action==='guitar-solo'?guitarSoloMotion(t,this.reducedMotion):null;
+   const g=solo??guitarMotion(t,this.reducedMotion),raise=solo?.raise??0;
    // Looking up the raised neck lifts her chin a little, clear of the horn.
    const up=Math.max(0,g.inspect);
-   p.guitar=1;p.head=.11+.006*g.breath-.035*up;p.headRoll=.03*g.inspect;p.rise=-.01+.008*g.breath;p.pitch=.004*g.breath;
-   p.armR=.45+.012*g.breath;p.armL=.5+.2*g.inspect-.03*up+.015*g.breath;p.reach=-.55;p.spread=.02;
+   p.guitar=1;p.head=.11+.006*g.breath-.035*up-.04*raise+.012*(solo?.nod??0);p.headRoll=.03*g.inspect;p.rise=-.01+.008*g.breath;p.pitch=.004*g.breath;
+   p.armR=.45+.012*g.breath;p.armL=.5+.2*g.inspect-.03*up+.6*raise+.015*g.breath;p.reach=-.55+.25*raise;p.spread=.02;
+   p.strum=solo?.pick??0;p.fretting=solo?.fret??0;
    p.scanX=g.eyeX;p.scanY=g.eyeY;p.open*=.86;
   }
   if(action==='read-paper'){
@@ -550,6 +555,8 @@ export class MutsumiRig {
   else this.newspaper.group.visible=false;
   if(p.guitar>.005)this.guitar.update(p.guitar*(1-smooth(p.water/.15)),this.control('CTRL_Hand.R').localToWorld(this.gripR.copy(this.mittenCenter.R)),this.control('CTRL_Hand.L').localToWorld(this.gripL.copy(this.mittenCenter.L)));
   else this.guitar.group.visible=false;
+  // Picking and fretting fingers move after the guitar is placed.
+  if(p.strum||p.fretting){this.control('CTRL_Hand.R').rotation.z-=.55*p.strum;this.control('CTRL_Hand.L').rotation.z+=.18*p.fretting;}
   this.flowers.visible=p.happy>.005&&p.popper<.005&&p.clap<.005;for(let i=0;i<5;i++){const f=this.flowers.children[i],a=t*1.1+i*TAU/5;f.position.set(Math.cos(a)*1.65,2.6+Math.sin(a)*.7,.6+Math.sin(a)*.3);f.rotation.z=t*1.8+i;f.scale.setScalar(p.happy*1.24);}
   this.aura.visible=p.power>.005;for(let i=0;i<7;i++){const a=i*TAU/7;const f=this.aura.children[i] as T.Mesh;f.position.set(Math.cos(a)*1.65,.06,Math.sin(a)*1.1);f.rotation.y=0;f.scale.set(1.5,1.7+Math.sin(t*5+i)*.25+Math.abs(Math.cos(a))*.6,1);(f.material as T.MeshBasicMaterial).opacity=p.power*(.18+.04*Math.sin(t*4+i));}
   const frame=Math.floor(t*30)%36;this.auraTexture?.offset.set((frame%6)/6,(5-Math.floor(frame/6))/6);
@@ -767,7 +774,7 @@ export class MutsumiRig {
   if(this.action==='transform')this.drawTurn(age);else{
    const feedback=this.action.startsWith('feedback-')||this.action==='dizzy'||this.action==='tearful';
    const t=(this.reducedMotion&&!feedback&&this.action!=='touch'&&this.action!=='quota-board')? .65:age,route=this.routed?.38:0;
-   this.pose=age<route?blend(this.from,neutral(),smooth(age/route)):blend(this.routed?neutral():this.from,this.target(this.action,t),smooth((age-route)/(this.releasing?.65:this.action==='water'?1.4:this.action==='drag'?.23:this.action==='touch'?.025:feedback?.18:this.action==='quota-board'?QUOTA_BOARD_BLEND_SECONDS:this.action.startsWith('celebrate-')?.22:this.action==='guitar'?.9:.55)));
+   this.pose=age<route?blend(this.from,neutral(),smooth(age/route)):blend(this.routed?neutral():this.from,this.target(this.action,t),smooth((age-route)/(this.releasing?.65:this.action==='water'?1.4:this.action==='drag'?.23:this.action==='touch'?.025:feedback?.18:this.action==='quota-board'?QUOTA_BOARD_BLEND_SECONDS:this.action.startsWith('celebrate-')?.22:this.action.startsWith('guitar')?.9:.55)));
    if(this.boardReleasing){const target=this.target(this.action,t),weight=smooth(age/QUOTA_BOARD_BLEND_SECONDS);for(const key of ['board','armL','armR','reach'] as const)this.pose[key]=mix(this.from[key],target[key],weight);}
    if(this.releasing&&age<.65)this.pose.rise-=Math.sin(age/.65*Math.PI)*.03;this.draw(this.pose,t,age);
   }

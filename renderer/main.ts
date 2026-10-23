@@ -9,6 +9,7 @@ import { hasSuperWorkload, NORMAL_WORK_MESSAGE, SUPER_WORK_MESSAGE, SUPER_WORK_B
 import headpatVoiceUrl from './assets/audio/mutsumi-headpat.wav?url';
 import tearfulFirstVoiceUrl from './assets/audio/mutsumi-tearful-first.wav?url';
 import tearfulSecondVoiceUrl from './assets/audio/mutsumi-tearful-second.wav?url';
+import { GuitarEgg } from './guitar-egg';
 import { TouchVoice } from './touch-voice';
 import {QUOTA_BOARD_SECONDS} from '../shared/quota-board-motion';
 import {READING_PAGE_SECONDS} from '../shared/reading-motion';
@@ -49,7 +50,11 @@ const touchVoice = new TouchVoice({
   'tearful-first': tearfulFirstVoiceUrl,
   'tearful-second': tearfulSecondVoiceUrl,
 });
+/** Guitar pastime easter egg; one decision per guitar pastime. */
+const guitarEgg = new GuitarEgg(() => rig?.action === 'guitar-solo');
+let guitarDecided = false, guitarSolo = false;
 window.addEventListener('pagehide', () => {
+  guitarEgg.stop(true);
   window.clearTimeout(bubbleTimer);
   window.clearTimeout(bubbleVoiceTimer);
   window.clearTimeout(bubbleFadeTimer);
@@ -520,7 +525,7 @@ function applyPreferences(preferences: PetPreferences): void {
   const previousReducedMotion = currentPreferences?.reducedMotion;
   currentPreferences = preferences;
   if (preferences.reducedMotion && speechBubble.classList.contains('bubble-out')) hideBubble();
-  if (preferences.doNotDisturb) touchVoice.stop();
+  if (preferences.doNotDisturb) { touchVoice.stop(); guitarEgg.stop(); }
   if(!remindersEnabled(preferences)){
     hideBubble();questionReminder.dismiss();celebration=null;celebrationSequence.clearPending();
     deferredCompletionNotices.length=0;feedback=null;outcomeFeedback.clear();
@@ -615,9 +620,14 @@ function syncFlatActivity(): void {
   if(dizzyUntil>now){setAction('dizzy');setStatus('被绕晕了……');return;}
   // A requested reading also pauses ongoing work for its one page.
   if(reading){setAction('read-paper');setStatus('在看晨报');return;}
-  const action=activityState==='working'?(latestTool==='type'?'claude-type':latestTool==='write'?'claude-write':fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action;
+  // Each guitar pastime is decided once, when it begins.
+  if(step.action==='guitar'&&activityState==='idle'){if(!guitarDecided){guitarDecided=true;guitarSolo=guitarEgg.decide();}}
+  else guitarDecided=guitarSolo=false;
+  const action=activityState==='working'?(latestTool==='type'?'claude-type':latestTool==='write'?'claude-write':fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action==='guitar'&&guitarSolo?'guitar-solo':step.action;
+  // Do-not-disturb keeps the solo but plays it silently.
+  if(action==='guitar-solo'&&rig?.action!=='guitar-solo'){setAction(action);guitarEgg.start(Boolean(currentPreferences?.doNotDisturb));}
   setAction(action);
-  const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',guitar:'抱着吉他发呆',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复','claude-type':'正在跑命令','claude-write':'正在改文件'};
+  const labels:Record<string,string>={idle:'安静地待机中',nap:'小憩中',water:'给黄瓜浇水','water-happy':'黄瓜喝饱水了',guitar:'抱着吉他发呆','guitar-solo':'弹起了吉他',work:'正在认真处理','power-work':'正在全力处理多个项目',ask:'等你回复','claude-type':'正在跑命令','claude-write':'正在改文件'};
   setStatus(labels[action]);
   if(action==='power-work' && superWorkBubbleGate.pending && remindersEnabled(currentPreferences) &&
     (!currentEvent || currentEvent.type==='work_started')){
@@ -747,7 +757,7 @@ function setupPetView(): void {
       (!actualHit&&!onTouchTarget(event.clientX, event.clientY))) return;
     pointerStartedOnArt=actualHit;
     quotaBoardUntil=0;
-    cancelledPastime=!!rig && ['nap','water','water-happy','guitar'].includes(rig.action);
+    cancelledPastime=!!rig && ['nap','water','water-happy','guitar','guitar-solo'].includes(rig.action);
     dizzyUntil=0;feedback=null;orbit.reset();
     idleCadence.reset(performance.now());
     if(cancelledPastime){flatTouchUntil=0;window.clearTimeout(flatTouchTimer);rig?.cancelToIdle();setAction('idle');}
