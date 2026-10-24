@@ -5,6 +5,7 @@ import {
   Menu,
   nativeImage,
   screen,
+  shell,
   Tray,
 } from "electron";
 import { createServer, type IncomingMessage, type Server } from "node:http";
@@ -43,6 +44,8 @@ import {ClaudeToolTracker} from './claude-tools';
 import {DeepSeekHarnessAdapter,parseDeepSeekHarnessEnvelope} from './deepseek-harness';
 import {DeepSeekToolTracker} from './deepseek-tools';
 import {eventAgent,sessionAgent,follows,normalizeFollowAgent,visibleSessions,type AgentName} from '../shared/agents';
+import {MorningBriefLink} from './morning-brief';
+import {normalizeLanguage, resolveLocale, translate} from '../shared/i18n';
 
 const APP_NAME = "Deskfolk";
 // Keep the existing data directory and bridge identifier during the branding update.
@@ -63,7 +66,9 @@ const ALLOWED_TYPES = new Set<PetEventType>([
   "info",
 ]);
 const DEFAULT_PREFERENCES: PetPreferences = {
+  language: 'system',
   model: "flat-chibi",
+  outfit: "uniform",
   scale: 1,
   idleDance: true,
   reducedMotion: false,
@@ -84,6 +89,7 @@ const historyPath = join(userDataPath, "history.json");
 const bridgePath = join(userDataPath, "bridge.json");
 const activityPath = join(userDataPath, "activity.json");
 const claudeQuotaPath = join(userDataPath, "claude-quota.json");
+const morningBriefPath = join(userDataPath, "morning-brief.json");
 
 let mainWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
@@ -93,6 +99,7 @@ const rendererEvents=new RendererEventQueue(event=>mainWindow?.webContents.send(
 function currentActivity() { return dominantActivity(visibleSessions(sessionActivities,preferences.followAgent)); }
 function currentProjects():ProjectDashboardData {
   return projectDashboard(sessionActivities,history,{preferences,bridgeReady:!!bridgeServer?.listening,
+    locale: resolveLocale(preferences.language, app.getLocale()),
     monitor:lifecycle?.getHealth()??{state:process.env.PET_TEST_MODE==='1'?'disabled':'starting',lastPollAt:null,lastEventAt:null,observedSessions:0,discoveryPending:0},
     projectName:id=>lifecycle?.getProjectName(id)});
 }
@@ -102,6 +109,7 @@ let trayMenu: Menu | null = null;
 let bridgeServer: Server | null = null;
 let accessToken = "";
 let preferences = { ...DEFAULT_PREFERENCES };
+const t = (message: string) => translate(resolveLocale(preferences.language, app.getLocale()), message);
 let preferenceSaveQueue: Promise<PetPreferences | void> = Promise.resolve();
 let history: PetEvent[] = [];
 let sessionActivities: SessionActivities = {};
@@ -181,6 +189,11 @@ function readJson<T>(filePath: string, fallback: T): T {
   }
 }
 
+/** Skills Morning Brief: what Mutsumi read last, and the way into the brief. */
+const morningBrief=new MorningBriefLink({statePath:morningBriefPath,
+  readState:()=>readJson<{seen?:string[]}>(morningBriefPath,{}),writeState:state=>writeJsonAtomically(morningBriefPath,state),
+  openExternal:url=>shell.openExternal(url)});
+
 function writeJsonAtomically(filePath: string, value: unknown): void {
   mkdirSync(userDataPath, { recursive: true });
   const contents = JSON.stringify(value, null, 2);
@@ -225,7 +238,9 @@ function normalizePreferences(input: Partial<PetPreferences>): PetPreferences {
     ? Math.min(15, Math.max(5, Math.round(input.bubbleSeconds)))
     : preferences.bubbleSeconds;
   return {
+    language: normalizeLanguage(input.language, preferences.language),
     model,
+    outfit: input.outfit === "uniform" || input.outfit === "beret" ? input.outfit : preferences.outfit,
     scale,
     idleDance: typeof input.idleDance === "boolean" ? input.idleDance : preferences.idleDance,
     reducedMotion: typeof input.reducedMotion === "boolean"
@@ -602,7 +617,7 @@ function openSettings(): void {
     height: 760,
     minWidth: 400,
     minHeight: 620,
-    title: `${APP_NAME} 设置`,
+    title: `${APP_NAME} · ${t('设置')}`,
     icon: APPLICATION_ICON,
     backgroundColor: "#f3f6ef",
     autoHideMenuBar: true,
@@ -625,7 +640,7 @@ function openCodex(): void { void activateCodex(); }
 
 function openProjects():void {
   if(projectsWindow&&!projectsWindow.isDestroyed()){projectsWindow.show();projectsWindow.focus();return;}
-  projectsWindow=new BrowserWindow({width:760,height:800,minWidth:620,minHeight:600,title:'Deskfolk · 当前项目',icon:APPLICATION_ICON,backgroundColor:'#f3f6ef',autoHideMenuBar:true,...LIGHT_TITLE_BAR,
+  projectsWindow=new BrowserWindow({width:760,height:800,minWidth:620,minHeight:600,title:'Deskfolk · '+t('当前项目'),icon:APPLICATION_ICON,backgroundColor:'#f3f6ef',autoHideMenuBar:true,...LIGHT_TITLE_BAR,
     webPreferences:{preload:join(__dirname,'../preload/index.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   void projectsWindow.loadURL(rendererUrl('?projects=1'));
   const timer=setInterval(sendProjects,1000);timer.unref();
@@ -644,19 +659,20 @@ async function createTray(): Promise<void> {
     else showPet();
   });
   const buildTrayMenu = () => Menu.buildFromTemplate([
-      { label: "显示桌宠", click: showPet },
-      { label: "当前项目", click: openProjects },
-      { label: "设置", click: openSettings },
-      { label: '打开 Codex', click: openCodex },
-      { label: presentationPolicy.transformation ? '转身 · 华丽形态预览' : '旋转变身（暂时停用）', enabled:presentationPolicy.transformation, click: () => {if(presentationPolicy.transformation)mainWindow?.webContents.send('pet:transform');} },
+      { label: t("显示桌宠"), click: showPet },
+      { label: t("当前项目"), click: openProjects },
+      { label: t("设置"), click: openSettings },
+      { label: t('打开 Codex'), click: openCodex },
+      { label: t('看晨报'), click: () => { showPet(); mainWindow?.webContents.send('pet:read-brief'); } },
+      { label: presentationPolicy.transformation ? t('转身 · 华丽形态预览') : t('旋转变身（暂时停用）'), enabled:presentationPolicy.transformation, click: () => {if(presentationPolicy.transformation)mainWindow?.webContents.send('pet:transform');} },
       { type: "separator" },
-      {label:'勿扰模式',type:'checkbox',checked:preferences.doNotDisturb,click:item=>{
+      {label:t('勿扰模式'),type:'checkbox',checked:preferences.doNotDisturb,click:item=>{
         preferences={...preferences,doNotDisturb:item.checked};writeJsonAtomically(preferencesPath,preferences);
         for(const w of [mainWindow,settingsWindow,projectsWindow])w?.webContents.send('pet:preferences',preferences);sendProjects();
       }},
       { type: "separator" },
       {
-        label: "退出",
+        label: t("退出"),
         click: () => {
           isQuitting = true;
           app.quit();
@@ -789,6 +805,7 @@ function registerIpc(): void {
     sendViewport();
   });
   ipcMain.handle("pet:get-bootstrap", (): PetBootstrap => ({
+    systemLocale: app.getLocale(),
     preferences,
     history,
     bridgeReady: Boolean(bridgeServer?.listening),
@@ -810,6 +827,8 @@ function registerIpc(): void {
       const followChanged=next.followAgent!==preferences.followAgent;
       preferences = normalizePreferences(patch);
       writeJsonAtomically(preferencesPath, preferences);
+      settingsWindow?.setTitle(`${APP_NAME} · ${t('设置')}`);
+      projectsWindow?.setTitle(`${APP_NAME} · ${t('当前项目')}`);
       for(const w of [mainWindow,settingsWindow,projectsWindow])w?.webContents.send('pet:preferences',preferences);
       if(followChanged){
         mainWindow?.webContents.send('pet:activity',{...currentActivity(),replayed:true});
@@ -849,6 +868,14 @@ function registerIpc(): void {
     if(reminder?.source==='claude-code')return {ok:false,error:'请回到 Claude Code 窗口处理。'};
     if(reminder?.source==='deepseek-harness')return {ok:false,error:'请回到 DeepSeek Harness 窗口处理。'};
     return activateCodex();
+  });
+  ipcMain.handle('pet:morning-brief', event => {
+    if(event.sender!==mainWindow?.webContents) return null;
+    return morningBrief.nextNote();
+  });
+  ipcMain.handle('pet:open-morning-brief', event => {
+    if(event.sender!==mainWindow?.webContents) return {ok:false};
+    return morningBrief.open();
   });
   ipcMain.on("pet:set-mouse-ignored", (event, ignored: boolean) => {
     if (!mainWindow || mainWindow.isDestroyed() || typeof ignored !== "boolean") return;

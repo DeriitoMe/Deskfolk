@@ -78,6 +78,17 @@ scripts/*
 !scripts/assemble-celebration-*
 !scripts/export-celebration-effects-krita.py
 !scripts/verify-celebration-art.py
+!scripts/build-morning-paper.py
+!scripts/qa-read-paper.cjs
+!scripts/qa-morning-brief.cjs
+!scripts/build-mutsumi-guitar.py
+!scripts/qa-guitar.cjs
+!scripts/prepare-guitar-solo-audio.py
+!scripts/qa-guitar-egg.cjs
+!scripts/qa-language.cjs
+!scripts/export-beret-outfit.py
+!scripts/qa-beret-outfit.cjs
+!scripts/qa-beret-outfit-settings.cjs
 
 # Reviewed portable editable sources in this snapshot.
 !/PUBLIC_SOURCE_MANIFEST.json

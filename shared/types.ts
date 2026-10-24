@@ -1,5 +1,7 @@
 import type {CodexQuotaSnapshot} from './quota';
 import type {FollowAgent} from './agents';
+import type {BriefNote} from './morning-brief';
+import type {AppLocale, LanguagePreference} from './i18n';
 
 export type PetEventType =
   | "work_started"
@@ -17,6 +19,8 @@ export type PetEventType =
 
 export type EventSource = "hook" | "mcp" | "demo" | "codex-log" | "claude-code" | "deepseek-harness";
 export type PetModel = "flat-chibi" | "hires-soft";
+/** Clothes on the flat-chibi model: the school uniform or the crimson beret outfit. */
+export type PetOutfit = "uniform" | "beret";
 export type CompletionOutcome = "success" | "interrupted" | "failed" | "quota_exhausted";
 
 export type ActivityPhase = "idle" | "working" | "asking";
@@ -77,7 +81,9 @@ export interface PetQuestion {
 }
 
 export interface PetPreferences {
+  language: LanguagePreference;
   model: PetModel;
+  outfit: PetOutfit;
   scale: number;
   idleDance: boolean;
   reducedMotion: boolean;
@@ -92,6 +98,7 @@ export interface PetPreferences {
 }
 
 export interface ProjectDashboardData {
+  locale?: AppLocale;
   capturedAt: string;
   bridgeReady: boolean;
   monitor: {
@@ -122,6 +129,7 @@ export interface AgentConnections {
 }
 
 export interface PetBootstrap {
+  systemLocale: string;
   preferences: PetPreferences;
   history: PetEvent[];
   bridgeReady: boolean;
@@ -152,6 +160,11 @@ export interface PetBridge {
   sendTest(type: PetEventType): Promise<void>;
   openSettings(): void;
   openCodex(): Promise<{ok:boolean;error?:string}>;
+  /** The Skills Morning Brief note for this reading (null if refused). */
+  getMorningBrief(): Promise<BriefNote | null>;
+  openMorningBrief(): Promise<{ok:boolean;error?:string}>;
+  /** Tray request to read the brief now. */
+  onReadBrief(callback: () => void): () => void;
   onTransform(callback: () => void): () => void;
   setMouseIgnored(ignored: boolean): void;
   moveWindow(dx: number, dy: number): void;

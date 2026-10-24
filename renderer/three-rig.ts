@@ -25,15 +25,27 @@ import tearfulBaseUrl from '../assets/characters/wakaba-mutsumi/tearful-20261009
 import boardFrameUrl from '../assets/characters/wakaba-mutsumi/quota-board-20261014/runtime/quota-board-frame.svg?url';
 import {quotaBoardMotion,quotaBoardGripHeight,QUOTA_BOARD_SECONDS,QUOTA_BOARD_BLEND_SECONDS,QUOTA_BOARD_FADE_SECONDS} from '../shared/quota-board-motion';
 import {ClaudeProps} from './claude-props';
+import {NewspaperProp} from './newspaper-prop';
+import {readingScan} from '../shared/reading-motion';
+import {CONFETTI_PIECES,POPPER_SHOTS,confettiFlight,confettiPiece,type ConfettiPiece} from '../shared/confetti-motion';
+import {celebrateMotion} from '../shared/celebrate-motion';
+import {GuitarProp} from './guitar-prop';
+import {Outfit} from './outfit';
+import type {PetOutfit} from '../shared/types';
+import {guitarMotion} from '../shared/guitar-motion';
+import {guitarSoloMotion} from '../shared/guitar-solo';
 import {currentCodexQuota,unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
+import {quotaLabel} from '../shared/quota-copy';
+import {translate, type AppLocale} from '../shared/i18n';
 export const TURN_SECONDS=10.2;
-export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'tearful'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap'|'feedback-failed'|'feedback-paused'|'feedback-quota'|'dizzy'|'quota-board'|'claude-type'|'claude-write';
+export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'tearful'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap'|'feedback-failed'|'feedback-paused'|'feedback-quota'|'dizzy'|'quota-board'|'claude-type'|'claude-write'|'read-paper'|'guitar'|'guitar-solo';
 const maps=import.meta.glob<string>('../assets/characters/wakaba-mutsumi/v41-3d/runtime/{hair-paint,hair_all_visible,back-hair-paint,back-hair-mask,side-hair-clean,question-eye,flame-atlas}.png',{eager:true,query:'?url',import:'default'});
 const urls=Object.fromEntries(Object.entries(maps).map(([p,u])=>[p.split('/').pop()!,u]));
 const clamp=T.MathUtils.clamp, mix=T.MathUtils.lerp,TAU=Math.PI*2;
 const smooth=(v:number)=>{v=clamp(v,0,1);return v*v*(3-2*v);};
-type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headOffsetY:number;headYaw:number;headRoll:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;tearful:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number;dizzy:number;board:number;type:number;write:number};
-const neutral=():Pose=>({rise:0,lean:0,pitch:0,yaw:0,head:0,headOffsetY:0,headYaw:0,headRoll:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,tearful:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0,dizzy:0,board:0,type:0,write:0});
+const BERET_FRAME_LIFT=.16;
+type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headOffsetY:number;headYaw:number;headRoll:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;tearful:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number;dizzy:number;board:number;type:number;write:number;paper:number;scanX:number;scanY:number;snap:number;popL:number;popR:number;jump:number;swish:number;guitar:number;strum:number;fretting:number};
+const neutral=():Pose=>({paper:0,scanX:0,scanY:0,snap:0,popL:0,popR:0,jump:0,swish:0,guitar:0,strum:0,fretting:0,rise:0,lean:0,pitch:0,yaw:0,head:0,headOffsetY:0,headYaw:0,headRoll:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,tearful:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0,dizzy:0,board:0,type:0,write:0});
 const blend=(a:Pose,b:Pose,u:number)=>Object.fromEntries(Object.keys(a).map(k=>[k,mix(a[k as keyof Pose],b[k as keyof Pose],u)])) as Pose;
 type Rest={position:T.Vector3;quaternion:T.Quaternion;scale:T.Vector3};
 type WaterLane={mouth:T.Vector3;start:T.Vector3;control:T.Vector3;target:T.Vector3;targetY:number;phase:number;speed:number;fan:number};
@@ -59,13 +71,25 @@ export class MutsumiRig {
  private waterSegment=new T.Object3D();private waterPointA=new T.Vector3();private waterPointB=new T.Vector3();
  private waterDirection=new T.Vector3();private waterNormal=new T.Vector3();private waterUp=new T.Vector3(0,1,0);
  private canPalmL=new T.Vector3();private canPalmR=new T.Vector3();
+ /** Centre of each visible mitten in its hand controller's space (the pivot sits at the wrist). */
+ private mittenCenter={L:new T.Vector3(),R:new T.Vector3()};private gripL=new T.Vector3();private gripR=new T.Vector3();
+ /** Distance between the mittens in the resting reading pose; the sheet stretches with any extra pull. */
+ private readingSpan=1;
  private claudeProps=new ClaudeProps((color,opacity=1)=>this.basic(color,opacity));
- private feedback=new T.Group();private poppers:T.Object3D[]=[];private paper:T.Mesh[]=[];private stars:T.Mesh[]=[];private sweat:T.Mesh[]=[];
+ private newspaper=new NewspaperProp();
+ private guitar=new GuitarProp();
+ private outfit=new Outfit();
+ /** The beret rises above the 512 view when she looks up; the camera rises with it (model units). */
+ private frameLift=0;
+ private feedback=new T.Group();private poppers:T.Object3D[]=[];private paper:T.Mesh[]=[];
+ private confetti:ConfettiPiece[]=[];
+ /** Popper mouth and barrel at each shot, fixed in the scene so flying confetti never follows the hands. */
+ private popperMouths:{mouth:T.Vector3;barrel:T.Vector2}[]=[];private stars:T.Mesh[]=[];private sweat:T.Mesh[]=[];
  private suspension=new DragPendulum();private suspensionPivot=new T.Vector3();
  private hairSway=new HairSway();private hairMaterial?:T.ShaderMaterial;
  private modelBounds=new T.Box3();private viewportSignature='';
  private quotaBoard=new T.Group();private quotaBoardMesh?:T.Mesh;private quotaCanvas=document.createElement('canvas');private quotaTexture?:T.CanvasTexture;private quotaFrame?:HTMLImageElement;
- private quota=unknownCodexQuota();private quotaLabel='';private boardViewport=false;private boardReleasing=false;
+ private quota=unknownCodexQuota();private quotaLabel='';private locale:AppLocale='zh-CN';private boardViewport=false;private boardReleasing=false;
  private boardRelease={height:0,tilt:0,roll:0,opacity:0};
  /** Working eyes: soft light streaks (chosen 2026-10-17); 'classic' keeps the glyph flow. */
  codeFlowStyle:'classic'|'soft'='soft';
@@ -87,7 +111,11 @@ export class MutsumiRig {
     if(o instanceof T.Mesh){o.frustumCulled=false;const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms)m.toneMapped=false;}});
   this.model.updateMatrixWorld(true);
   const restBounds=new T.Box3().setFromObject(this.model);
+  // Before anything moves: the outfit pieces attach to their controls at the rest pose.
+  // restBounds is taken first, so the beret never shifts the drag pivot.
+  await this.outfit.load(this.model,name=>this.control(name));
   this.suspensionPivot.set(0,restBounds.max.y,0);
+  for(const side of ['L','R'] as const){const hand=this.control('CTRL_Hand.'+side);hand.worldToLocal(new T.Box3().setFromObject(hand).getCenter(this.mittenCenter[side]));}
   const hair=[...this.controls.values()].find(o=>o.name.startsWith('HairUnified'))??[...this.controls.values()].find(o=>o.userData.runtime_part?.startsWith('Hair.Unified'));
   if(!(hair instanceof T.Mesh))throw Error('V05 hair mesh missing');
   const loader=new T.TextureLoader();const textures=await Promise.all(['hair-paint.png','hair_all_visible.png','back-hair-paint.png','back-hair-mask.png','side-hair-clean.png'].map(async n=>{
@@ -138,13 +166,17 @@ export class MutsumiRig {
   this.tearfulBase=new Image();this.tearfulBase.src=tearfulBaseUrl;await this.tearfulBase.decode();
   this.squeezeArt=await Promise.all([squeezeLeft,squeezeRight].map(async src=>{const art=new Image();art.src=src;await art.decode();return art;}));
   this.auraTexture=await loader.loadAsync(urls['flame-atlas.png']);this.auraTexture.colorSpace=T.SRGBColorSpace;this.auraTexture.repeat.set(1/6,1/6);
-  this.buildEyes();this.buildProps();await this.buildFeedback(loader);await this.grand?.ready;
+  this.buildEyes();this.buildProps();await this.newspaper.load();await this.guitar.load();await this.buildFeedback(loader);this.measurePopperMouths();this.measureReadingSpan();this.measureGuitarHold();await this.grand?.ready;
   // Upload every prop and compile its shader before the first visible action.
-  this.apply(this.target('water',2),2);this.flowers.visible=this.aura.visible=true;this.claudeProps.showAll();
+  this.apply(this.target('water',2),2);this.flowers.visible=this.aura.visible=true;this.claudeProps.showAll();this.newspaper.showAll();this.guitar.showAll();this.outfit.showAll();
   this.feedback.traverse(o=>{o.visible=true;});
   await this.renderer.compileAsync(this.scene,this.camera);this.renderer.render(this.scene,this.camera);
-  this.apply(this.target('idle',0),0);
+  this.apply(this.target('idle',0),0);this.outfit.wear(this.outfit.current);
  }
+ /** Swap clothes at once; the uniform comes back unchanged. */
+ setOutfit(outfit:PetOutfit){this.outfit.wear(outfit);this.frameLift=outfit==='beret'?BERET_FRAME_LIFT:0;}
+ /** How far the head sits lower in the canvas than in the uniform (render pixels). */
+ get headDrop(){return this.frameLift*100;}
  private async buildFeedback(loader:T.TextureLoader){
   const [gltf,...textures]=await Promise.all([new GLTFLoader().loadAsync(poppersUrl),... [sweatLargeUrl,sweatSmallUrl,starUrl,confettiUrl].map(u=>loader.loadAsync(u))]);
   this.feedback.name='CompanionFeedback';this.scene.add(this.feedback);
@@ -161,7 +193,30 @@ export class MutsumiRig {
   this.sweat.push(plane(textures[0],.18,.27,'#ffffff'),plane(textures[1],.12,.18,'#ffffff'));
   for(let i=0;i<5;i++)this.stars.push(plane(textures[2],.16,.16,'#ffffff'));
   const palette=['#b6dcb8','#f0c6cf','#efd89f','#bacde2'];
-  for(let i=0;i<32;i++)this.paper.push(plane(textures[3],.085,.13,palette[i%4]));
+  for(let i=0;i<CONFETTI_PIECES;i++){
+   const piece=confettiPiece(i),mesh=plane(textures[3],.085,.13,palette[(i*3+(i>>1))%4]);
+   // Paper flips through edge-on while it tumbles, so both faces are drawn.
+   (mesh.material as T.MeshBasicMaterial).side=T.DoubleSide;mesh.scale.setScalar(piece.scale);
+   this.paper.push(mesh);this.confetti.push(piece);
+  }
+ }
+ private measureGuitarHold(){
+  const p=this.target('guitar',1);this.apply(p,1);
+  const R=this.control('CTRL_Hand.R').localToWorld(this.mittenCenter.R.clone()),L=this.control('CTRL_Hand.L').localToWorld(this.mittenCenter.L.clone());
+  this.guitar.fit(R,L);
+ }
+ private measureReadingSpan(){
+  this.apply(this.target('read-paper',1),1);
+  const L=this.control('CTRL_Hand.L').localToWorld(this.mittenCenter.L.clone()),R=this.control('CTRL_Hand.R').localToWorld(this.mittenCenter.R.clone());
+  this.readingSpan=L.distanceTo(R);
+ }
+ private measurePopperMouths(){
+  this.popperMouths=[0,1].map(side=>{
+   this.apply(this.target('celebrate-poppers',POPPER_SHOTS[side]),POPPER_SHOTS[side]);
+   const prop=this.poppers[side],base=prop.localToWorld(new T.Vector3(0,0,0)),mouth=prop.localToWorld(new T.Vector3(0,.24,0));
+   const barrel=new T.Vector2(mouth.x-base.x,mouth.y-base.y).normalize();
+   return {mouth,barrel};
+  });
  }
  private control(name:string){return this.controls.get(name.replace(/\./g,''))??this.controls.get(name)??[...this.controls.values()].find(o=>o.name===name.replace(/\./g,'_'))!;}
  private async buildQuotaBoard(){
@@ -175,7 +230,7 @@ export class MutsumiRig {
  }
  private paintQuotaBoard(){
   if(!this.quotaFrame||!this.quotaTexture)return;
-  this.quota=currentCodexQuota(this.quota);const label=this.quota.label;
+  this.quota=currentCodexQuota(this.quota);const label=quotaLabel(this.quota,this.locale);
   const c=this.quotaCanvas.getContext('2d')!;c.clearRect(0,0,1024,416);c.drawImage(this.quotaFrame,0,0);
   c.fillStyle='#3e2516';c.textAlign='center';c.textBaseline='middle';
   let size=76;c.font=`800 ${size}px "ChillRoundF","Microsoft YaHei",sans-serif`;
@@ -184,6 +239,7 @@ export class MutsumiRig {
   this.canvas.dataset.quotaLabel=label;this.canvas.dataset.quotaStatus=this.quota.status;
  }
  setQuota(quota:CodexQuotaSnapshot){this.quota={...quota};this.paintQuotaBoard();}
+ setLocale(locale:AppLocale){this.locale=locale;this.canvas.setAttribute('aria-label',translate(locale,'若叶睦'));this.paintQuotaBoard();}
  private basic(color:string|number,opacity=1){return new T.MeshBasicMaterial({color,transparent:opacity<1,opacity,depthWrite:opacity===1,toneMapped:false});}
  private mesh(g:T.BufferGeometry,color:string|number,parent:T.Object3D,pos:number[],scale?:number[]){const m=new T.Mesh(g,this.basic(color));m.position.set(pos[0],pos[1],pos[2]);if(scale)m.scale.set(scale[0],scale[1],scale[2]);parent.add(m);return m;}
  private buildEyes(){
@@ -233,7 +289,8 @@ export class MutsumiRig {
  }
  private buildProps(){
   this.watering.name='WateringProps';this.can.name='WateringCan';this.flowers.name='HappyFlowers';this.aura.name='FullPowerAura';
-  this.scene.add(this.watering,this.flowers,this.aura,this.claudeProps.group);this.watering.add(this.can);
+  this.scene.add(this.watering,this.flowers,this.aura,this.claudeProps.group,this.newspaper.group,this.guitar.group);this.watering.add(this.can);
+  this.newspaper.paint();
   const pot=new T.Group();pot.name='CucumberPlanter';pot.position.set(-1.46,.2,.8);this.watering.add(pot);
   // Terracotta planter: body, darker lip shadow, lighter rim, soil and pebbles.
   this.mesh(new T.BoxGeometry(.74,.32,.42),'#c27454',pot,[0,0,0]);this.mesh(new T.BoxGeometry(.75,.035,.43),'#a65e43',pot,[0,.115,0]);
@@ -367,6 +424,33 @@ export class MutsumiRig {
    }else{p.write=1;p.armL=-.52;p.armR=.5+Math.sin(t*14)*.02*k;p.reach=-.82;p.head=.07;p.headYaw=.05;p.pitch=.02;}
   }
   if(action==='ask'){p.ask=1;p.headYaw=-.24;p.yaw=-.06;p.open=1;}
+  if(action==='guitar'||action==='guitar-solo'){
+   // Idle pastime: the guitar across her front, the picking forearm over the
+   // body and the fretting hand under the neck. One shared slow breath; twice
+   // the fretting arm tips the neck up or down a few degrees while she looks
+   // the guitar over, the head tilting along. Eyes wander over the guitar.
+   // The easter egg lifts the neck into a playing angle and plays a short
+   // lead: picks and fret changes are wrist turns, so the guitar stays still.
+   const solo=action==='guitar-solo'?guitarSoloMotion(t,this.reducedMotion):null;
+   const g=solo??guitarMotion(t,this.reducedMotion),raise=solo?.raise??0;
+   // Looking up the raised neck lifts her chin a little, clear of the horn.
+   const up=Math.max(0,g.inspect);
+   p.guitar=1;p.head=.11+.006*g.breath-.035*up-.04*raise+.012*(solo?.nod??0);p.headRoll=.03*g.inspect;p.rise=-.01+.008*g.breath;p.pitch=.004*g.breath;
+   p.armR=.45+.012*g.breath;p.armL=.5+.2*g.inspect-.03*up+.6*raise+.015*g.breath;p.reach=-.55+.25*raise;p.spread=.02;
+   p.strum=solo?.pick??0;p.fretting=solo?.fret??0;
+   p.scanX=g.eyeX;p.scanY=g.eyeY;p.open*=.86;
+  }
+  if(action==='read-paper'){
+   // Turned a little toward screen-left like watering, the open paper held at
+   // chest height below the chin, and the eyes reading it line by line.
+   const scan=readingScan(t),k=this.reducedMotion?.4:1;
+   p.paper=1;p.yaw=-.2;p.headYaw=-.05;p.pitch=.012;p.head=.1-.035*scan.nod*k;p.rise=wave*.005;
+   // Hands spread to grip the side edges, clear of the masthead. Between
+   // pages they gather in, then snap outward so the sheet pulls taut.
+   const pull=Math.max(0,scan.snap)*k,gather=Math.max(0,-scan.snap)*k;
+   p.armL=.6+.1*pull-.05*gather;p.armR=-p.armL;p.reach=-.4-.05*scan.snap*k;p.spread=.02;
+   p.scanX=scan.x*k;p.scanY=scan.y;p.snap=scan.snap*k;p.open*=.9;
+  }
   if(action==='quota-board'){
    const motion=quotaBoardMotion(t),k=this.reducedMotion?.4:1;p.board=motion.arm;p.armL=2.25*motion.arm;p.armR=-p.armL;p.reach=.04*motion.arm;
    // Knee dip before the lift, chin up toward the board, and a light sway
@@ -389,9 +473,13 @@ export class MutsumiRig {
    p.rise=(-.034+wave*.003)*weight;p.armL=-.20*weight;p.armR=.20*weight;p.reach=-.21*weight;
   }
   if(action==='celebrate-poppers'){
-   const lift=smooth(t/.38)*(1-smooth((t-1.93)/.57));
-   p.popper=lift;p.armL=1.98*lift;p.armR=-1.98*lift;p.reach=.95*lift;
-   p.happy=lift;p.rise+=Math.sin(t*TAU/1.25)*.018*lift;p.head=-.025*lift;
+   // Chest hold, knee dip, a jump with both poppers fired near the top, a
+   // soft landing and a little sway dance (shared/celebrate-motion.ts).
+   const m=celebrateMotion(t,this.reducedMotion);
+   p.popper=m.visible;p.popL=m.kickL;p.popR=m.kickR;p.happy=m.happy;
+   p.armL=m.armL;p.armR=m.armR;p.reach=m.reach;p.jump=m.jump;p.rise=m.rise;p.pitch=m.pitch;
+   p.head=m.head;p.lean=m.lean;p.yaw=m.yaw;p.headRoll=m.headRoll;p.swish=m.swish;
+   p.spread=m.spread;p.footL=m.footL;p.footR=m.footR;p.liftFoot=m.liftFoot;
   }
   if(action==='celebrate-clap'){
    const lift=smooth(t/.30)*(1-smooth((t-1.86)/.54));
@@ -448,7 +536,7 @@ export class MutsumiRig {
   // A small rigid sway uses the existing hair controller and keeps the clip
   // attached. Its weight blends in and out with the full-power pose.
   const hair=this.control('CTRL_Hair');
-  hair.rotation.z+=p.power*(Math.sin(t*TAU/1.7)*.023+Math.sin(t*TAU/2.6)*.008);
+  hair.rotation.z+=p.power*(Math.sin(t*TAU/1.7)*.023+Math.sin(t*TAU/2.6)*.008)+p.swish;
   // The scalp stays attached; only the lower hair carries a small damped lag.
   if(this.hairMaterial)this.hairMaterial.uniforms.hairBend.value=this.hairSway.angle*p.drag*(this.reducedMotion?.35:1);
   this.control('CTRL_Arm.L').rotation.set(p.reach,0,p.armL);this.control('CTRL_Arm.R').rotation.set(p.reach,0,p.armR);
@@ -457,13 +545,15 @@ export class MutsumiRig {
   for(const [side,sign] of [['L',1],['R',-1]] as const){const arm=this.control('CTRL_Arm.'+side);arm.position.y+=1.67*p.board;arm.position.x+=sign*.72*p.board;arm.position.z-=.08*p.board;}
   for(const [s,sign,a] of [['R',-1,p.footR],['L',1,p.footL]] as const){const foot=this.control('CTRL_Foot.'+s);foot.position.x+=sign*p.spread;foot.position.y-=p.rise*(1-p.drag);foot.rotation.set(p.drag*(-.18+p.kick*(s==='R'?.7:.52)),0,a);if(s==='R')foot.position.y+=p.liftFoot;}
   for(let i=0;i<2;i++){
-   const joint=this.control('CTRL_Eye.'+(i?'L':'R'));joint.position.x+=gx*.105;joint.position.y-=gy*.065;
+   const joint=this.control('CTRL_Eye.'+(i?'L':'R'));joint.position.x+=gx*.105+p.scanX*.3;joint.position.y-=gy*.065+p.scanY*.28;
    joint.rotation.y=gx*.035;this.drawEye(i,p,eyeTime);
   }
   const root=this.control('CTRL_Root');
   const suspendedAngle=this.suspension.angle*p.drag;
   root.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,0,1),suspendedAngle));
   root.position.add(this.suspensionPivot).sub(this.suspensionPivot.clone().applyQuaternion(root.quaternion));
+  // A celebration jump lifts the whole figure, feet included.
+  root.position.y+=p.jump;
   this.model!.updateMatrixWorld(true);
   this.watering.visible=p.water>.005;this.watering.scale.setScalar(1);
   // Held level-ish, then tipped until the spout points ~20° below horizontal.
@@ -476,6 +566,13 @@ export class MutsumiRig {
   for(let i=0;i<this.cucumberPlants.length;i++){const plant=this.cucumberPlants[i];plant.rotation.z=plant.userData.baseRoll+Math.sin(t*3.1+i*1.7)*.035*p.flow;}
   if(p.water>.005&&p.flow>.001)this.updateWaterSpray(t);
   this.claudeProps.update(p,this.control('CTRL_Hand.L').getWorldPosition(this.canPalmL),this.control('CTRL_Hand.R').getWorldPosition(this.canPalmR),t);
+  // The sheet waits until a fading watering can has left the hands.
+  if(p.paper>.005)this.newspaper.update(p.paper*(1-smooth(p.water/.15)),this.control('CTRL_Hand.L').localToWorld(this.gripL.copy(this.mittenCenter.L)),this.control('CTRL_Hand.R').localToWorld(this.gripR.copy(this.mittenCenter.R)),p.yaw,p.snap,this.gripL.distanceTo(this.gripR)/this.readingSpan,t);
+  else this.newspaper.group.visible=false;
+  if(p.guitar>.005)this.guitar.update(p.guitar*(1-smooth(p.water/.15)),this.control('CTRL_Hand.R').localToWorld(this.gripR.copy(this.mittenCenter.R)),this.control('CTRL_Hand.L').localToWorld(this.gripL.copy(this.mittenCenter.L)));
+  else this.guitar.group.visible=false;
+  // Picking and fretting fingers move after the guitar is placed.
+  if(p.strum||p.fretting){this.control('CTRL_Hand.R').rotation.z-=.55*p.strum;this.control('CTRL_Hand.L').rotation.z+=.18*p.fretting;}
   this.flowers.visible=p.happy>.005&&p.popper<.005&&p.clap<.005;for(let i=0;i<5;i++){const f=this.flowers.children[i],a=t*1.1+i*TAU/5;f.position.set(Math.cos(a)*1.65,2.6+Math.sin(a)*.7,.6+Math.sin(a)*.3);f.rotation.z=t*1.8+i;f.scale.setScalar(p.happy*1.24);}
   this.aura.visible=p.power>.005;for(let i=0;i<7;i++){const a=i*TAU/7;const f=this.aura.children[i] as T.Mesh;f.position.set(Math.cos(a)*1.65,.06,Math.sin(a)*1.1);f.rotation.y=0;f.scale.set(1.5,1.7+Math.sin(t*5+i)*.25+Math.abs(Math.cos(a))*.6,1);(f.material as T.MeshBasicMaterial).opacity=p.power*(.18+.04*Math.sin(t*4+i));}
   const frame=Math.floor(t*30)%36;this.auraTexture?.offset.set((frame%6)/6,(5-Math.floor(frame/6))/6);
@@ -488,7 +585,7 @@ export class MutsumiRig {
    this.quotaBoard.position.set(0,this.action==='quota-board'?boardMotion.height:Math.min(this.boardRelease.height,quotaBoardGripHeight(p.board)),-.90);
    this.quotaBoard.rotation.set(this.action==='quota-board'?boardMotion.tilt:this.boardRelease.tilt+.12*smooth(t/QUOTA_BOARD_BLEND_SECONDS),0,this.action==='quota-board'?boardMotion.roll*(this.reducedMotion?.4:1):this.boardRelease.roll);
    (this.quotaBoardMesh!.material as T.MeshBasicMaterial).opacity=boardOpacity;
-   if(currentCodexQuota(this.quota).label!==this.quotaLabel)this.paintQuotaBoard();
+   if(quotaLabel(this.quota,this.locale)!==this.quotaLabel)this.paintQuotaBoard();
   }
   this.scene.updateMatrixWorld(true);
  }
@@ -496,7 +593,9 @@ export class MutsumiRig {
   const opacity=(object:T.Object3D,amount:number)=>{object.visible=amount>.005;object.traverse(o=>{if(o instanceof T.Mesh)for(const m of Array.isArray(o.material)?o.material:[o.material])m.opacity=amount;});};
   for(let i=0;i<this.poppers.length;i++){
    const prop=this.poppers[i];prop.position.copy(this.control('CTRL_Hand.'+(i?'R':'L')).getWorldPosition(new T.Vector3()));
-   prop.position.z=Math.max(1.15,prop.position.z+.07);prop.rotation.set(0,0,i?.40:-.40);opacity(prop,p.popper);prop.updateMatrixWorld(true);
+   // Recoil tips the barrel outward and down a little as it fires.
+   const kick=i?p.popR:p.popL;prop.position.z=Math.max(1.15,prop.position.z+.07);prop.position.y-=.03*kick;
+   prop.rotation.set(0,0,(i?.40:-.40)+(i?.16:-.16)*kick);opacity(prop,p.popper);prop.updateMatrixWorld(true);
   }
   for(let i=0;i<this.sweat.length;i++){
    const drop=this.sweat[i],u=clamp((t-.26-i*.10)/1.12,0,1);
@@ -504,12 +603,12 @@ export class MutsumiRig {
    drop.scale.setScalar(.65+.35*smooth(u/.2));opacity(drop,p.touch*smooth(u/.13)*(1-smooth((u-.72)/.28)));
   }
   for(let i=0;i<this.paper.length;i++){
-   const mesh=this.paper[i],side=i%2,delay=.76+Math.floor(i/16)*.22,u=t-delay;
-   const seed=(i*.61803398875)%1,spread=(seed-.5)*1.6;
-   const aperture=this.poppers[side].localToWorld(new T.Vector3(0,.24,0));
-   mesh.position.copy(aperture);mesh.position.x+=spread*u;mesh.position.y+=(1.8+seed*.8)*u-1.2*u*u;
-   mesh.position.z+=.15+seed*.3;mesh.rotation.z=i+u*(i%2?3.2:-2.8);
-   opacity(mesh,u>0?p.popper*(1-smooth((u-.68)/.55)):0);
+   const mesh=this.paper[i],piece=this.confetti[i],shot=this.popperMouths[piece.side];
+   if(!shot||p.popper<.005){opacity(mesh,0);continue;}
+   const f=confettiFlight(piece,t,shot.barrel.x,shot.barrel.y);
+   mesh.position.copy(shot.mouth);mesh.position.x+=f.x;mesh.position.y+=f.y;mesh.position.z+=.3+f.z;
+   mesh.rotation.set(f.rx,f.ry,f.rz);
+   opacity(mesh,f.opacity*Math.min(1,p.popper*3));
   }
   for(let i=0;i<this.stars.length;i++){
    const star=this.stars[i],u=t-.62-i*.065,a=i*TAU/5;
@@ -660,10 +759,10 @@ export class MutsumiRig {
   return {x,y,width:Math.min(this.canvas.width-x,Math.ceil(ox+(right.x+1)*rw/2)+4-x),height:Math.min(this.canvas.height-y,Math.ceil(oy+(1-right.y)*rh/2)+4-y)};
  }
  private draw(p:Pose,t:number,eyeTime=t){
-  this.apply(p,t,eyeTime);this.renderer.render(this.scene,this.camera);const c=this.context;c.clearRect(0,0,this.canvas.width,this.canvas.height);
+  this.apply(p,t,eyeTime);this.camera.position.y=2.28+this.frameLift;this.renderer.render(this.scene,this.camera);const c=this.context;c.clearRect(0,0,this.canvas.width,this.canvas.height);
   const x=(this.canvas.width-this.renderer.domElement.width)/2,y=this.canvas.height-this.renderer.domElement.height;c.drawImage(this.renderer.domElement,x,y);
   if(p.happy>.001){c.save();c.globalCompositeOperation='source-atop';c.fillStyle=`rgba(255,204,113,${p.happy*.09})`;c.fillRect(0,0,this.canvas.width,this.canvas.height);c.restore();}
-  c.save();c.translate(this.canvas.width/2-256,this.canvas.height-512);
+  c.save();c.translate(this.canvas.width/2-256,this.canvas.height-512+this.headDrop);
   if(p.nap>.01){for(let i=0;i<3;i++){const u=(t/2.7+i/3)%1;c.save();c.globalAlpha=p.nap*Math.sin(Math.PI*u);c.fillStyle='#344b75';c.font=`600 ${24+u*32}px "YouYuan",sans-serif`;c.fillText(i?'z':'Z',337+u*53,190-u*147);c.restore();}}
   if(p.ask>.01){c.globalAlpha=p.ask;c.fillStyle='#40523e';c.font='bold 43px "YouYuan",sans-serif';c.fillText('?',360,92-Math.sin(Math.min(t,.6)/.6*Math.PI)*8);}
   c.restore();
@@ -691,7 +790,7 @@ export class MutsumiRig {
   if(this.action==='transform')this.drawTurn(age);else{
    const feedback=this.action.startsWith('feedback-')||this.action==='dizzy'||this.action==='tearful';
    const t=(this.reducedMotion&&!feedback&&this.action!=='touch'&&this.action!=='quota-board')? .65:age,route=this.routed?.38:0;
-   this.pose=age<route?blend(this.from,neutral(),smooth(age/route)):blend(this.routed?neutral():this.from,this.target(this.action,t),smooth((age-route)/(this.releasing?.65:this.action==='water'?1.4:this.action==='drag'?.23:this.action==='touch'?.025:feedback?.18:this.action==='quota-board'?QUOTA_BOARD_BLEND_SECONDS:this.action.startsWith('celebrate-')?.22:.55)));
+   this.pose=age<route?blend(this.from,neutral(),smooth(age/route)):blend(this.routed?neutral():this.from,this.target(this.action,t),smooth((age-route)/(this.releasing?.65:this.action==='water'?1.4:this.action==='drag'?.23:this.action==='touch'?.025:feedback?.18:this.action==='quota-board'?QUOTA_BOARD_BLEND_SECONDS:this.action.startsWith('celebrate-')?.22:this.action.startsWith('guitar')?.9:.55)));
    if(this.boardReleasing){const target=this.target(this.action,t),weight=smooth(age/QUOTA_BOARD_BLEND_SECONDS);for(const key of ['board','armL','armR','reach'] as const)this.pose[key]=mix(this.from[key],target[key],weight);}
    if(this.releasing&&age<.65)this.pose.rise-=Math.sin(age/.65*Math.PI)*.03;this.draw(this.pose,t,age);
   }

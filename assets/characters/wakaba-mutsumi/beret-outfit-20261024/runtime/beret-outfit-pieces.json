@@ -1,0 +1,107 @@
+[
+  {
+    "name": "Accessory.Beret",
+    "parent": "CTRL_Head",
+    "triangles": 15680
+  },
+  {
+    "name": "Outfit.Ascot",
+    "parent": "CTRL_Body",
+    "triangles": 352
+  },
+  {
+    "name": "Outfit.Belt",
+    "parent": "CTRL_Body",
+    "triangles": 960
+  },
+  {
+    "name": "Outfit.BootCuff.L",
+    "parent": "CTRL_Foot.L",
+    "triangles": 388
+  },
+  {
+    "name": "Outfit.BootCuff.R",
+    "parent": "CTRL_Foot.R",
+    "triangles": 388
+  },
+  {
+    "name": "Outfit.Cameo",
+    "parent": "CTRL_Body",
+    "triangles": 896
+  },
+  {
+    "name": "Outfit.Capelet.Arm.L",
+    "parent": "CTRL_Arm.L",
+    "triangles": 1472
+  },
+  {
+    "name": "Outfit.Capelet.Arm.R",
+    "parent": "CTRL_Arm.R",
+    "triangles": 1472
+  },
+  {
+    "name": "Outfit.Capelet.Body",
+    "parent": "CTRL_Body",
+    "triangles": 5506
+  },
+  {
+    "name": "Outfit.Coat",
+    "parent": "CTRL_Body",
+    "triangles": 6672
+  },
+  {
+    "name": "Outfit.CoatRuffle",
+    "parent": "CTRL_Body",
+    "triangles": 1112
+  },
+  {
+    "name": "Outfit.CoatStuds",
+    "parent": "CTRL_Body",
+    "triangles": 960
+  },
+  {
+    "name": "Outfit.Collar",
+    "parent": "CTRL_Body",
+    "triangles": 960
+  },
+  {
+    "name": "Outfit.Earring",
+    "parent": "CTRL_Head",
+    "triangles": 10
+  },
+  {
+    "name": "Outfit.Legs.L",
+    "parent": "CTRL_Foot.L",
+    "triangles": 11016
+  },
+  {
+    "name": "Outfit.Legs.R",
+    "parent": "CTRL_Foot.R",
+    "triangles": 10836
+  },
+  {
+    "name": "Outfit.Skirt",
+    "parent": "CTRL_Body",
+    "triangles": 6400
+  },
+  {
+    "name": "Outfit.Sleeve.L",
+    "parent": "CTRL_Arm.L",
+    "triangles": 6336
+  },
+  {
+    "name": "Outfit.Sleeve.R",
+    "parent": "CTRL_Arm.R",
+    "triangles": 6336
+  },
+  {
+    "name": "Outfit.Vest",
+    "parent": "CTRL_Body",
+    "triangles": 12960
+  },
+  {
+    "name": "Outfit.VestButtons",
+    "parent": "CTRL_Body",
+    "triangles": 1344
+  }
+]

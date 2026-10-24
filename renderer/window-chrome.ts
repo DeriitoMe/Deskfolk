@@ -7,7 +7,8 @@ import './window-chrome.css';
  * buttons through titleBarOverlay in the same mint colour.
  */
 export function mountTitleBar(title: string): void {
-  if (document.querySelector('.window-titlebar')) return;
+  const existing = document.querySelector('.window-titlebar-page');
+  if (existing) { existing.textContent = title; return; }
   const bar = document.createElement('header');
   bar.className = 'window-titlebar';
   const icon = document.createElement('img');

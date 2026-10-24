@@ -19,6 +19,13 @@ const bridge: PetBridge = {
   sendTest: (type: PetEventType) => ipcRenderer.invoke("pet:send-test", type),
   openSettings: () => ipcRenderer.send("pet:open-settings"),
   openCodex: () => ipcRenderer.invoke('pet:open-codex'),
+  getMorningBrief: () => ipcRenderer.invoke('pet:morning-brief'),
+  openMorningBrief: () => ipcRenderer.invoke('pet:open-morning-brief'),
+  onReadBrief: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('pet:read-brief', listener);
+    return () => ipcRenderer.removeListener('pet:read-brief', listener);
+  },
   onTransform: (callback) => {
     ipcRenderer.on('pet:transform', callback);
     return () => ipcRenderer.removeListener('pet:transform', callback);
