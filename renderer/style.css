@@ -563,6 +563,8 @@ body[data-view="pet"] #bubble-message {
  max-height:none;overflow:visible;white-space:pre-wrap;overflow-wrap:anywhere;
  color:#1f4d35;
 }
+html[lang="en"] body[data-view="pet"] #bubble-message { font-size:calc(18px * var(--ui-scale,1)); overflow-wrap:normal; word-break:normal; }
+html[lang="en"] body[data-view="pet"] #pet-root .answer-button { font-size:calc(14px * var(--ui-scale,1)); }
 body[data-view="pet"] .bubble-kicker {font-size:calc(12px * var(--ui-scale,1));font-weight:400;}
 body[data-view="pet"] .bubble-kicker:empty {display:none;}
 body[data-view="pet"] #pet-root .answer-button {

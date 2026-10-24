@@ -33,6 +33,8 @@ import {GuitarProp} from './guitar-prop';
 import {guitarMotion} from '../shared/guitar-motion';
 import {guitarSoloMotion} from '../shared/guitar-solo';
 import {currentCodexQuota,unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
+import {quotaLabel} from '../shared/quota-copy';
+import {translate, type AppLocale} from '../shared/i18n';
 export const TURN_SECONDS=10.2;
 export type RigAction='idle'|'nap'|'water'|'water-happy'|'work'|'power-work'|'ask'|'touch'|'tearful'|'drag'|'transform'|'celebrate-poppers'|'celebrate-clap'|'feedback-failed'|'feedback-paused'|'feedback-quota'|'dizzy'|'quota-board'|'claude-type'|'claude-write'|'read-paper'|'guitar'|'guitar-solo';
 const maps=import.meta.glob<string>('../assets/characters/wakaba-mutsumi/v41-3d/runtime/{hair-paint,hair_all_visible,back-hair-paint,back-hair-mask,side-hair-clean,question-eye,flame-atlas}.png',{eager:true,query:'?url',import:'default'});
@@ -81,7 +83,7 @@ export class MutsumiRig {
  private hairSway=new HairSway();private hairMaterial?:T.ShaderMaterial;
  private modelBounds=new T.Box3();private viewportSignature='';
  private quotaBoard=new T.Group();private quotaBoardMesh?:T.Mesh;private quotaCanvas=document.createElement('canvas');private quotaTexture?:T.CanvasTexture;private quotaFrame?:HTMLImageElement;
- private quota=unknownCodexQuota();private quotaLabel='';private boardViewport=false;private boardReleasing=false;
+ private quota=unknownCodexQuota();private quotaLabel='';private locale:AppLocale='zh-CN';private boardViewport=false;private boardReleasing=false;
  private boardRelease={height:0,tilt:0,roll:0,opacity:0};
  /** Working eyes: soft light streaks (chosen 2026-10-17); 'classic' keeps the glyph flow. */
  codeFlowStyle:'classic'|'soft'='soft';
@@ -215,7 +217,7 @@ export class MutsumiRig {
  }
  private paintQuotaBoard(){
   if(!this.quotaFrame||!this.quotaTexture)return;
-  this.quota=currentCodexQuota(this.quota);const label=this.quota.label;
+  this.quota=currentCodexQuota(this.quota);const label=quotaLabel(this.quota,this.locale);
   const c=this.quotaCanvas.getContext('2d')!;c.clearRect(0,0,1024,416);c.drawImage(this.quotaFrame,0,0);
   c.fillStyle='#3e2516';c.textAlign='center';c.textBaseline='middle';
   let size=76;c.font=`800 ${size}px "ChillRoundF","Microsoft YaHei",sans-serif`;
@@ -224,6 +226,7 @@ export class MutsumiRig {
   this.canvas.dataset.quotaLabel=label;this.canvas.dataset.quotaStatus=this.quota.status;
  }
  setQuota(quota:CodexQuotaSnapshot){this.quota={...quota};this.paintQuotaBoard();}
+ setLocale(locale:AppLocale){this.locale=locale;this.canvas.setAttribute('aria-label',translate(locale,'若叶睦'));this.paintQuotaBoard();}
  private basic(color:string|number,opacity=1){return new T.MeshBasicMaterial({color,transparent:opacity<1,opacity,depthWrite:opacity===1,toneMapped:false});}
  private mesh(g:T.BufferGeometry,color:string|number,parent:T.Object3D,pos:number[],scale?:number[]){const m=new T.Mesh(g,this.basic(color));m.position.set(pos[0],pos[1],pos[2]);if(scale)m.scale.set(scale[0],scale[1],scale[2]);parent.add(m);return m;}
  private buildEyes(){
@@ -569,7 +572,7 @@ export class MutsumiRig {
    this.quotaBoard.position.set(0,this.action==='quota-board'?boardMotion.height:Math.min(this.boardRelease.height,quotaBoardGripHeight(p.board)),-.90);
    this.quotaBoard.rotation.set(this.action==='quota-board'?boardMotion.tilt:this.boardRelease.tilt+.12*smooth(t/QUOTA_BOARD_BLEND_SECONDS),0,this.action==='quota-board'?boardMotion.roll*(this.reducedMotion?.4:1):this.boardRelease.roll);
    (this.quotaBoardMesh!.material as T.MeshBasicMaterial).opacity=boardOpacity;
-   if(currentCodexQuota(this.quota).label!==this.quotaLabel)this.paintQuotaBoard();
+   if(quotaLabel(this.quota,this.locale)!==this.quotaLabel)this.paintQuotaBoard();
   }
   this.scene.updateMatrixWorld(true);
  }

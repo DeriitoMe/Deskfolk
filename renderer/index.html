@@ -8,32 +8,42 @@
     <title>Deskfolk</title>
   </head>
   <body>
-    <main id="pet-view" aria-label="若叶睦桌宠">
+    <main id="pet-view" aria-label="若叶睦桌宠" data-i18n-aria="若叶睦桌宠">
       <div id="pet-root">
         <section id="speech-bubble" class="speech-bubble" data-hitbox hidden aria-live="polite">
-          <div class="bubble-kicker" id="bubble-kicker">睦</div>
+          <div class="bubble-kicker" id="bubble-kicker" data-i18n="睦">睦</div>
           <p id="bubble-message"></p>
           <div class="bubble-meta" id="bubble-meta"></div>
-          <button id="answer-button" class="answer-button" data-hitbox hidden>打开 Codex</button>
-          <button id="brief-button" class="answer-button" data-hitbox hidden>看看晨报</button>
+          <button id="answer-button" class="answer-button" data-hitbox hidden data-i18n="打开 Codex">打开 Codex</button>
+          <button id="brief-button" class="answer-button" data-hitbox hidden data-i18n="看看晨报">看看晨报</button>
           <span class="thought-dots" aria-hidden="true"></span>
         </section>
         <div id="character-mount" class="character-mount"></div>
       </div>
     </main>
 
-    <main id="settings-view" aria-label="桌宠设置" hidden>
+    <main id="settings-view" aria-label="桌宠设置" data-i18n-aria="桌宠设置" hidden>
       <header class="settings-header">
         <div class="eyebrow">Deskfolk</div>
-        <h1>桌宠设置</h1>
-        <p>把通知和一点安静的陪伴，放在桌面角落。</p>
+        <h1 data-i18n="桌宠设置">桌宠设置</h1>
+        <p data-i18n="把通知和一点安静的陪伴，放在桌面角落。">把通知和一点安静的陪伴，放在桌面角落。</p>
       </header>
+      <section class="settings-section language-section" aria-labelledby="language-heading">
+        <div class="section-heading"><div><h2 id="language-heading" data-i18n="语言">语言</h2><p data-i18n="立即应用，无需重启。">立即应用，无需重启。</p></div><span class="language-symbol" aria-hidden="true">A / 文</span></div>
+        <div class="language-options" role="group" aria-labelledby="language-heading">
+          <button type="button" data-language-choice="system" aria-pressed="true"><span data-i18n="跟随系统">跟随系统</span></button>
+          <button type="button" data-language-choice="zh-CN" aria-pressed="false" lang="zh-CN">简体中文</button>
+          <button type="button" data-language-choice="en" aria-pressed="false" lang="en">English</button>
+        </div>
+        <p id="language-current" class="language-current" role="status" aria-live="polite"></p>
+        <p id="language-error" class="language-error" role="alert" hidden></p>
+      </section>
       <section class="connection-card" aria-live="polite">
-        <div class="connection-title"><span class="connection-dot" id="bridge-dot"></span><strong>本地通知桥</strong><span id="bridge-status" class="connection-value">正在检查</span></div>
+        <div class="connection-title"><span class="connection-dot" id="bridge-dot"></span><strong data-i18n="本地通知桥">本地通知桥</strong><span id="bridge-status" class="connection-value">正在检查</span></div>
         <div class="agent-follow">
-          <span class="agent-follow-label" id="follow-label">跟随</span>
+          <span class="agent-follow-label" id="follow-label" data-i18n="跟随">跟随</span>
           <div class="segmented" role="group" aria-labelledby="follow-label">
-            <button type="button" data-follow-choice="all" aria-pressed="true">全部</button>
+            <button type="button" data-follow-choice="all" aria-pressed="true" data-i18n="全部">全部</button>
             <button type="button" data-follow-choice="deepseek" aria-pressed="false">DeepSeek</button>
             <button type="button" data-follow-choice="codex" aria-pressed="false">Codex</button>
             <button type="button" data-follow-choice="claude" aria-pressed="false">Claude Code</button>
@@ -44,36 +54,36 @@
         <div class="connection-row" data-agent="deepseek"><span class="agent-name">DeepSeek Harness</span><span id="deepseek-status">正在检查</span></div>
       </section>
       <section class="settings-section appearance-section" aria-labelledby="appearance-heading">
-        <div class="section-heading"><div><h2 id="appearance-heading">外观</h2><p>选择若叶睦的桌面造型与大小。</p></div></div>
-        <div class="model-options" role="group" aria-label="选择角色形态">
-          <button class="model-option" data-model-choice="flat-chibi" aria-pressed="false">简约若叶睦<small>默认形态 · 表情与动作</small></button>
-          <button class="model-option" data-model-choice="hires-soft" aria-pressed="false" disabled>高清柔光<small>暂时停用 · 素材已保留</small></button>
+        <div class="section-heading"><div><h2 id="appearance-heading" data-i18n="外观">外观</h2><p data-i18n="选择若叶睦的桌面造型与大小。">选择若叶睦的桌面造型与大小。</p></div></div>
+        <div class="model-options" role="group" aria-label="选择角色形态" data-i18n-aria="选择角色形态">
+          <button class="model-option" data-model-choice="flat-chibi" aria-pressed="false"><span data-i18n="简约若叶睦">简约若叶睦</span><small data-i18n="默认形态 · 表情与动作">默认形态 · 表情与动作</small></button>
+          <button class="model-option" data-model-choice="hires-soft" aria-pressed="false" disabled><span data-i18n="高清柔光">高清柔光</span><small data-i18n="暂时停用 · 素材已保留">暂时停用 · 素材已保留</small></button>
         </div>
         <div class="scale-setting">
-          <label class="range-label" for="scale-range"><span><strong>角色大小</strong><small id="scale-hint">默认约 220 像素高</small></span><output id="scale-value">100%</output></label>
+          <label class="range-label" for="scale-range"><span><strong data-i18n="角色大小">角色大小</strong><small id="scale-hint">默认约 220 像素高</small></span><output id="scale-value">100%</output></label>
           <input id="scale-range" type="range" min="82" max="130" step="1" value="100" />
         </div>
       </section>
       <section class="settings-section" aria-labelledby="companion-heading">
-        <div class="section-heading"><div><h2 id="companion-heading">通知与陪伴</h2></div></div>
+        <div class="section-heading"><div><h2 id="companion-heading" data-i18n="通知与陪伴">通知与陪伴</h2></div></div>
         <div class="toggle-list">
-          <label class="toggle-row" for="dnd-toggle"><span><strong>勿扰模式</strong><small>暂时隐藏气泡与提醒动作，工作状态仍会同步</small></span><input id="dnd-toggle" type="checkbox" /></label>
-          <label class="toggle-row" for="notifications-toggle"><span><strong>消息提醒</strong><small>关闭后不弹气泡或提醒动作，可从“当前项目”查看状态</small></span><input id="notifications-toggle" type="checkbox" checked /></label>
-          <label class="toggle-row" for="codex-start-toggle"><span><strong>随 Codex 启动</strong><small>Codex 应用打开时自动启动桌宠</small><small id="startup-error" role="alert" hidden></small></span><input id="codex-start-toggle" type="checkbox" checked /></label>
-          <label class="toggle-row" for="claude-start-toggle"><span><strong>随 Claude Code 启动</strong><small id="claude-start-hint">Claude Code 开新会话时自动启动桌宠</small></span><input id="claude-start-toggle" type="checkbox" checked /></label>
-          <label class="toggle-row"><span><strong>旋转变身</strong><small>暂时停用，当前使用 Q 版形态</small></span><input type="checkbox" disabled aria-label="旋转变身已停用" /></label>
-          <label class="toggle-row" for="motion-toggle"><span><strong>减少动态效果</strong><small>静态显示角色，保留通知动作</small></span><input id="motion-toggle" type="checkbox" /></label>
+          <label class="toggle-row" for="dnd-toggle"><span><strong data-i18n="勿扰模式">勿扰模式</strong><small data-i18n="暂时隐藏气泡与提醒动作，工作状态仍会同步">暂时隐藏气泡与提醒动作，工作状态仍会同步</small></span><input id="dnd-toggle" type="checkbox" /></label>
+          <label class="toggle-row" for="notifications-toggle"><span><strong data-i18n="消息提醒">消息提醒</strong><small data-i18n="关闭后不弹气泡或提醒动作，可从“当前项目”查看状态">关闭后不弹气泡或提醒动作，可从“当前项目”查看状态</small></span><input id="notifications-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row" for="codex-start-toggle"><span><strong data-i18n="随 Codex 启动">随 Codex 启动</strong><small data-i18n="Codex 应用打开时自动启动桌宠">Codex 应用打开时自动启动桌宠</small><small id="startup-error" role="alert" hidden></small></span><input id="codex-start-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row" for="claude-start-toggle"><span><strong data-i18n="随 Claude Code 启动">随 Claude Code 启动</strong><small id="claude-start-hint">Claude Code 开新会话时自动启动桌宠</small></span><input id="claude-start-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row"><span><strong data-i18n="旋转变身">旋转变身</strong><small data-i18n="暂时停用，当前使用 Q 版形态">暂时停用，当前使用 Q 版形态</small></span><input type="checkbox" disabled aria-label="旋转变身已停用" data-i18n-aria="旋转变身已停用" /></label>
+          <label class="toggle-row" for="motion-toggle"><span><strong data-i18n="减少动态效果">减少动态效果</strong><small data-i18n="静态显示角色，保留通知动作">静态显示角色，保留通知动作</small></span><input id="motion-toggle" type="checkbox" /></label>
         </div>
       </section>
       <section class="settings-section" aria-labelledby="try-heading">
-        <div class="section-heading"><div><h2 id="try-heading">试试看</h2><p>向本机桌宠发送通知预览。</p></div></div>
-        <div class="test-actions"><button id="test-stage" class="primary-button">阶段完成气泡</button><button id="test-approval" class="secondary-button">询问气泡预览</button></div>
+        <div class="section-heading"><div><h2 id="try-heading" data-i18n="试试看">试试看</h2><p data-i18n="向本机桌宠发送通知预览。">向本机桌宠发送通知预览。</p></div></div>
+        <div class="test-actions"><button id="test-stage" class="primary-button" data-i18n="阶段完成气泡">阶段完成气泡</button><button id="test-approval" class="secondary-button" data-i18n="询问气泡预览">询问气泡预览</button></div>
       </section>
       <section class="settings-section history-section" aria-labelledby="history-heading">
-        <div class="section-heading"><div><h2 id="history-heading">最近通知</h2><p>只保留本机最近 20 条。</p></div><span id="history-count" class="history-count">0 / 20</span></div>
+        <div class="section-heading"><div><h2 id="history-heading" data-i18n="最近通知">最近通知</h2><p data-i18n="只保留本机最近 20 条。">只保留本机最近 20 条。</p></div><span id="history-count" class="history-count">0 / 20</span></div>
         <ol id="history-list" class="history-list"></ol>
       </section>
-      <footer>通知仅通过本机回环接口传递，桌宠退出后各 Agent 仍可照常工作。</footer>
+      <footer data-i18n="通知仅通过本机回环接口传递，桌宠退出后各 Agent 仍可照常工作。">通知仅通过本机回环接口传递，桌宠退出后各 Agent 仍可照常工作。</footer>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

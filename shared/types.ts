@@ -1,6 +1,7 @@
 import type {CodexQuotaSnapshot} from './quota';
 import type {FollowAgent} from './agents';
 import type {BriefNote} from './morning-brief';
+import type {AppLocale, LanguagePreference} from './i18n';
 
 export type PetEventType =
   | "work_started"
@@ -78,6 +79,7 @@ export interface PetQuestion {
 }
 
 export interface PetPreferences {
+  language: LanguagePreference;
   model: PetModel;
   scale: number;
   idleDance: boolean;
@@ -93,6 +95,7 @@ export interface PetPreferences {
 }
 
 export interface ProjectDashboardData {
+  locale?: AppLocale;
   capturedAt: string;
   bridgeReady: boolean;
   monitor: {
@@ -123,6 +126,7 @@ export interface AgentConnections {
 }
 
 export interface PetBootstrap {
+  systemLocale: string;
   preferences: PetPreferences;
   history: PetEvent[];
   bridgeReady: boolean;

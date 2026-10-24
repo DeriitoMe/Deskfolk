@@ -1,3 +1,5 @@
+import {locale, setLocale, t} from './i18n';
+import {resolveLocale} from '../shared/i18n';
 import type { ProjectDashboardData } from '../shared/types';
 import './projects-view.css';
 import { mountTitleBar } from './window-chrome';
@@ -44,15 +46,21 @@ function element<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
+function copy<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, message: string): HTMLElementTagNameMap[K] {
+  const node = element(tag, className, t(message));
+  node.dataset.i18n = message;
+  return node;
+}
+
 function setText(node: HTMLElement, text: string) {
   if (node.textContent !== text) node.textContent = text;
 }
 
 function formatTime(value: string | null | undefined, includeDate = false): string {
-  if (!value) return '尚无记录';
+  if (!value) return t('尚无记录');
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return '尚无记录';
-  return new Intl.DateTimeFormat('zh-CN', {
+  if (!Number.isFinite(date.getTime())) return t('尚无记录');
+  return new Intl.DateTimeFormat(locale(), {
     ...(includeDate ? { month: '2-digit', day: '2-digit' } as const : {}),
     hour: '2-digit',
     minute: '2-digit',
@@ -64,7 +72,7 @@ function formatTime(value: string | null | undefined, includeDate = false): stri
 function metric(label: string) {
   const card = element('div', 'projects-metric');
   const number = element('strong', 'projects-metric-number', '—');
-  card.append(number, element('span', 'projects-metric-label', label));
+  card.append(number, copy('span', 'projects-metric-label', label));
   return { card, number };
 }
 
@@ -73,8 +81,8 @@ function projectCard(project: DashboardProject): HTMLElement {
   card.dataset.projectKey = project.key;
   card.dataset.state = project.state;
   const heading = element('div', 'projects-card-heading');
-  const title = element('h3', 'projects-card-title', project.name || '未命名项目');
-  const badge = element('span', 'projects-state', STATE_LABELS[project.state]);
+  const title = element('h3', 'projects-card-title', project.name || t('未命名项目'));
+  const badge = element('span', 'projects-state', t(STATE_LABELS[project.state]));
   badge.dataset.state = project.state;
   heading.append(title, badge);
   card.append(heading);
@@ -86,10 +94,10 @@ function projectCard(project: DashboardProject): HTMLElement {
   const sessions = element('p', 'projects-sessions');
   const sessionCount = Math.max(0, project.sessionCount);
   const workingCount = Math.max(0, project.workingSessionCount);
-  sessions.textContent = `${sessionCount} 个会话${workingCount ? ` · ${workingCount} 个正在工作` : ''}`;
+  sessions.textContent = (sessionCount === 1 ? t('1 个会话') : t('{count} 个会话', {count: sessionCount})) + (workingCount ? t(' · {count} 个正在工作', {count: workingCount}) : '');
   card.append(sessions);
   const footer = element('div', 'projects-card-footer');
-  footer.append(element('span', 'projects-last-event', project.lastEventLabel || '暂无状态事件'));
+  footer.append(element('span', 'projects-last-event', project.lastEventLabel || t('暂无状态事件')));
   const time = element('time', 'projects-time', formatTime(project.lastEventAt, true));
   if (project.lastEventAt) time.dateTime = project.lastEventAt;
   footer.append(time);
@@ -102,29 +110,31 @@ export async function setupProjectsView(): Promise<void> {
   document.body.dataset.view = 'projects';
   document.querySelector('#pet-view')?.setAttribute('hidden', '');
   document.querySelector('#settings-view')?.setAttribute('hidden', '');
-  document.title = '当前项目 · Deskfolk';
-  mountTitleBar('当前项目');
+  const bootstrap = await window.petBridge.getBootstrap();
+  setLocale(resolveLocale(bootstrap.preferences.language,bootstrap.systemLocale));
+  document.title = t('当前项目') + ' · Deskfolk';
+  mountTitleBar(t('当前项目'));
 
   const main = element('main', 'projects-page');
   const header = element('header', 'projects-header');
   const heading = element('div', 'projects-heading');
   heading.append(
     element('p', 'projects-eyebrow', 'DESKFOLK'),
-    element('h1', 'projects-title', '当前项目'),
-    element('p', 'projects-intro', '看看小睦正在陪你做些什么。'),
+    copy('h1', 'projects-title', '当前项目'),
+    copy('p', 'projects-intro', '看看小睦正在陪你做些什么。'),
   );
   const actions = element('div', 'projects-header-actions');
-  const refresh = element('button', 'projects-button', '刷新');
+  const refresh = copy('button', 'projects-button', '刷新');
   refresh.type = 'button';
-  const openCodex = element('button', 'projects-button projects-button-primary', '打开 Codex');
+  const openCodex = copy('button', 'projects-button projects-button-primary', '打开 Codex');
   openCodex.type = 'button';
   actions.append(refresh, openCodex);
   header.append(heading, actions);
 
-  const status = element('p', 'projects-operation-status', '正在读取项目状态……');
+  const status = element('p', 'projects-operation-status', t('正在读取项目状态……'));
   status.setAttribute('role', 'status');
   const overview = element('section', 'projects-overview');
-  overview.setAttribute('aria-label', '项目概况');
+  overview.dataset.i18nAria='项目概况';overview.setAttribute('aria-label',t('项目概况'));
   const working = metric('正在工作的项目');
   const pending = metric('待处理提醒');
   const total = metric('已发现的项目');
@@ -133,24 +143,24 @@ export async function setupProjectsView(): Promise<void> {
   const projectsSection = element('section', 'projects-section');
   const projectHeading = element('div', 'projects-section-heading');
   projectHeading.append(
-    element('h2', 'projects-section-title', '项目状态'),
-    element('span', 'projects-section-note', '同一项目的会话合并显示'),
+    copy('h2', 'projects-section-title', '项目状态'),
+    copy('span', 'projects-section-note', '同一项目的会话合并显示'),
   );
   const projectList = element('div', 'projects-list');
-  projectList.setAttribute('aria-label', '当前项目列表');
+  projectList.dataset.i18nAria='当前项目列表';projectList.setAttribute('aria-label',t('当前项目列表'));
   projectsSection.append(projectHeading, projectList);
 
   const monitoring = element('section', 'projects-monitor');
   const monitorHeading = element('div', 'projects-section-heading');
-  const monitorState = element('span', 'projects-monitor-state', '正在读取');
+  const monitorState = copy('span', 'projects-monitor-state', '正在读取');
   monitorState.dataset.state = 'starting';
-  monitorHeading.append(element('h2', 'projects-section-title', 'Codex 日志监控'), monitorState);
+  monitorHeading.append(copy('h2', 'projects-section-title', 'Codex 日志监控'), monitorState);
   const monitorDetails = element('dl', 'projects-monitor-details');
   const monitorRows = new Map<string, HTMLElement>();
   for (const label of ['本地通知', '最后检查', '最近有效事件', '已发现会话', '等待扫描']) {
     const row = element('div', 'projects-monitor-row');
     const value = element('dd', 'projects-monitor-value', '—');
-    row.append(element('dt', 'projects-monitor-label', label), value);
+    row.append(copy('dt', 'projects-monitor-label', label), value);
     monitorDetails.append(row);
     monitorRows.set(label, value);
   }
@@ -158,13 +168,13 @@ export async function setupProjectsView(): Promise<void> {
   monitoring.append(monitorHeading, monitorDetails, approvalNote);
 
   const eventsSection = element('section', 'projects-section');
-  eventsSection.append(element('h2', 'projects-section-title', '最近有效事件'));
+  eventsSection.append(copy('h2', 'projects-section-title', '最近有效事件'));
   const eventList = element('ol', 'projects-events');
   eventsSection.append(eventList);
 
   const footer = element('footer', 'projects-footer');
-  const snapshot = element('span', 'projects-snapshot', '尚未收到项目状态');
-  const settings = element('button', 'projects-link-button', '通知设置');
+  const snapshot = copy('span', 'projects-snapshot', '尚未收到项目状态');
+  const settings = copy('button', 'projects-link-button', '通知设置');
   settings.type = 'button';
   settings.addEventListener('click', () => window.petBridge.openSettings());
   footer.append(snapshot, settings);
@@ -182,6 +192,13 @@ export async function setupProjectsView(): Promise<void> {
     const incomingTime = Date.parse(data.capturedAt);
     if (Number.isFinite(incomingTime) && incomingTime < lastSnapshotTime) return;
     if (Number.isFinite(incomingTime)) lastSnapshotTime = incomingTime;
+    const languageChanged = setLocale(data.locale ?? locale());
+    if (languageChanged) {
+      document.title = t('当前项目') + ' · Deskfolk';
+      mountTitleBar(t('当前项目'));
+      projectSignature = undefined;
+      eventSignature = undefined;
+    }
     const firstSnapshot = !hasSnapshot;
     hasSnapshot = true;
     openCodex.hidden = !['all','codex'].includes(data.preferences.followAgent);
@@ -198,28 +215,28 @@ export async function setupProjectsView(): Promise<void> {
       projectSignature = nextProjectSignature;
       const fragment = document.createDocumentFragment();
       const ordered = [...data.projects].sort((a, b) =>
-        STATE_ORDER[a.state] - STATE_ORDER[b.state] || a.name.localeCompare(b.name, 'zh-CN'),
+        STATE_ORDER[a.state] - STATE_ORDER[b.state] || a.name.localeCompare(b.name, locale()),
       );
       for (const project of ordered) fragment.append(projectCard(project));
       if (!ordered.length) {
         const empty = element('div', 'projects-empty');
         empty.append(
-          element('strong', '', '还没有可显示的项目'),
-          element('p', '', '在已接入的 Agent 中开始或继续任务后，这里会更新。'),
+          copy('strong', '', '还没有可显示的项目'),
+          copy('p', '', '在已接入的 Agent 中开始或继续任务后，这里会更新。'),
         );
         fragment.append(empty);
       }
       projectList.replaceChildren(fragment);
     }
 
-    setText(monitorState, MONITOR_LABELS[data.monitor.state]);
+    setText(monitorState, t(MONITOR_LABELS[data.monitor.state]));
     monitorState.dataset.state = data.monitor.state;
-    setText(monitorRows.get('本地通知')!, data.bridgeReady ? '已连接' : '未连接');
+    setText(monitorRows.get('本地通知')!, data.bridgeReady ? t('已连接') : t('未连接'));
     setText(monitorRows.get('最后检查')!, formatTime(data.monitor.lastPollAt, true));
     setText(monitorRows.get('最近有效事件')!, formatTime(data.monitor.lastEventAt, true));
     setText(monitorRows.get('已发现会话')!, String(data.monitor.observedSessions));
     setText(monitorRows.get('等待扫描')!, String(data.monitor.discoveryPending));
-    setText(approvalNote, '问题与权限请求请回到对应 Agent 的原生窗口处理。');
+    setText(approvalNote, t('问题与权限请求请回到对应 Agent 的原生窗口处理。'));
 
     const nextEventSignature = JSON.stringify(data.recentEvents);
     if (nextEventSignature !== eventSignature) {
@@ -235,27 +252,27 @@ export async function setupProjectsView(): Promise<void> {
         row.append(content, time);
         fragment.append(row);
       }
-      if (!data.recentEvents.length) fragment.append(element('li', 'projects-event-empty', '还没有有效事件。'));
+      if (!data.recentEvents.length) fragment.append(copy('li', 'projects-event-empty', '还没有有效事件。'));
       eventList.replaceChildren(fragment);
     }
-    setText(snapshot, `更新于 ${formatTime(data.capturedAt)}`);
+    setText(snapshot, t('更新于 {time}', {time: formatTime(data.capturedAt)}));
   };
 
   const load = async () => {
     if (disposed || refresh.disabled) return;
     refresh.disabled = true;
-    refresh.textContent = '读取中…';
+    refresh.textContent = t('读取中…');
     if (hasSnapshot) setText(status, '');
     if (!hasSnapshot) main.setAttribute('aria-busy', 'true');
     try {
       render(await window.petBridge.getProjects());
     } catch {
-      if (!disposed) setText(status, '项目状态暂时无法读取。可以稍后刷新。');
+      if (!disposed) setText(status, t('项目状态暂时无法读取。可以稍后刷新。'));
     } finally {
       if (!disposed) {
         main.setAttribute('aria-busy', 'false');
         refresh.disabled = false;
-        refresh.textContent = '刷新';
+        refresh.textContent = t('刷新');
       }
     }
   };
@@ -263,12 +280,12 @@ export async function setupProjectsView(): Promise<void> {
   refresh.addEventListener('click', () => { void load(); });
   openCodex.addEventListener('click', async () => {
     openCodex.disabled = true;
-    setText(status, '正在打开 Codex……');
+    setText(status, t('正在打开 Codex……'));
     try {
       const result = await window.petBridge.openCodex();
-      if (!disposed) setText(status, result.ok ? '' : '没有找到 Codex 窗口，请先启动 Codex。');
+      if (!disposed) setText(status, result.ok ? '' : t('没有找到 Codex 窗口，请先启动 Codex。'));
     } catch {
-      if (!disposed) setText(status, '暂时无法打开 Codex。请在任务栏中打开。');
+      if (!disposed) setText(status, t('暂时无法打开 Codex。请在任务栏中打开。'));
     } finally {
       if (!disposed) openCodex.disabled = false;
     }

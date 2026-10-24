@@ -11,7 +11,17 @@ export type BriefNews = {id: string; title?: string; source?: string; published_
 export type BriefSkill = {id: string; name?: string; repository?: string; stars?: number; stars_delta_7d?: number};
 export type BriefData = {tibo: BriefTibo[]; news: BriefNews[]; skills: BriefSkill[]};
 export type BriefNoteKind = 'tibo' | 'news' | 'skill' | 'missing';
-export type BriefNote = {id: string; kind: BriefNoteKind; message: string; meta: string};
+import {translate, type AppLocale} from './i18n.ts';
+export type BriefNote = {id: string; kind: BriefNoteKind; message: string; meta: string;
+  messageKey?: string; messageValues?: Record<string,string|number>;
+  metaKey?: string; metaValues?: Record<string,string|number>; metaSuffix?:string};
+
+/** Keep the same chosen item and seen-state when the interface language changes. */
+export function localizeBriefNote(note: BriefNote, locale: AppLocale): BriefNote {
+  return {...note, message: translate(locale,note.messageKey??note.message,note.messageValues),
+    meta: note.metaKey ? clip([translate(locale,note.metaKey,note.metaValues),note.metaSuffix].filter(Boolean).join(' · '),locale==='en'?42:24) :
+      note.kind==='missing' ? translate(locale,note.meta) : note.meta};
+}
 
 const DAY = 86_400_000;
 /** Upcoming or in-progress resets stay news for three days, finished ones for two.
@@ -69,7 +79,8 @@ function newsNote(items: BriefNews[], seen: ReadonlySet<string>, now: number): B
     .sort((a, b) => freshness(b) - freshness(a))[0];
   if (!item) return null;
   const source = sourceName(item.source ?? '');
-  return {id: 'news:' + item.id, kind: 'news', message: clip(source || 'Agent', 14) + '\n有新动态......', meta: clip(item.title!, 24)};
+  return {id: 'news:' + item.id, kind: 'news', message: clip(source || 'Agent', 14) + '\n有新动态......', meta: clip(item.title!, 24),
+    messageKey: '{source}\n有新动态......',messageValues:{source:clip(source||'Agent',14)}};
 }
 
 function skillNote(items: BriefSkill[], seen: readonly string[]): BriefNote | null {
@@ -84,7 +95,10 @@ function skillNote(items: BriefSkill[], seen: readonly string[]): BriefNote | nu
   const item = hot.find(row => order(row) < 0) ?? [...hot].sort((a, b) => order(a) - order(b))[0];
   const growth = item.stars_delta_7d ? `★ +${item.stars_delta_7d}（7 天）` : '';
   return {id: 'skill:' + item.id, kind: 'skill', message: '今天的热门......\n' + clip(item.name!, 18),
-    meta: clip([growth, item.repository].filter(Boolean).join(' · '), 24)};
+    meta: clip([growth, item.repository].filter(Boolean).join(' · '), 24),
+    messageKey:'今天的热门......\n{name}',messageValues:{name:clip(item.name!,18)},
+    metaKey:item.stars_delta_7d?'★ +{count}（7 天）':undefined,metaSuffix:item.repository,
+    metaValues:{count:item.stars_delta_7d??0}};
 }
 
 /** The note for this reading. `seen` lists earlier note ids, oldest first. */

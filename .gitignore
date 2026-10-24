@@ -85,6 +85,7 @@ scripts/*
 !scripts/qa-guitar.cjs
 !scripts/prepare-guitar-solo-audio.py
 !scripts/qa-guitar-egg.cjs
+!scripts/qa-language.cjs
 
 # Reviewed portable editable sources in this snapshot.
 !/PUBLIC_SOURCE_MANIFEST.json
