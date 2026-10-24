@@ -80,7 +80,7 @@ test('morning brief language changes keep the selected item and external titles'
 });
 
 test('dashboard translates status but preserves project identity and aggregates', () => {
-  const preferences:PetPreferences={language:'en',model:'flat-chibi',scale:1,idleDance:true,reducedMotion:false,bubbleSeconds:8,startWithCodex:false,startWithClaudeCode:false,followAgent:'all',doNotDisturb:false,notificationsEnabled:true};
+  const preferences:PetPreferences={language:'en',model:'flat-chibi',outfit:'uniform',scale:1,idleDance:true,reducedMotion:false,bubbleSeconds:8,startWithCodex:false,startWithClaudeCode:false,followAgent:'all',doNotDisturb:false,notificationsEnabled:true};
   const sessions={test:{sessionId:'test',phase:'working' as const,turnId:'turn',nativeTurnId:'turn',projectId:'project',updatedAt:new Date().toISOString()}};
   const options={preferences,bridgeReady:true,projectName:()=> '中文项目',monitor:{state:'watching' as const,lastPollAt:null,lastEventAt:null,observedSessions:1,discoveryPending:0}};
   const zh=projectDashboard(sessions,[],{...options,locale:'zh-CN'}),en=projectDashboard(sessions,[],{...options,locale:'en'});

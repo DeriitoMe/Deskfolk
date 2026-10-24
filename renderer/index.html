@@ -54,10 +54,17 @@
         <div class="connection-row" data-agent="deepseek"><span class="agent-name">DeepSeek Harness</span><span id="deepseek-status">正在检查</span></div>
       </section>
       <section class="settings-section appearance-section" aria-labelledby="appearance-heading">
-        <div class="section-heading"><div><h2 id="appearance-heading" data-i18n="外观">外观</h2><p data-i18n="选择若叶睦的桌面造型与大小。">选择若叶睦的桌面造型与大小。</p></div></div>
+        <div class="section-heading"><div><h2 id="appearance-heading" data-i18n="外观">外观</h2><p data-i18n="选择若叶睦的桌面造型、服装与大小。">选择若叶睦的桌面造型、服装与大小。</p></div></div>
         <div class="model-options" role="group" aria-label="选择角色形态" data-i18n-aria="选择角色形态">
           <button class="model-option" data-model-choice="flat-chibi" aria-pressed="false"><span data-i18n="简约若叶睦">简约若叶睦</span><small data-i18n="默认形态 · 表情与动作">默认形态 · 表情与动作</small></button>
           <button class="model-option" data-model-choice="hires-soft" aria-pressed="false" disabled><span data-i18n="高清柔光">高清柔光</span><small data-i18n="暂时停用 · 素材已保留">暂时停用 · 素材已保留</small></button>
+        </div>
+        <div class="outfit-setting">
+          <strong class="outfit-label" data-i18n="服装">服装</strong>
+          <div class="model-options" role="group" aria-label="选择服装" data-i18n-aria="选择服装">
+            <button class="model-option" data-outfit-choice="uniform" aria-pressed="false"><span data-i18n="校服">校服</span><small data-i18n="原来的水手校服">原来的水手校服</small></button>
+            <button class="model-option" data-outfit-choice="beret" aria-pressed="false"><span data-i18n="红色贝雷帽装">红色贝雷帽装</span><small data-i18n="贝雷帽、披肩与燕尾外套">贝雷帽、披肩与燕尾外套</small></button>
+          </div>
         </div>
         <div class="scale-setting">
           <label class="range-label" for="scale-range"><span><strong data-i18n="角色大小">角色大小</strong><small id="scale-hint">默认约 220 像素高</small></span><output id="scale-value">100%</output></label>

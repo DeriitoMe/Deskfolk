@@ -68,6 +68,7 @@ const ALLOWED_TYPES = new Set<PetEventType>([
 const DEFAULT_PREFERENCES: PetPreferences = {
   language: 'system',
   model: "flat-chibi",
+  outfit: "uniform",
   scale: 1,
   idleDance: true,
   reducedMotion: false,
@@ -239,6 +240,7 @@ function normalizePreferences(input: Partial<PetPreferences>): PetPreferences {
   return {
     language: normalizeLanguage(input.language, preferences.language),
     model,
+    outfit: input.outfit === "uniform" || input.outfit === "beret" ? input.outfit : preferences.outfit,
     scale,
     idleDance: typeof input.idleDance === "boolean" ? input.idleDance : preferences.idleDance,
     reducedMotion: typeof input.reducedMotion === "boolean"

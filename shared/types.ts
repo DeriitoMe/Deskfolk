@@ -19,6 +19,8 @@ export type PetEventType =
 
 export type EventSource = "hook" | "mcp" | "demo" | "codex-log" | "claude-code" | "deepseek-harness";
 export type PetModel = "flat-chibi" | "hires-soft";
+/** Clothes on the flat-chibi model: the school uniform or the crimson beret outfit. */
+export type PetOutfit = "uniform" | "beret";
 export type CompletionOutcome = "success" | "interrupted" | "failed" | "quota_exhausted";
 
 export type ActivityPhase = "idle" | "working" | "asking";
@@ -81,6 +83,7 @@ export interface PetQuestion {
 export interface PetPreferences {
   language: LanguagePreference;
   model: PetModel;
+  outfit: PetOutfit;
   scale: number;
   idleDance: boolean;
   reducedMotion: boolean;

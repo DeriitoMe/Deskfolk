@@ -30,6 +30,8 @@ import {readingScan} from '../shared/reading-motion';
 import {CONFETTI_PIECES,POPPER_SHOTS,confettiFlight,confettiPiece,type ConfettiPiece} from '../shared/confetti-motion';
 import {celebrateMotion} from '../shared/celebrate-motion';
 import {GuitarProp} from './guitar-prop';
+import {Outfit} from './outfit';
+import type {PetOutfit} from '../shared/types';
 import {guitarMotion} from '../shared/guitar-motion';
 import {guitarSoloMotion} from '../shared/guitar-solo';
 import {currentCodexQuota,unknownCodexQuota,type CodexQuotaSnapshot} from '../shared/quota';
@@ -41,6 +43,7 @@ const maps=import.meta.glob<string>('../assets/characters/wakaba-mutsumi/v41-3d/
 const urls=Object.fromEntries(Object.entries(maps).map(([p,u])=>[p.split('/').pop()!,u]));
 const clamp=T.MathUtils.clamp, mix=T.MathUtils.lerp,TAU=Math.PI*2;
 const smooth=(v:number)=>{v=clamp(v,0,1);return v*v*(3-2*v);};
+const BERET_FRAME_LIFT=.16;
 type Pose={rise:number;lean:number;pitch:number;yaw:number;head:number;headOffsetY:number;headYaw:number;headRoll:number;armL:number;armR:number;reach:number;footL:number;footR:number;spread:number;liftFoot:number;open:number;nap:number;water:number;flow:number;happy:number;work:number;power:number;ask:number;touch:number;tearful:number;drag:number;squeeze:number;gaze:number;followBody:number;kick:number;popper:number;clap:number;dizzy:number;board:number;type:number;write:number;paper:number;scanX:number;scanY:number;snap:number;popL:number;popR:number;jump:number;swish:number;guitar:number;strum:number;fretting:number};
 const neutral=():Pose=>({paper:0,scanX:0,scanY:0,snap:0,popL:0,popR:0,jump:0,swish:0,guitar:0,strum:0,fretting:0,rise:0,lean:0,pitch:0,yaw:0,head:0,headOffsetY:0,headYaw:0,headRoll:0,armL:0,armR:0,reach:0,footL:0,footR:0,spread:0,liftFoot:0,open:1,nap:0,water:0,flow:0,happy:0,work:0,power:0,ask:0,touch:0,tearful:0,drag:0,squeeze:0,gaze:0,followBody:0,kick:0,popper:0,clap:0,dizzy:0,board:0,type:0,write:0});
 const blend=(a:Pose,b:Pose,u:number)=>Object.fromEntries(Object.keys(a).map(k=>[k,mix(a[k as keyof Pose],b[k as keyof Pose],u)])) as Pose;
@@ -75,6 +78,9 @@ export class MutsumiRig {
  private claudeProps=new ClaudeProps((color,opacity=1)=>this.basic(color,opacity));
  private newspaper=new NewspaperProp();
  private guitar=new GuitarProp();
+ private outfit=new Outfit();
+ /** The beret rises above the 512 view when she looks up; the camera rises with it (model units). */
+ private frameLift=0;
  private feedback=new T.Group();private poppers:T.Object3D[]=[];private paper:T.Mesh[]=[];
  private confetti:ConfettiPiece[]=[];
  /** Popper mouth and barrel at each shot, fixed in the scene so flying confetti never follows the hands. */
@@ -105,6 +111,9 @@ export class MutsumiRig {
     if(o instanceof T.Mesh){o.frustumCulled=false;const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms)m.toneMapped=false;}});
   this.model.updateMatrixWorld(true);
   const restBounds=new T.Box3().setFromObject(this.model);
+  // Before anything moves: the outfit pieces attach to their controls at the rest pose.
+  // restBounds is taken first, so the beret never shifts the drag pivot.
+  await this.outfit.load(this.model,name=>this.control(name));
   this.suspensionPivot.set(0,restBounds.max.y,0);
   for(const side of ['L','R'] as const){const hand=this.control('CTRL_Hand.'+side);hand.worldToLocal(new T.Box3().setFromObject(hand).getCenter(this.mittenCenter[side]));}
   const hair=[...this.controls.values()].find(o=>o.name.startsWith('HairUnified'))??[...this.controls.values()].find(o=>o.userData.runtime_part?.startsWith('Hair.Unified'));
@@ -159,11 +168,15 @@ export class MutsumiRig {
   this.auraTexture=await loader.loadAsync(urls['flame-atlas.png']);this.auraTexture.colorSpace=T.SRGBColorSpace;this.auraTexture.repeat.set(1/6,1/6);
   this.buildEyes();this.buildProps();await this.newspaper.load();await this.guitar.load();await this.buildFeedback(loader);this.measurePopperMouths();this.measureReadingSpan();this.measureGuitarHold();await this.grand?.ready;
   // Upload every prop and compile its shader before the first visible action.
-  this.apply(this.target('water',2),2);this.flowers.visible=this.aura.visible=true;this.claudeProps.showAll();this.newspaper.showAll();this.guitar.showAll();
+  this.apply(this.target('water',2),2);this.flowers.visible=this.aura.visible=true;this.claudeProps.showAll();this.newspaper.showAll();this.guitar.showAll();this.outfit.showAll();
   this.feedback.traverse(o=>{o.visible=true;});
   await this.renderer.compileAsync(this.scene,this.camera);this.renderer.render(this.scene,this.camera);
-  this.apply(this.target('idle',0),0);
+  this.apply(this.target('idle',0),0);this.outfit.wear(this.outfit.current);
  }
+ /** Swap clothes at once; the uniform comes back unchanged. */
+ setOutfit(outfit:PetOutfit){this.outfit.wear(outfit);this.frameLift=outfit==='beret'?BERET_FRAME_LIFT:0;}
+ /** How far the head sits lower in the canvas than in the uniform (render pixels). */
+ get headDrop(){return this.frameLift*100;}
  private async buildFeedback(loader:T.TextureLoader){
   const [gltf,...textures]=await Promise.all([new GLTFLoader().loadAsync(poppersUrl),... [sweatLargeUrl,sweatSmallUrl,starUrl,confettiUrl].map(u=>loader.loadAsync(u))]);
   this.feedback.name='CompanionFeedback';this.scene.add(this.feedback);
@@ -746,10 +759,10 @@ export class MutsumiRig {
   return {x,y,width:Math.min(this.canvas.width-x,Math.ceil(ox+(right.x+1)*rw/2)+4-x),height:Math.min(this.canvas.height-y,Math.ceil(oy+(1-right.y)*rh/2)+4-y)};
  }
  private draw(p:Pose,t:number,eyeTime=t){
-  this.apply(p,t,eyeTime);this.renderer.render(this.scene,this.camera);const c=this.context;c.clearRect(0,0,this.canvas.width,this.canvas.height);
+  this.apply(p,t,eyeTime);this.camera.position.y=2.28+this.frameLift;this.renderer.render(this.scene,this.camera);const c=this.context;c.clearRect(0,0,this.canvas.width,this.canvas.height);
   const x=(this.canvas.width-this.renderer.domElement.width)/2,y=this.canvas.height-this.renderer.domElement.height;c.drawImage(this.renderer.domElement,x,y);
   if(p.happy>.001){c.save();c.globalCompositeOperation='source-atop';c.fillStyle=`rgba(255,204,113,${p.happy*.09})`;c.fillRect(0,0,this.canvas.width,this.canvas.height);c.restore();}
-  c.save();c.translate(this.canvas.width/2-256,this.canvas.height-512);
+  c.save();c.translate(this.canvas.width/2-256,this.canvas.height-512+this.headDrop);
   if(p.nap>.01){for(let i=0;i<3;i++){const u=(t/2.7+i/3)%1;c.save();c.globalAlpha=p.nap*Math.sin(Math.PI*u);c.fillStyle='#344b75';c.font=`600 ${24+u*32}px "YouYuan",sans-serif`;c.fillText(i?'z':'Z',337+u*53,190-u*147);c.restore();}}
   if(p.ask>.01){c.globalAlpha=p.ask;c.fillStyle='#40523e';c.font='bold 43px "YouYuan",sans-serif';c.fillText('?',360,92-Math.sin(Math.min(t,.6)/.6*Math.PI)*8);}
   c.restore();

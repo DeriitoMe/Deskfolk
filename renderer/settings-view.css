@@ -208,6 +208,23 @@ body[data-view="settings"] .model-option:disabled small {
   color: #858d7e;
 }
 
+body[data-view="settings"] .outfit-setting {
+  margin-top: 17px;
+  padding-top: 16px;
+  border-top: 1px solid #edf0e8;
+}
+
+body[data-view="settings"] .outfit-label {
+  display: block;
+  color: #47603e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+body[data-view="settings"] .outfit-setting .model-options {
+  margin-top: 9px;
+}
+
 body[data-view="settings"] .scale-setting {
   margin-top: 17px;
   padding-top: 16px;

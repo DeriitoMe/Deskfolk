@@ -30,7 +30,7 @@ import {RepeatedTouchResponse} from '../shared/touch-response';
 import {OutcomeFeedbackQueue,feedbackDuration,feedbackKind,remindersEnabled,type FeedbackKind} from '../shared/outcome-feedback';
 import { presentationPolicy } from '../shared/runtime-policy';
 import { CelebrationSequence, QuestionReminderWindow, CELEBRATION_SECONDS, QUESTION_REMINDER_MS, TOUCH_SECONDS,DIZZY_SECONDS, isSuccessfulCompletion, type CelebrationVariant } from '../shared/companion-feedback';
-import type { AgentConnections, PetActivity, PetEvent, PetEventType, PetModel, PetPreferences, ToolGesture } from "../shared/types";
+import type { AgentConnections, PetActivity, PetEvent, PetEventType, PetModel, PetOutfit, PetPreferences, ToolGesture } from "../shared/types";
 import type { FollowAgent } from "../shared/agents";
 
 const petView = document.querySelector<HTMLElement>("#pet-view")!;
@@ -194,6 +194,7 @@ function renderCharacter(model: PetModel): void {
   figure.dataset.model = model;
   if (model === 'flat-chibi') {
     rig = new MutsumiRig();
+    rig.setOutfit(currentPreferences?.outfit ?? 'uniform');
     rig.setLocale(locale());
     rig.setQuota(latestQuota);
     rig.onViewportChange=updateLayout;
@@ -523,6 +524,7 @@ function applyPreferences(preferences: PetPreferences): void {
     }
   }
   rig?.setLocale(locale());
+  rig?.setOutfit(preferences.outfit);
   if (preferences.reducedMotion && speechBubble.classList.contains('bubble-out')) hideBubble();
   if (preferences.doNotDisturb) { touchVoice.stop(); guitarEgg.stop(); }
   if(!remindersEnabled(preferences)){
@@ -695,7 +697,7 @@ function setupPetView(): void {
   window.petBridge.onViewport(v=>{petRoot.style.setProperty("--safe-left",v.left+"px");petRoot.style.setProperty("--safe-width",v.width+"px");});
   window.petBridge.onCursor(point=>{
     if(!rig)return;const b=rig.canvas.getBoundingClientRect();if(b.width<=0)return;
-    const ratio=b.width/rig.canvas.width,faceY=b.top+(rig.canvas.height===1152?840:rig.canvas.height-512+261)*ratio,petWidth=512*ratio;
+    const ratio=b.width/rig.canvas.width,faceY=b.top+(rig.canvas.height===1152?840:rig.canvas.height-512+261+rig.headDrop)*ratio,petWidth=512*ratio;
     rig.setLookTarget(Math.tanh((point.x-(b.left+b.width/2))/(petWidth*1.5)),Math.tanh((point.y-faceY)/(petWidth*1.65)));
     const now=performance.now(),pureIdle=rig.action==='idle'&&latestActivity.phase==='idle'&&(latestActivity.workingProjectCount??0)===0&&dragPointer===null&&Date.now()>=flatTouchUntil&&!celebration&&!feedback&&dizzyUntil<=now&&!repeatedTouch.active(now);
     if(orbit.sample(point.x-(b.left+b.width/2),point.y-(b.top+(rig.canvas.height-256)*ratio),petWidth,now,pureIdle)){
@@ -842,6 +844,11 @@ function syncSettingsControls(preferences: PetPreferences): void {
     button.setAttribute("aria-pressed", String(selected));
     button.disabled=presentationPolicy.qOnly&&button.dataset.modelChoice!=='flat-chibi';
   });
+  document.querySelectorAll<HTMLButtonElement>('[data-outfit-choice]').forEach(button => {
+    const selected = button.dataset.outfitChoice === preferences.outfit;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
   const scaleRange = document.querySelector<HTMLInputElement>("#scale-range")!;
   const flat = preferences.model === "flat-chibi";
   scaleRange.min = flat ? "70" : "82";
@@ -963,6 +970,11 @@ function setupSettingsView(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-model-choice]").forEach((button) => {
     button.addEventListener("click", () => {
       void savePreference({ model: button.dataset.modelChoice as PetModel });
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-outfit-choice]').forEach(button => {
+    button.addEventListener('click', () => {
+      void savePreference({ outfit: button.dataset.outfitChoice as PetOutfit });
     });
   });
   document.querySelector<HTMLInputElement>("#scale-range")!.addEventListener("input", (event) => {
