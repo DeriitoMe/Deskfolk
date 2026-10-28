@@ -527,6 +527,7 @@ function applyPreferences(preferences: PetPreferences): void {
   rig?.setOutfit(preferences.outfit);
   if (preferences.reducedMotion && speechBubble.classList.contains('bubble-out')) hideBubble();
   if (preferences.doNotDisturb) { touchVoice.stop(); guitarEgg.stop(); }
+  if (!preferences.easterEggsEnabled) { guitarSolo = false; guitarEgg.stop(); }
   if(!remindersEnabled(preferences)){
     hideBubble();questionReminder.dismiss();celebration=null;celebrationSequence.clearPending();
     deferredCompletionNotices.length=0;feedback=null;outcomeFeedback.clear();
@@ -622,7 +623,7 @@ function syncFlatActivity(): void {
   // A requested reading also pauses ongoing work for its one page.
   if(reading){setAction('read-paper');setStatus('在看晨报');return;}
   // Each guitar pastime is decided once, when it begins.
-  if(step.action==='guitar'&&activityState==='idle'){if(!guitarDecided){guitarDecided=true;guitarSolo=guitarEgg.decide();}}
+  if(step.action==='guitar'&&activityState==='idle'){if(!guitarDecided){guitarDecided=true;guitarSolo=currentPreferences?.easterEggsEnabled===true&&guitarEgg.decide();}}
   else guitarDecided=guitarSolo=false;
   const action=activityState==='working'?(latestTool==='type'?'claude-type':latestTool==='write'?'claude-write':fullPower?'power-work':'work'):activityState==='attention'?'ask':step.action==='guitar'&&guitarSolo?'guitar-solo':step.action;
   // Do-not-disturb keeps the solo but plays it silently.
@@ -870,6 +871,7 @@ function syncSettingsControls(preferences: PetPreferences): void {
   syncFollowRows();
   document.querySelector<HTMLInputElement>('#dnd-toggle')!.checked=preferences.doNotDisturb;
   document.querySelector<HTMLInputElement>('#notifications-toggle')!.checked=preferences.notificationsEnabled;
+  document.querySelector<HTMLInputElement>('#easter-eggs-toggle')!.checked=preferences.easterEggsEnabled;
 }
 
 /** The slider track is green up to the current value. */
@@ -932,7 +934,7 @@ function updateConnectionStatus(bridgeReady: boolean, agents?: AgentConnections)
     claude.hooksInstalled ? t('已接入 · {recent}', {recent: recent(claude.lastEventAt)}) : t('未接入（运行接入脚本）');
   document.querySelector("#deepseek-status")!.textContent = !deepseek ? t('正在检查') :
     deepseek.pluginInstalled ? t('已接入 · {recent}', {recent: recent(deepseek.lastEventAt)}) :
-      deepseek.lastEventAt ? t('已接收事件 · {recent}', {recent: recent(deepseek.lastEventAt)}) : t('未接入（安装 Harness 插件）');
+      deepseek.lastEventAt ? t('已接收事件 · {recent}', {recent: recent(deepseek.lastEventAt)}) : t('等待 Harness 事件');
   const hint = document.querySelector<HTMLElement>('#claude-start-hint');
   if (hint) hint.textContent = t(claude && !claude.hooksInstalled ? '需要先运行 Claude Code 接入脚本' : 'Claude Code 开新会话时自动启动桌宠');
   syncFollowRows();
@@ -987,7 +989,7 @@ function setupSettingsView(): void {
   document.querySelector<HTMLInputElement>("#motion-toggle")!.addEventListener("change", (event) => {
     void savePreference({ reducedMotion: (event.currentTarget as HTMLInputElement).checked });
   });
-  for(const [id,key] of [['dnd-toggle','doNotDisturb'],['notifications-toggle','notificationsEnabled']] as const){
+  for(const [id,key] of [['dnd-toggle','doNotDisturb'],['notifications-toggle','notificationsEnabled'],['easter-eggs-toggle','easterEggsEnabled']] as const){
     document.querySelector<HTMLInputElement>('#'+id)!.addEventListener('change',async event=>{
       const control=event.currentTarget as HTMLInputElement;control.disabled=true;
       try{await savePreference({[key]:control.checked});}catch{control.checked=currentPreferences?.[key]??false;}finally{control.disabled=false;}

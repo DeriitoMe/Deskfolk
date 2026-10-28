@@ -119,6 +119,25 @@ test('Windows .cmd launcher preserves spaces, Unicode, and shell metacharacters 
   assert.deepEqual(JSON.parse(readFileSync(capture, 'utf8')), plan.args)
 })
 
+test('Windows selects the npm cmd launcher when POSIX and PowerShell shims coexist', { skip: process.platform !== 'win32' }, t => {
+  const f = fixture(t)
+  const commandDirectory = path.join(f.root, 'npm launchers')
+  mkdirSync(commandDirectory)
+  const capture = path.join(f.root, 'npm-captured.json')
+  const captureScript = path.join(f.root, 'capture-npm.mjs')
+  writeFileSync(captureScript, "import {writeFileSync} from 'node:fs'; writeFileSync(process.env.DESKFOLK_SETUP_CAPTURE, JSON.stringify(process.argv.slice(2)));\n")
+  writeFileSync(path.join(commandDirectory, 'dsh'), '#!/bin/sh\nexit 99\n')
+  writeFileSync(path.join(commandDirectory, 'dsh.ps1'), 'exit 98\n')
+  writeFileSync(path.join(commandDirectory, 'dsh.cmd'), `@echo off\r\n"${process.execPath}" "${captureScript}" %*\r\n`)
+  const env = { ...process.env, PATH: commandDirectory, PATHEXT: '.COM;.EXE;.BAT;.CMD', DESKFOLK_SETUP_CAPTURE: capture }
+  const plan = createSetupPlan(['--profile-dir', f.profileDirectory], { pluginDirectory: f.pluginDirectory })
+  const invocation = createInvocation(plan, { env })
+  assert.match(invocation.command, /cmd\.exe$/iu)
+  assert.ok(invocation.args[4].toLowerCase().includes(path.join(commandDirectory, 'dsh.cmd').toLowerCase()))
+  runSetup(plan, { io: quiet, env })
+  assert.deepEqual(JSON.parse(readFileSync(capture, 'utf8')), plan.args)
+})
+
 test('the files the installer ships run from an install path with spaces, CJK and a junction', t => {
   const f = fixture(t)
   const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))

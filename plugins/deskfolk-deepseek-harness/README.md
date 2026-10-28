@@ -22,10 +22,20 @@ node plugins/deskfolk-deepseek-harness/setup.mjs --profile web --dry-run
 node plugins/deskfolk-deepseek-harness/setup.mjs --profile web
 ```
 
+先运行 `dsh --version` 确认网页版实际使用的 CLI 满足上面的兼容范围。旧版 CLI 可能允许安装插件，但安装成功不代表旧运行时兼容；`0.1.x` 需要先升级，再用所选 CLI 安装插件并启动 `dsh web`。
+
+Harness Web 的插件运行在提供网页服务的主机上。当前桥接只使用本机回环地址，因此该主机必须与 Deskfolk 在同一台电脑；仅在另一台电脑上打开网页不会把远程服务接到本机桌宠。
+
 安装到桌面版前，先启动 Harness Desktop 一次来初始化 profile，然后完全退出应用。在应用菜单的 **Manage dsh Command…** 中安装其随附的 `dsh` 命令，打开新终端，再执行：
 
 ```powershell
 node plugins/deskfolk-deepseek-harness/setup.mjs --profile desktop
+```
+
+如果 PATH 中还有 npm 安装的 `dsh`，请显式指定桌面版自带的启动器，避免使用不同版本的 CLI：
+
+```powershell
+node plugins/deskfolk-deepseek-harness/setup.mjs --profile desktop --dsh-command "<Harness 安装目录>/resources/runtime/cli/bin/dsh.cmd"
 ```
 
 重新启动所选 Harness 应用和 Deskfolk。Deskfolk 的跟随设置可选“全部”或“DeepSeek”。具体桌面版要求见[官方 Desktop 文档](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/apps/desktop/README.md#bundled-command-runtime)。

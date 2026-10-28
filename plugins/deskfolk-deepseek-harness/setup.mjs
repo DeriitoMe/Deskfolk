@@ -114,7 +114,9 @@ export function inspectSetupTarget(plan) {
 export function resolveCommand(command, env = process.env, platform = process.platform) {
   if (platform !== 'win32') return command
   const extension = path.extname(command)
-  const extensions = extension ? [''] : ['', ...(env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';')]
+  // npm also writes an extensionless POSIX shell shim. Prefer Windows launchers
+  // so CreateProcess does not try to execute that shim and report ENOENT.
+  const extensions = extension ? [''] : [...(env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';').filter(Boolean), '']
   const directories = /[\\/]/u.test(command) ? [''] : (env.PATH ?? env.Path ?? '').split(path.delimiter)
   for (const directory of directories) {
     for (const suffix of extensions) {

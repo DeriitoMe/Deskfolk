@@ -85,6 +85,7 @@ scripts/*
 !scripts/qa-guitar.cjs
 !scripts/prepare-guitar-solo-audio.py
 !scripts/qa-guitar-egg.cjs
+!scripts/qa-easter-eggs-settings.cjs
 !scripts/qa-language.cjs
 !scripts/export-beret-outfit.py
 !scripts/qa-beret-outfit.cjs

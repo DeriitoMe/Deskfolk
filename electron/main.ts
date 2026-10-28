@@ -78,6 +78,7 @@ const DEFAULT_PREFERENCES: PetPreferences = {
   followAgent: 'all',
   doNotDisturb: false,
   notificationsEnabled: true,
+  easterEggsEnabled: true,
 };
 
 app.setName(APP_NAME);
@@ -252,6 +253,7 @@ function normalizePreferences(input: Partial<PetPreferences>): PetPreferences {
     followAgent:normalizeFollowAgent(input.followAgent,preferences.followAgent),
     doNotDisturb:typeof input.doNotDisturb==='boolean'?input.doNotDisturb:preferences.doNotDisturb,
     notificationsEnabled:typeof input.notificationsEnabled==='boolean'?input.notificationsEnabled:preferences.notificationsEnabled,
+    easterEggsEnabled:typeof input.easterEggsEnabled==='boolean'?input.easterEggsEnabled:preferences.easterEggsEnabled,
   };
 }
 

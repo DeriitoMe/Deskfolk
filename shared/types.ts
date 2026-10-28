@@ -95,6 +95,8 @@ export interface PetPreferences {
   followAgent: FollowAgent;
   doNotDisturb: boolean;
   notificationsEnabled: boolean;
+  /** Allow idle easter-egg actions and their music. */
+  easterEggsEnabled: boolean;
 }
 
 export interface ProjectDashboardData {
