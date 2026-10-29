@@ -8,6 +8,7 @@
   "files": [
     "plugin.mjs",
     "bridge-client.mjs",
+    "launch-pet.mjs",
     "cordis.patch.yml",
     "setup.mjs",
     "README.md"

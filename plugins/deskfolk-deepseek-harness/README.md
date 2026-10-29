@@ -69,7 +69,18 @@ Windows 的 `.cmd`/`.bat` 启动器支持空格、中文及常见路径符号；
 
 插件使用原生 `userQuestions` 投影恢复定时提问，不从工具参数中重建提问。流水线观察器把工具结果、用户回答和错误原样交还 Harness。桥接通信异步发送；Deskfolk 关闭或暂时无法连接时，不阻塞模型和工具执行。连续 20 秒未收到有效快照时，Deskfolk 清理该会话的工作和提醒；连接恢复后由新快照同步当前状态。
 
-Harness 没有在这些事件中提供统一的订阅额度百分比或固定重置窗口，因此当前接入不显示估算额度。事件中的 token 用量也不会被当作剩余额度。
+Harness 没有在这些事件中提供统一的订阅额度百分比或固定重置窗口，因此本插件只上报事件；Deskfolk 桌面端会从本机 `~/.dsh/storages/cost-meter/ledger.json` 读取 DeepSeek 账户余额并显示在木牌上。事件中的 token 用量不会被当作剩余额度。
+
+## 随 Harness 启动桌宠
+
+插件启动 1.5 秒后检查一次 Deskfolk 是否在运行，没在运行就把它拉起来，这样无需额外的启动器进程：
+
+- 用户在 Deskfolk 设置里关掉「随 DeepSeek Harness 启动」（`preferences.json` 的 `startWithDeepSeekHarness: false`），或把跟随对象固定成 Codex，插件什么都不做；
+- 通过 `%APPDATA%\liquid-glass-pet\bridge.json` 的端口判断是否已在运行，在运行则不重复启动；
+- 用 `explorer.exe` 启动安装器记录的 `Deskfolk.exe`（`launch.json`，缺失时回退到默认安装位置或环境变量 `DESKFOLK_EXE`），桌宠挂在桌面会话下，Harness 退出不会连带结束它；
+- 30 秒冷却锁（`dsh-launch.lock`），多个 Host 同时启动也只拉起一次。
+
+这段逻辑在 `launch-pet.mjs`，用注入的 `run`/`exists`/`probe` 做了单元测试（`launch-pet.test.mjs`），测试不会启动真实桌宠。
 
 ## 移除
 
