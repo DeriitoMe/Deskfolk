@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {EN_MESSAGES, normalizeLanguage, resolveLocale, translate} from './i18n.ts';
 import {eventMessage, eventVoiceMessage} from './event-copy.ts';
 import {quotaLabel} from './quota-copy.ts';
-import {parseCodexQuota, parseClaudeQuota, unknownCodexQuota, unknownClaudeQuota, unknownDeepSeekQuota} from './quota.ts';
+import {deepSeekBalanceQuota, parseCodexQuota, parseClaudeQuota, unknownCodexQuota, unknownClaudeQuota, unknownDeepSeekQuota} from './quota.ts';
 import {localizeBriefNote, pickBriefNote} from './morning-brief.ts';
 import {projectDashboard} from './project-dashboard.ts';
 import type {PetEvent, PetPreferences} from './types';
@@ -62,6 +62,9 @@ test('quota labels preserve numbers, host identity and stale/unavailable distinc
   assert.equal(quotaLabel(claude,'en',now),'Current session: 27%');
   assert.equal(quotaLabel(claude,'zh-CN',now),claude.label);
   assert.equal(quotaLabel(unknownDeepSeekQuota(),'en'),'DeepSeek usage: Unavailable');
+  const balance=deepSeekBalanceQuota({total:29.2993781,currency:'CNY',observedAt:null,spentSince:null});
+  assert.equal(quotaLabel(balance,'zh-CN'),'DeepSeek 余额: ¥29.30');
+  assert.equal(quotaLabel(balance,'en'),'DeepSeek balance: ¥29.30');
 });
 
 test('morning brief language changes keep the selected item and external titles', () => {
@@ -80,7 +83,7 @@ test('morning brief language changes keep the selected item and external titles'
 });
 
 test('dashboard translates status but preserves project identity and aggregates', () => {
-  const preferences:PetPreferences={language:'en',model:'flat-chibi',outfit:'uniform',scale:1,idleDance:true,reducedMotion:false,bubbleSeconds:8,startWithCodex:false,startWithClaudeCode:false,followAgent:'all',doNotDisturb:false,notificationsEnabled:true,easterEggsEnabled:true};
+  const preferences:PetPreferences={language:'en',model:'flat-chibi',outfit:'uniform',scale:1,idleDance:true,reducedMotion:false,bubbleSeconds:8,startWithCodex:false,startWithClaudeCode:false,startWithDeepSeekHarness:false,followAgent:'all',doNotDisturb:false,notificationsEnabled:true,easterEggsEnabled:true};
   const sessions={test:{sessionId:'test',phase:'working' as const,turnId:'turn',nativeTurnId:'turn',projectId:'project',updatedAt:new Date().toISOString()}};
   const options={preferences,bridgeReady:true,projectName:()=> '中文项目',monitor:{state:'watching' as const,lastPollAt:null,lastEventAt:null,observedSessions:1,discoveryPending:0}};
   const zh=projectDashboard(sessions,[],{...options,locale:'zh-CN'}),en=projectDashboard(sessions,[],{...options,locale:'en'});

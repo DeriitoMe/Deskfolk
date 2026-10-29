@@ -37,6 +37,35 @@ export function unknownDeepSeekQuota(): CodexQuotaSnapshot {
     label: DEEPSEEK_QUOTA_PREFIX + '暂不可用'};
 }
 
+/** Account balance read by the DSH cost meter, plus spend since that read. */
+export interface DeepSeekBalanceReading {
+  /** Balance in `currency` when the cost meter last read it. */
+  total: number;
+  /** ISO 4217 code from the cost meter: CNY for the DeepSeek account balance. */
+  currency: string;
+  /** ISO time of that read, or null when the meter never read one. */
+  observedAt: string | null;
+  /** Spend in the same currency after that read; null when it is unknown. */
+  spentSince: number | null;
+}
+
+/**
+ * DSH exposes no five-hour window, but it does track the prepaid balance, so
+ * the board shows that balance instead of a hard-coded "unavailable".
+ */
+export const DEEPSEEK_BALANCE_PREFIX = 'DeepSeek 余额: ';
+const CURRENCY_SYMBOLS: Readonly<Record<string, string>> = {CNY: '¥', USD: '$'};
+
+export function deepSeekBalanceQuota(reading: DeepSeekBalanceReading): CodexQuotaSnapshot {
+  if (!finite(reading.total)) return unknownDeepSeekQuota();
+  const spent = finite(reading.spentSince) ? Math.max(0, reading.spentSince) : 0;
+  const remaining = Math.max(0, reading.total - spent);
+  const symbol = CURRENCY_SYMBOLS[reading.currency] ?? `${reading.currency} `;
+  return {status: 'available', remainingPercent: null, usedPercent: null,
+    observedAt: reading.observedAt, resetsAt: null, source: 'deepseek-harness',
+    label: `${DEEPSEEK_BALANCE_PREFIX}${symbol}${remaining.toFixed(2)}`};
+}
+
 /** A reset passing is evidence that the old percentage is stale, never 100%. */
 export function currentCodexQuota(value: CodexQuotaSnapshot, now = Date.now()): CodexQuotaSnapshot {
   if (value.resetsAt && Date.parse(value.resetsAt) <= now) {

@@ -91,6 +91,8 @@ export interface PetPreferences {
   startWithCodex: boolean;
   /** Claude Code SessionStart hook may launch the pet when it is closed. */
   startWithClaudeCode: boolean;
+  /** The DeepSeek Harness plugin may launch the pet when it is closed. */
+  startWithDeepSeekHarness: boolean;
   /** Which agent drives work state, bubbles and the quota board. */
   followAgent: FollowAgent;
   doNotDisturb: boolean;
@@ -162,6 +164,8 @@ export interface PetBridge {
   sendTest(type: PetEventType): Promise<void>;
   openSettings(): void;
   openCodex(): Promise<{ok:boolean;error?:string}>;
+  /** Bring the DSH desktop window forward; Codex keeps its own entry point. */
+  openDsh(): Promise<{ok:boolean;error?:string}>;
   /** The Skills Morning Brief note for this reading (null if refused). */
   getMorningBrief(): Promise<BriefNote | null>;
   openMorningBrief(): Promise<{ok:boolean;error?:string}>;

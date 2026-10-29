@@ -1,9 +1,12 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createSender } from './bridge-client.mjs';
+import { ensurePetRunning } from './launch-pet.mjs';
 
 export const name = 'deskfolk-deepseek-harness';
 export const inject = ['agents', 'sessions', 'sessionProjections'];
 export const HEARTBEAT_MS = 5_000;
+/** 让 Host 先启动完，再去看桌宠是否在跑。 */
+export const LAUNCH_DELAY_MS = 1_500;
 const pick = (value, limit = 100) => typeof value === 'string' && value.trim()
   ? value.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, limit) : undefined;
 const safe = fn => { try { return fn(); } catch { return undefined; } };
@@ -176,5 +179,13 @@ export function apply(ctx) {
   observer.heartbeat();
   const timer = setInterval(() => safe(() => observer.heartbeat()), HEARTBEAT_MS);
   timer.unref();
-  ctx.effect(() => () => { clearInterval(timer); sender.close(); }, 'deskfolk-deepseek-harness');
+  // 「随 DeepSeek Harness 启动」：桌宠没在跑才拉起，用户关掉开关就什么都不做。
+  const launchTimer = setTimeout(() => {
+    void ensurePetRunning().then(result => {
+      if (result !== 'launched' && result !== 'recent') return;
+      safe(() => ctx.logger?.info?.(`deskfolk-deepseek-harness: pet ${result}`));
+    }).catch(() => {});
+  }, LAUNCH_DELAY_MS);
+  launchTimer.unref();
+  ctx.effect(() => () => { clearInterval(timer); clearTimeout(launchTimer); sender.close(); }, 'deskfolk-deepseek-harness');
 }

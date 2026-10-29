@@ -349,8 +349,10 @@ function displayBubble(event: PetEvent): void {
   window.clearTimeout(bubbleFadeTimer);
   bubbleFadeTimer = 0;
   speechBubble.classList.remove('bubble-out');
-  // Each host owns its native dialog; this button only opens Codex.
-  document.querySelector<HTMLButtonElement>('#answer-button')!.hidden=!isQuestionReminder(event)||!['codex-log','demo'].includes(event.source);
+  // Each host owns its native dialog; this button opens the host that asked.
+  const answerButton = document.querySelector<HTMLButtonElement>('#answer-button')!;
+  answerButton.hidden=!isQuestionReminder(event)||!['codex-log','demo','deepseek-harness'].includes(event.source);
+  answerButton.textContent = t(answerButton.dataset.i18n = event.source === 'deepseek-harness' ? '打开 DSH' : '打开 Codex');
   document.querySelector<HTMLButtonElement>('#brief-button')!.hidden=true;
   resetSleepTimer();
   window.clearTimeout(workTransitionTimer);
@@ -723,8 +725,9 @@ function setupPetView(): void {
   });
 
   document.querySelector('#answer-button')?.addEventListener('click', async () => {
-    const result=await window.petBridge.openCodex();
-    if(!result.ok) messageNode.textContent=t(result.error || '请从任务栏打开 Codex。');
+    const toDsh = currentEvent?.source === 'deepseek-harness';
+    const result = toDsh ? await window.petBridge.openDsh() : await window.petBridge.openCodex();
+    if(!result.ok) messageNode.textContent=t(result.error || (toDsh ? '请从任务栏打开 DeepSeek Harness。' : '请从任务栏打开 Codex。'));
   });
   window.petBridge.onTransform(() => {
     if (!presentationPolicy.transformation || !rig || activityState === 'attention') return;
@@ -864,6 +867,7 @@ function syncSettingsControls(preferences: PetPreferences): void {
   document.querySelector<HTMLInputElement>("#motion-toggle")!.checked = preferences.reducedMotion;
   document.querySelector<HTMLInputElement>('#codex-start-toggle')!.checked=preferences.startWithCodex;
   document.querySelector<HTMLInputElement>('#claude-start-toggle')!.checked=preferences.startWithClaudeCode;
+  document.querySelector<HTMLInputElement>('#dsh-start-toggle')!.checked=preferences.startWithDeepSeekHarness;
   document.querySelectorAll<HTMLButtonElement>('[data-follow-choice]').forEach(button=>{
     const selected=button.dataset.followChoice===preferences.followAgent;
     button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
@@ -1016,6 +1020,18 @@ function setupSettingsView(): void {
   });
   document.querySelector("#test-approval")!.addEventListener("click", () => {
     void window.petBridge.sendTest("needs_input");
+  });
+  document.querySelector<HTMLInputElement>('#dsh-start-toggle')!.addEventListener('change',async event=>{
+    const toggle=event.currentTarget as HTMLInputElement;toggle.disabled=true;
+    try{await savePreference({startWithDeepSeekHarness:toggle.checked});}
+    catch{toggle.checked=currentPreferences?.startWithDeepSeekHarness??true;}
+    finally{toggle.disabled=false;}
+  });
+  document.querySelector("#open-codex")!.addEventListener("click", () => {
+    void window.petBridge.openCodex();
+  });
+  document.querySelector("#open-dsh")!.addEventListener("click", () => {
+    void window.petBridge.openDsh();
   });
 }
 
