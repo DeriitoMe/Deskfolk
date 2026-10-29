@@ -128,7 +128,9 @@ export async function setupProjectsView(): Promise<void> {
   refresh.type = 'button';
   const openCodex = copy('button', 'projects-button projects-button-primary', '打开 Codex');
   openCodex.type = 'button';
-  actions.append(refresh, openCodex);
+  const openDsh = copy('button', 'projects-button projects-button-primary', '打开 DeepSeek Harness');
+  openDsh.type = 'button';
+  actions.append(refresh, openCodex, openDsh);
   header.append(heading, actions);
 
   const status = element('p', 'projects-operation-status', t('正在读取项目状态……'));
@@ -202,6 +204,7 @@ export async function setupProjectsView(): Promise<void> {
     const firstSnapshot = !hasSnapshot;
     hasSnapshot = true;
     openCodex.hidden = !['all','codex'].includes(data.preferences.followAgent);
+    openDsh.hidden = !['all','deepseek'].includes(data.preferences.followAgent);
     main.setAttribute('aria-busy', 'false');
     if (firstSnapshot) setText(status, '');
     setText(working.number, String(data.workingProjectCount));
@@ -288,6 +291,18 @@ export async function setupProjectsView(): Promise<void> {
       if (!disposed) setText(status, t('暂时无法打开 Codex。请在任务栏中打开。'));
     } finally {
       if (!disposed) openCodex.disabled = false;
+    }
+  });
+  openDsh.addEventListener('click', async () => {
+    openDsh.disabled = true;
+    setText(status, t('正在打开 DeepSeek Harness……'));
+    try {
+      const result = await window.petBridge.openDsh();
+      if (!disposed) setText(status, result.ok ? '' : t('没有找到 DeepSeek Harness 窗口，请先启动它。'));
+    } catch {
+      if (!disposed) setText(status, t('暂时无法打开 DeepSeek Harness。请在任务栏中打开。'));
+    } finally {
+      if (!disposed) openDsh.disabled = false;
     }
   });
 

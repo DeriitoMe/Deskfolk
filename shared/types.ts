@@ -162,6 +162,8 @@ export interface PetBridge {
   sendTest(type: PetEventType): Promise<void>;
   openSettings(): void;
   openCodex(): Promise<{ok:boolean;error?:string}>;
+  /** Bring the DSH desktop window forward; Codex keeps its own entry point. */
+  openDsh(): Promise<{ok:boolean;error?:string}>;
   /** The Skills Morning Brief note for this reading (null if refused). */
   getMorningBrief(): Promise<BriefNote | null>;
   openMorningBrief(): Promise<{ok:boolean;error?:string}>;

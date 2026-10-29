@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {EN_MESSAGES, normalizeLanguage, resolveLocale, translate} from './i18n.ts';
 import {eventMessage, eventVoiceMessage} from './event-copy.ts';
 import {quotaLabel} from './quota-copy.ts';
-import {parseCodexQuota, parseClaudeQuota, unknownCodexQuota, unknownClaudeQuota, unknownDeepSeekQuota} from './quota.ts';
+import {deepSeekBalanceQuota, parseCodexQuota, parseClaudeQuota, unknownCodexQuota, unknownClaudeQuota, unknownDeepSeekQuota} from './quota.ts';
 import {localizeBriefNote, pickBriefNote} from './morning-brief.ts';
 import {projectDashboard} from './project-dashboard.ts';
 import type {PetEvent, PetPreferences} from './types';
@@ -62,6 +62,9 @@ test('quota labels preserve numbers, host identity and stale/unavailable distinc
   assert.equal(quotaLabel(claude,'en',now),'Current session: 27%');
   assert.equal(quotaLabel(claude,'zh-CN',now),claude.label);
   assert.equal(quotaLabel(unknownDeepSeekQuota(),'en'),'DeepSeek usage: Unavailable');
+  const balance=deepSeekBalanceQuota({total:29.2993781,currency:'CNY',observedAt:null,spentSince:null});
+  assert.equal(quotaLabel(balance,'zh-CN'),'DeepSeek 余额: ¥29.30');
+  assert.equal(quotaLabel(balance,'en'),'DeepSeek balance: ¥29.30');
 });
 
 test('morning brief language changes keep the selected item and external titles', () => {

@@ -10,7 +10,8 @@ import {
 } from "electron";
 import { createServer, type IncomingMessage, type Server } from "node:http";
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import type {
@@ -29,6 +30,7 @@ import type {
 } from "../shared/types";
 import { dominantActivity, isSuccessfulCompletion, isUnconfirmedHookWork, sanitizeStoredActivities, shouldCelebrateCompletion, shouldDeliverBufferedEvent, shouldDeliverPetEvent, shouldIgnoreHookQuestion, successfulCompletionIdentity, updateSessionActivities, type SessionActivities } from "../shared/activity";
 import { activateCodex } from './codex-window';
+import { activateDeepSeekHarness } from './dsh-window';
 import { isQuestionReminder } from '../shared/reminders';
 import { CodexLifecycleObserver } from './codex-lifecycle';
 import { presentationPolicy } from '../shared/runtime-policy';
@@ -38,7 +40,8 @@ import {shouldPresentAcceptedEvent} from './event-presentation';
 import {CurrentQuestionLedger} from './current-questions';
 import {projectDashboard} from '../shared/project-dashboard';
 import {CodexQuotaMonitor} from './codex-quota';
-import {parseClaudeQuota,selectQuota,unknownClaudeQuota,unknownCodexQuota,unknownDeepSeekQuota,type CodexQuotaSnapshot} from '../shared/quota';
+import {parseClaudeQuota,selectQuota,unknownClaudeQuota,unknownCodexQuota,unknownDeepSeekQuota,deepSeekBalanceQuota,type CodexQuotaSnapshot,type DeepSeekBalanceReading} from '../shared/quota';
+import {costMeterBalance,type CostMeterLedger} from '../shared/deepseek-balance';
 import {ClaudeCodeAdapter} from './claude-code';
 import {ClaudeToolTracker} from './claude-tools';
 import {DeepSeekHarnessAdapter,parseDeepSeekHarnessEnvelope} from './deepseek-harness';
@@ -141,12 +144,37 @@ function sendTool(force=false){
 let claudeQuota: CodexQuotaSnapshot | null = null;
 /** Which agent the user worked with most recently; decides the quota board. */
 let lastAgent: AgentName | undefined;
+
+/** DSH keeps its prepaid balance in the cost meter ledger, not in the bridge. */
+const DSH_HOME = process.env.DSH_HOME || join(homedir(), '.dsh');
+const DSH_LEDGER_PATH = join(DSH_HOME, 'storages', 'cost-meter', 'ledger.json');
+let ledgerRead: {key: string; reading: DeepSeekBalanceReading | null} | null = null;
+
+/** Read the ledger only when it changed; the meter rewrites it after each call. */
+function deepseekBalanceReading(): DeepSeekBalanceReading | null {
+  try {
+    const stat = statSync(DSH_LEDGER_PATH);
+    const key = `${stat.mtimeMs}:${stat.size}`;
+    if (ledgerRead?.key === key) return ledgerRead.reading;
+    const reading = costMeterBalance(readJson<CostMeterLedger>(DSH_LEDGER_PATH, {}));
+    ledgerRead = {key, reading};
+    return reading;
+  } catch {
+    return null;
+  }
+}
+
+function deepseekQuota(): CodexQuotaSnapshot {
+  const reading = deepseekBalanceReading();
+  return reading ? deepSeekBalanceQuota(reading) : unknownDeepSeekQuota();
+}
+
 function quotaSnapshot(): CodexQuotaSnapshot {
   const codex=quotaMonitor?.snapshot()??unknownCodexQuota();
   const follow=preferences.followAgent;
   const active=currentActivity();
   const recent=lastAgent??(active.phase!=='idle'&&active.sessionId?sessionAgent(active.sessionId):undefined);
-  if(follow==='deepseek'||(follow==='all'&&recent==='deepseek'))return unknownDeepSeekQuota();
+  if(follow==='deepseek'||(follow==='all'&&recent==='deepseek'))return deepseekQuota();
   const preferClaude=follow==='claude'||(follow==='all'&&(lastAgent==='claude'||(!lastAgent&&!!claudeQuota?.observedAt&&
     (!codex.observedAt||Date.parse(claudeQuota.observedAt)>Date.parse(codex.observedAt)))));
   return selectQuota(codex,preferClaude?claudeQuota??unknownClaudeQuota():claudeQuota,preferClaude);
@@ -639,6 +667,7 @@ function openSettings(): void {
 }
 
 function openCodex(): void { void activateCodex(); }
+function openDeepSeekHarness(): void { void activateDeepSeekHarness(); }
 
 function openProjects():void {
   if(projectsWindow&&!projectsWindow.isDestroyed()){projectsWindow.show();projectsWindow.focus();return;}
@@ -665,6 +694,7 @@ async function createTray(): Promise<void> {
       { label: t("当前项目"), click: openProjects },
       { label: t("设置"), click: openSettings },
       { label: t('打开 Codex'), click: openCodex },
+      { label: t('打开 DeepSeek Harness'), click: openDeepSeekHarness },
       { label: t('看晨报'), click: () => { showPet(); mainWindow?.webContents.send('pet:read-brief'); } },
       { label: presentationPolicy.transformation ? t('转身 · 华丽形态预览') : t('旋转变身（暂时停用）'), enabled:presentationPolicy.transformation, click: () => {if(presentationPolicy.transformation)mainWindow?.webContents.send('pet:transform');} },
       { type: "separator" },
@@ -870,6 +900,12 @@ function registerIpc(): void {
     if(reminder?.source==='claude-code')return {ok:false,error:'请回到 Claude Code 窗口处理。'};
     if(reminder?.source==='deepseek-harness')return {ok:false,error:'请回到 DeepSeek Harness 窗口处理。'};
     return activateCodex();
+  });
+  // The pet's own board and buttons can send the user straight to DSH; Codex
+  // keeps its own entry point unchanged.
+  ipcMain.handle('pet:open-dsh', event => {
+    if(![mainWindow,settingsWindow,projectsWindow].some(w=>w?.webContents===event.sender)) return {ok:false};
+    return activateDeepSeekHarness();
   });
   ipcMain.handle('pet:morning-brief', event => {
     if(event.sender!==mainWindow?.webContents) return null;

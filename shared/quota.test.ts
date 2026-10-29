@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {currentCodexQuota, parseCodexQuota, unknownCodexQuota, unknownDeepSeekQuota} from './quota.ts';
+import {currentCodexQuota, deepSeekBalanceQuota, parseCodexQuota, unknownCodexQuota, unknownDeepSeekQuota} from './quota.ts';
 
 const now = Date.parse('2026-10-14T03:00:00Z');
 const observed = new Date(now).toISOString();
@@ -89,4 +89,24 @@ test('Harness explicitly has no verified quota reading or assumed five-hour wind
  assert.equal(quota.remainingPercent,null);assert.equal(quota.usedPercent,null);
  assert.equal(quota.observedAt,null);assert.equal(quota.resetsAt,null);
  assert.deepEqual(currentCodexQuota(quota,now+9e9),quota,'time passing cannot invent a reset or allowance');
+});
+
+test('Harness balance board subtracts spend after the cost meter reading', () => {
+  const reading = {total: 29.2993781, currency: 'CNY', observedAt: observed, spentSince: 0.3435};
+  const quota = deepSeekBalanceQuota(reading);
+  assert.equal(quota.status, 'available');
+  assert.equal(quota.source, 'deepseek-harness');
+  assert.equal(quota.label, 'DeepSeek 余额: ¥28.96');
+  assert.equal(quota.observedAt, observed);
+  assert.equal(quota.remainingPercent, null);
+  assert.equal(quota.usedPercent, null);
+  assert.equal(quota.resetsAt, null);
+  assert.deepEqual(currentCodexQuota(quota, now + 9e9), quota, 'a balance has no window to expire');
+  assert.equal(deepSeekBalanceQuota({...reading, spentSince: null}).label, 'DeepSeek 余额: ¥29.30');
+  assert.equal(deepSeekBalanceQuota({...reading, spentSince: 999}).label, 'DeepSeek 余额: ¥0.00',
+    'a spent total never turns the board negative');
+  assert.equal(deepSeekBalanceQuota({...reading, currency: 'USD', total: 5, spentSince: null}).label, 'DeepSeek 余额: $5.00');
+  const missing = deepSeekBalanceQuota({...reading, total: Number.NaN});
+  assert.equal(missing.status, 'unavailable');
+  assert.equal(missing.label, 'DeepSeek 额度: 暂不可用');
 });
