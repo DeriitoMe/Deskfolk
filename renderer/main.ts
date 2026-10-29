@@ -867,6 +867,7 @@ function syncSettingsControls(preferences: PetPreferences): void {
   document.querySelector<HTMLInputElement>("#motion-toggle")!.checked = preferences.reducedMotion;
   document.querySelector<HTMLInputElement>('#codex-start-toggle')!.checked=preferences.startWithCodex;
   document.querySelector<HTMLInputElement>('#claude-start-toggle')!.checked=preferences.startWithClaudeCode;
+  document.querySelector<HTMLInputElement>('#dsh-start-toggle')!.checked=preferences.startWithDeepSeekHarness;
   document.querySelectorAll<HTMLButtonElement>('[data-follow-choice]').forEach(button=>{
     const selected=button.dataset.followChoice===preferences.followAgent;
     button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
@@ -1019,6 +1020,15 @@ function setupSettingsView(): void {
   });
   document.querySelector("#test-approval")!.addEventListener("click", () => {
     void window.petBridge.sendTest("needs_input");
+  });
+  document.querySelector<HTMLInputElement>('#dsh-start-toggle')!.addEventListener('change',async event=>{
+    const toggle=event.currentTarget as HTMLInputElement;toggle.disabled=true;
+    try{await savePreference({startWithDeepSeekHarness:toggle.checked});}
+    catch{toggle.checked=currentPreferences?.startWithDeepSeekHarness??true;}
+    finally{toggle.disabled=false;}
+  });
+  document.querySelector("#open-codex")!.addEventListener("click", () => {
+    void window.petBridge.openCodex();
   });
   document.querySelector("#open-dsh")!.addEventListener("click", () => {
     void window.petBridge.openDsh();

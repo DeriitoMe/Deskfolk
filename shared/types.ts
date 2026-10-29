@@ -91,6 +91,8 @@ export interface PetPreferences {
   startWithCodex: boolean;
   /** Claude Code SessionStart hook may launch the pet when it is closed. */
   startWithClaudeCode: boolean;
+  /** The DeepSeek Harness plugin may launch the pet when it is closed. */
+  startWithDeepSeekHarness: boolean;
   /** Which agent drives work state, bubbles and the quota board. */
   followAgent: FollowAgent;
   doNotDisturb: boolean;
